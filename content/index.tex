@@ -728,10 +728,15 @@ bitbake -f -c compile inovex-config
 bitbake core-image-minimal
   \end{minted}
 \end{code}
-
 \newpage
 
 \section{Conclusion}
-this is my conclusion
+The Mender Integration server is running really stable on our Kubernetes cluster at Azure with Certbot managing HTTPS traffic. This setup allowed us to easily add other services like Vault or a custom provisioning service to the cluster.
+
+Setting up the Yocto project was by far the most difficult part of the practical phase. The community is still really small so there are not many tutorials on the internet. During my research i often ended up on outdated mailing lists which did not solve my problem. Yocto is also really time consuming. One change to a source file means rebuilding the project for up to six hours. Despite these obstacles Yocto is a heavy tool which lets you customize everything. The final image is slim and optimized for its use case.
+
+
+In the first iteration of this paper i wanted to have a closer look on frameworks like Kubernetes, Swarm, Nomad and Apache Mesos.
+The Smart Building project is mostly driven by students at inovex. 
 
 \newpage
