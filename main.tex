@@ -1,0 +1,111 @@
+% arara: pdflatex
+% font size
+\documentclass[a4paper,11pt]{article}
+\usepackage[T1]{fontenc} 
+\usepackage[utf8]{inputenc}
+% language
+\usepackage[english]{babel}
+
+\usepackage{graphicx}
+\usepackage{ragged2e}
+
+\usepackage[format=plain,justification=RaggedRight,singlelinecheck=false,font={small},labelsep=space]{caption}
+\usepackage[dvipsnames]{xcolor}	
+\usepackage[a4paper]{geometry}
+    % border size
+    % left 3.5 right 2.5 for printing with binding
+	\geometry{left=3cm,right=3cm,top=2.4cm,bottom=2cm}
+	% row spacing
+	\usepackage[onehalfspacing]{setspace}
+	\renewcommand{\\}{\vspace*{0.5\baselineskip} \newline}
+\renewcommand*\MakeUppercase[1]{#1}	
+\usepackage{fancyhdr}
+	\pagestyle{fancy}
+	\renewcommand{\headrulewidth}{0pt}
+	\renewcommand{\footrulewidth}{0pt}
+	\fancyhead[R]{\footnotesize{\thepage}}
+	\fancyhead[L]{\footnotesize{\leftmark}}
+	\fancyfoot{}
+\usepackage[colorlinks,
+pdfpagelabels,
+pdfstartview = FitH,
+bookmarksopen = true,
+bookmarksnumbered = true,
+linkcolor = black,
+urlcolor = cyan,
+plainpages = false,
+hypertexnames = false,
+citecolor = black,
+colorlinks=true] {hyperref}
+\usepackage{import}
+% syntax highlighting
+\usepackage{minted}
+
+\usepackage{listings}
+
+% TODO define langauge
+\lstdefinelanguage{conf}{}
+
+% START CODE STYLING YAML
+\newcommand\YAMLcolonstyle{\color{red}\mdseries}
+\newcommand\YAMLkeystyle{\color{black}\bfseries}
+\newcommand\YAMLvaluestyle{\color{blue}\mdseries}
+
+\makeatletter
+
+% here is a macro expanding to the name of the language
+% (handy if you decide to change it further down the road)
+\newcommand\language@yaml{yaml}
+
+\expandafter\expandafter\expandafter\lstdefinelanguage
+\expandafter{\language@yaml}
+{
+  keywords={true,false,null,y,n},
+  keywordstyle=\color{darkgray}\bfseries,
+  basicstyle=\YAMLkeystyle,                                 % assuming a key comes first
+  sensitive=false,
+  comment=[l]{\#},
+  morecomment=[s]{/*}{*/},
+  commentstyle=\color{purple}\ttfamily,
+  stringstyle=\YAMLvaluestyle\ttfamily,
+  moredelim=[l][\color{orange}]{\&},
+  moredelim=[l][\color{magenta}]{*},
+  moredelim=**[il][\YAMLcolonstyle{:}\YAMLvaluestyle]{:},   % switch to value style at :
+  morestring=[b]',
+  morestring=[b]",
+  literate =    {---}{{\ProcessThreeDashes}}3
+                {>}{{\textcolor{red}\textgreater}}1     
+                {|}{{\textcolor{red}\textbar}}1 
+                {\ -\ }{{\mdseries\ -\ }}3,
+}
+
+% switch to key style at EOL
+\lst@AddToHook{EveryLine}{\ifx\lst@language\language@yaml\YAMLkeystyle\fi}
+\makeatother
+
+\newcommand\ProcessThreeDashes{\llap{\color{cyan}\mdseries-{-}-}}
+% END CODE STYLING YAML
+
+\begin{document}
+\import{other/}{title}
+
+\pagenumbering{Roman}
+
+\tableofcontents\newpage
+%\listoftables\addcontentsline{toc}{section}{List of Tables}\newpage
+
+\pagenumbering{arabic}
+
+\input{content/index}
+
+\import{other/}{declaration}
+\listoffigures\addcontentsline{toc}{section}{List of Figures}\newpage
+
+\bibliographystyle{IEEEtran}
+\bibliography{refs} 
+\newpage
+
+%\appendix
+%\input{other/appendix}
+
+\end{document}
