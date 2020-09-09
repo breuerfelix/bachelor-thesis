@@ -337,7 +337,9 @@ Minio and MongoDB are the only Mender services with persistent storage. When usi
 \subsection{Docker-Swarm}
 Docker-Swarm was built by Docker and introduced as a distributed alternative to Docker-Compose. Docker made some changes to the YAML specification as mentioned in section \ref{docker-compose}.\\
 Some of these changes affect the Mender Docker-Compose setup. The \verb|restart| keyword is now defined as a \verb|condition|:
-\begin{lstlisting}[language=yaml, caption=Restart Policy]
+\begin{code}
+  \captionof{listing}{Restart Policy}
+  \begin{minted}{yaml}
 # docker compose
 version: '3'
 services:
@@ -353,26 +355,12 @@ services:
     deploy:
       restart_policy:
         condition: on-failure
-\end{lstlisting}
-\begin{lstlisting}[language=yaml, caption=Restart Policy]
-# docker compose
-version: '3'
-services:
-  mender-useradm:
-    restart: on-failure
-
----
-
-# docker swarm
-version: '3'
-services:
-  mender-useradm:
-    deploy:
-      restart_policy:
-        condition: on-failure
-\end{lstlisting}
+  \end{minted}
+\end{code}
 The Nginx API-Gateway is not able to resolve internal services by their names. This is due to Nginx not using the Docker Domain Name Server. This could be fixed by altering the \verb|nginx.conf| file to use a custom DNS server. A solution which does not require changes to the container image is to set a network alias to all services with their service names:
-\begin{lstlisting}[language=yaml, caption=Service Name Alias]
+\begin{code}
+  \captionof{listing}{Service Name Alias}
+  \begin{minted}{yaml}
 # docker compose
 version: '3'
 services:
@@ -398,21 +386,29 @@ services:
 
 networks:
   - mender
-\end{lstlisting}
+  \end{minted}
+\end{code}
 After applying these changes to all services the Mender application stack can be deployed or removed with the commands from listing \ref{deploy-mender}.
-\begin{lstlisting}[language=bash, label={deploy-mender}, caption=Docker Swarm Deploy]
+\begin{code}
+  \captionof{listing}{Docker Swarm Deploy}
+  \label{deploy-mender}
+  \begin{minted}{bash}
 # deploy the mender stack
 docker stack deploy -c docker-compose.modified.yml mender
 # remove the mender stack
 docker stack rm mender
-\end{lstlisting}
+  \end{minted}
+\end{code}
 Azure does not offer a Docker-Swarm service which bootstraps a cluster automatically. Such a cluster has to be created manually according to Docker-Swarms documentation with Azure virtual machines.
 
 \subsection{Kubernetes}
 "Kubernetes (K8s) is an open-source system for automating deployment, scaling, and management of containerized applications.
 It groups containers that make up an application into logical units for easy management and discovery."\cite{k8s}\\
 Even tough Kubernetes also uses YAML configuration files, their specification is different to the one from Docker-Compose or Docker-Swarm. One service is described by a deployment which handles the container creation and a Kubernetes service which enables networking for this container. First step was to create one deployment and one Kubernetes service for each service defined in the Compose file.
-\begin{lstlisting}[language=yaml, label={k8s-device-auth}, caption=Device Auth Service]
+\begin{code}
+  \captionof{listing}{Device Auth Service}
+  \label{k8s-device-auth}
+  \begin{minted}{yaml}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -449,7 +445,8 @@ spec:
     - protocol: TCP
       port: 8080
       targetPort: 8080
-\end{lstlisting}
+  \end{minted}
+\end{code}
 Listing \ref{k8s-device-auth} shows the converted Mender Device-Auth service. All other converted Mender services are smimilar.\\
 When deploying the Mender application to Kubernetes many services fail to start. This is due to the missing \verb|depends_on| keyword from Docker-Compose. After some minutes these issues resolve themselves because Kubernetes tries to restart failed services per default. If during downtime all required services for a certain service are up and running, it will start properly. This behaviour only delays the initial start of the application. The product owner decided to not prioritize this issue because it still works.\\
 Azure offers Kubernetes as a service which bootstraps a cluster in minutes and provides login credentials for \verb|kubectl|.
@@ -470,14 +467,21 @@ The device was not able to reboot with the community driven kernel. The power ca
 \subsection{Intel NUC}
 Intel NUC uses an x64 processor which is one of the main difference to other micro controllers. The Mender Forums have a tutorial on how to setup Mender with Yocto on an Intel NUC board.\cite{intel-mender-yocto} Intel provides an official recipe for Yocto with Intel kernels. Setting up a minimal image with a shell and systemd was the first step in order to test the overall status of the kernel. All system services were working properly.\\
 In order to establish a network connection either a static IP needs to be given to that device or DHCP needs to be enabled. Networking is part of the \verb|systemd| ecosystem which is a core linux component. These can be changed with a custom Yocto layer.
-\begin{lstlisting}[language=conf, label={network-dhcp}, caption=20-dhcp.network]
+\begin{code}
+  \captionof{listing}{20-dhcp.network}
+  \label{network-dhcp}
+  \begin{minted}{ini}
 [Match]
 Name=en*
 [Network]
 DHCP=yes
-\end{lstlisting}
+  \end{minted}
+\end{code}
 Copying the file in listing \ref{network-dhcp} to \verb|/etc/systemd/network| enables DHCP for all network interfaces starting with \verb|en|.
-\begin{lstlisting}[language=conf, label={systemd-append}, caption=systemd\_\%.bbappend]
+\begin{code}
+  \captionof{listing}{systemd\_\%.bbappend}
+  \label{systemd-append}
+  \begin{minted}{bash}
 PACKAGECONFIG_append = " networkd resolved"
 
 FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
@@ -490,22 +494,34 @@ do_install_append() {
     0644 ${WORKDIR}/20-dhcp.network
     ${D}${sysconfdir}/systemd/network
 }
-\end{lstlisting}
+  \end{minted}
+\end{code}
 Listing \ref{systemd-append} extends the \verb|systemd| package to copy listing \ref{network-dhcp} into the image.\\
 Azure modules started by Azure IoT Edge are containerized applications. This requires Moby-Engine to be installed on IoT Edge devices. The \verb|meta-virtualization| layer offers a \verb|docker| package which is an alias for the Moby Engine. It also offers a \verb|docker-ce| package which refers to the branded Docker Moby Engine.\\
 In version 2.7 the \verb|docker| package only sets appropriate kernel modules for kernels named \verb|linux-yocto|. When using a different kernel like \verb|linux-intel| these modules need to be set by customizing the \verb|recipes-linux| recipe. Running \href{https://raw.githubusercontent.com/moby/moby/master/contrib/check-config.sh}{check-config.sh} on the edge device identifies missing kernel modules for Moby Engine.
-\begin{lstlisting}[language=conf, label={linux-append}, caption=linux-\%.bbappend]
+\begin{code}
+  \captionof{listing}{linux-\%.bbappend}
+  \label{linux-append}
+  \begin{minted}{bash}
 include ${@bb.utils.contains(
   'DISTRO_FEATURES', 'virtualization',
   'virtualization.inc', '', d
 )}
-\end{lstlisting}
-\begin{lstlisting}[language=conf, label={virtualization-inc}, caption=virtualization.inc]
+  \end{minted}
+\end{code}
+\begin{code}
+  \captionof{listing}{virtualization.inc}
+  \label{virtualization-inc}
+  \begin{minted}{bash}
 FILESEXTRAPATHS_prepend := "${THISDIR}/linux-yocto:"
 
 SRC_URI += "file://docker.scc"
-\end{lstlisting}
-\begin{lstlisting}[language=conf, label={docker-scc}, caption=docker.scc]
+  \end{minted}
+\end{code}
+\begin{code}
+  \captionof{listing}{docker.scc}
+  \label{docker-scc}
+  \begin{minted}{ini}
 CONFIG_NETFILTER_XT_MATCH_ADDRTYPE=y
 CONFIG_IP_NF_FILTER=y
 CONFIG_NF_NAT=y
@@ -547,21 +563,33 @@ CONFIG_IP_VS_RR=y
 CONFIG_VXLAN=y
 CONFIG_BRIDGE_VLAN_FILTERING=y
 CONFIG_IPVLAN=y
-\end{lstlisting}
+  \end{minted}
+\end{code}
 Listing \ref{linux-append} loads listing \ref{virtualization-inc} which loads listing \ref{docker-scc}. All kernel modules in listing \ref{docker-scc} will be enabled. Running \verb|check-config.sh| again to ensure all modules are loaded properly.\\
 Listing \ref{dns} and \ref{ntp} are needed to use a custom DNS and NTP server. They are installed on the image in listing \ref{systemd-append} as shown in listing \ref{systemd-append-advanced}.
-\begin{lstlisting}[language=conf, label={dns}, caption=resolved.conf]
+\begin{code}
+  \captionof{listing}{resolved.conf}
+  \label{dns}
+  \begin{minted}{ini}
 [Resolve]
 DNS=1.1.1.1
 FallbackDNS=1.0.0.1
 LLMNR=no
-\end{lstlisting}
-\begin{lstlisting}[language=conf, label={ntp}, caption=timsyncd.conf]
+  \end{minted}
+\end{code}
+\begin{code}
+  \captionof{listing}{timesyncd.conf}
+  \label{ntp}
+  \begin{minted}{ini}
 [Time]
 NTP=pool.ntp.org
 FallbackNTP=de.pool.ntp.org
-\end{lstlisting}
-\begin{lstlisting}[language=conf, label={systemd-append-advanced}, caption=systemd\_\%.bbappend]
+  \end{minted}
+\end{code}
+\begin{code}
+  \captionof{listing}{systemd\_\%.bbappend}
+  \label{systemd-append-advanced}
+  \begin{minted}{bash}
 PACKAGECONFIG_append = " networkd resolved"
 
 FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
@@ -583,20 +611,28 @@ do_install_append() {
       ${WORKDIR}/20-dhcp.network
       ${D}${sysconfdir}/systemd/network
 }
-\end{lstlisting}
+  \end{minted}
+\end{code}
 The Mender client configuration is done in Yoctos \verb|local.conf| file as described in the official documentation.
-\begin{lstlisting}[language=conf, label={local-conf}, caption=local.conf]
+\begin{code}
+  \captionof{listing}{local.conf}
+  \label{local-conf}
+  \begin{minted}{ini}
 INHERIT += "mender-full"
 MENDER_SERVER_URL ?= "https://mender.smart-building.inovex.io"
 MENDER_ARTIFACT_NAME ?= "release-1.0.3"
-\end{lstlisting}
+  \end{minted}
+\end{code}
 Listing \ref{local-conf} installs the Mender client and sets the Mender URL which refers to a Mender Integration server instance.
 
 \subsection{Gitlab Continuous Integration}
 Yocto requires a strict build environment with long build times. A clean Edge Gateway Yocto build takes up to six hours on a Thinkpad T490.\\
 The project source code is version controlled with git and hosted on a private inovex GitLab instance. GitLab offers GitLab CI to run automated pipelines which are hardware independent through docker environments. This enables Windows and MacOS users to trigger Yocto builds since these platforms are not supported.\\
 Yocto is highly optimized for parallel computing. Build time scales down with increasing amount of CPU cores on the GitLab runner. A sixteen core virtual machine with eight GB RAM was chosen to host the GitLab runner. Finished images will be stored as GitLab artifacts and can be downloaded via GitLab web interface. Yocto also produces Mender files which are used for edge gateway OTA updates. These are uploaded via service account to MenderHub.
-\begin{lstlisting}[language=yaml, label={gitlab-ci}, caption=.gitlab-ci.yml]
+\begin{code}
+  \captionof{listing}{.gitlab-ci.yml}
+  \label{gitlab-ci}
+  \begin{minted}{yaml}
 stages:
   - build
   - build_qemu
@@ -664,9 +700,13 @@ deploy_yocto:
   except:
     changes:
       - README.md
-\end{lstlisting}
+  \end{minted}
+\end{code}
 Repositories should not contain any secrets like Docker registry tokens or service account credentials. GitLab provides environment variables for pipelines that can be set in the web interface. A custom build script shown in listing \ref{run-sh} accepts these variables and hand them over to Yocto.
-\begin{lstlisting}[language=bash, label={run-sh}, caption=run.sh]
+\begin{code}
+  \captionof{listing}{run.sh}
+  \label{run-sh}
+  \begin{minted}{bash}
 #!/bin/bash
 
 # allow the use of certain environment variables
@@ -686,9 +726,12 @@ source layers/poky/oe-init-build-env build
 # always rebuild our custom config
 bitbake -f -c compile inovex-config
 bitbake core-image-minimal
-\end{lstlisting}
+  \end{minted}
+\end{code}
 
 \newpage
 
 \section{Conclusion}
 this is my conclusion
+
+\newpage
