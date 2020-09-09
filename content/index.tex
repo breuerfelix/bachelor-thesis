@@ -50,8 +50,10 @@ Compose runs on a single machine. To distribute services across multiple nodes, 
 The Mender Integration Server uses Docker-Compose to define their application stack. This allows users a simple and quick local production or development setup on a single machine.\\
 Container orchestration platforms are used to scale containerized applications like Mender Integration Server on higher load. Common platforms are Kubernetes, Nomand or Apache Mesos. These tools allow users to ship their containers to a platform which distributes them to any node on the cluster. This enables higher workload for large scale applications because it can be distributed to different compute nodes.\\
 A scaleable Mender Hub is important for potential customers which want to handle multiple thousand IoT devices at a time. Critical updates need to be delivered quickly. Handling a batch of devices after another is often not an option.
-
-\begin{lstlisting}[language=yaml, label={org-dc}, caption=Original Docker-Compose]
+\begin{code}
+  \captionof{listing}{Original Docker-Compose YAML}
+  \label{org-dc}
+  \begin{minted}{yaml}
 version: '2.1'
 services:
 
@@ -215,7 +217,8 @@ services:
 
 networks:
   mender:
-\end{lstlisting}
+  \end{minted}
+\end{code}
 Listing \ref{org-dc} shows a YAML configuration to run Mender Hub via Docker-Compose on a local machine.
 
 \subsection{Yocto}
@@ -232,7 +235,9 @@ Mender has no official way to deactivate SSL termination in the API-Gateway and 
 First step was modifying the original \verb|nginx.conf| file to only expose port 80 and remove all SSL specific configuration. The \verb|include| statement in Nginx allows reusing parts of your configuration file in multiple different files. After extracting all common configuration into a separate config file, the entrypoint script needs to decide whether to use \verb|nginx.ssl.conf| or \verb|nginx.no-ssl.conf| as \verb|nginx.conf| based on the environment variable \verb|SSL|. This ensures that no duplicated code has to be maintained in the future.\\
 The pull request with all changes was merged in the master branch as shown on \href{https://github.com/mendersoftware/mender-api-gateway-docker/pull/109}{Github}.\\
 
-\begin{lstlisting}[language=conf, caption=nginx.no-ssl.conf]
+\begin{code}
+  \captionof{listing}{nginx.no-ssl.conf}
+  \begin{minted}{nginx}
 server {
   listen 80;
   # @ALLOWED_HOSTS@ gets changed by the entrypoint
@@ -240,8 +245,11 @@ server {
   # import application specific configuration
   include /usr/local/openresty/nginx/conf/common.nginx.conf;
 }
-\end{lstlisting}
-\begin{lstlisting}[language=conf, caption=nginx.ssl.conf]
+  \end{minted}
+\end{code}
+\begin{code}
+  \captionof{listing}{nginx.ssl.conf}
+  \begin{minted}{nginx}
 # redirect http to https
 server {
   listen 80;
@@ -273,9 +281,12 @@ server {
   # import application specific configuration
   include /usr/local/openresty/nginx/conf/common.nginx.conf;
 }
-\end{lstlisting}
-
-\begin{lstlisting}[language=bash, label={entrypointsh}, caption=entrypoint.sh]
+  \end{minted}
+\end{code}
+\begin{code}
+  \captionof{listing}{entrypoint.sh}
+  \label{entrypointsh}
+  \begin{minted}{bash}
 #!/bin/sh
 
 # default is true
@@ -308,7 +319,8 @@ sed -i -e \
 \/usr\/local\/openresty\/nginx\/conf\/
 nginx.$SERVER_BLOCKS_FILENAME.conf;/" \
 /usr/local/openresty/nginx/conf/nginx.conf
-\end{lstlisting}
+  \end{minted}
+\end{code}
 Listing \ref{entrypointsh} includes the correct \verb|nginx.conf| according to the environment variable \verb|SSL| in the main nginx configuration file via \verb|sed| command.
 
 \subsection{Static Configuration}
@@ -325,6 +337,23 @@ Minio and MongoDB are the only Mender services with persistent storage. When usi
 \subsection{Docker-Swarm}
 Docker-Swarm was built by Docker and introduced as a distributed alternative to Docker-Compose. Docker made some changes to the YAML specification as mentioned in section \ref{docker-compose}.\\
 Some of these changes affect the Mender Docker-Compose setup. The \verb|restart| keyword is now defined as a \verb|condition|:
+\begin{lstlisting}[language=yaml, caption=Restart Policy]
+# docker compose
+version: '3'
+services:
+  mender-useradm:
+    restart: on-failure
+
+---
+
+# docker swarm
+version: '3'
+services:
+  mender-useradm:
+    deploy:
+      restart_policy:
+        condition: on-failure
+\end{lstlisting}
 \begin{lstlisting}[language=yaml, caption=Restart Policy]
 # docker compose
 version: '3'
