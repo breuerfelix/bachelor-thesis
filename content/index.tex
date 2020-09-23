@@ -731,12 +731,8 @@ bitbake core-image-minimal
 \newpage
 
 \section{Conclusion}
-The Mender Integration server is running really stable on our Kubernetes cluster at Azure with Certbot managing HTTPS traffic. This setup allowed us to easily add other services like Vault or a custom provisioning service to the cluster.
-
-Setting up the Yocto project was by far the most difficult part of the practical phase. The community is still really small so there are not many tutorials on the internet. During my research i often ended up on outdated mailing lists which did not solve my problem. Yocto is also really time consuming. One change to a source file means rebuilding the project for up to six hours. Despite these obstacles Yocto is a heavy tool which lets you customize everything. The final image is slim and optimized for its use case.
-
-
-In the first iteration of this paper i wanted to have a closer look on frameworks like Kubernetes, Swarm, Nomad and Apache Mesos.
-The Smart Building project is mostly driven by students at inovex. 
-
+In the first iteration of this paper i wanted to have a closer look on frameworks like Kubernetes, Swarm, Nomad and Apache Mesos. This was not possible because the Coronavirus changed our projects scope. The focus shifted on also measuring air quality and preparing meeting rooms as fast as possible. Air quality indicators would open the door to allow more people inside meeting rooms and therefore more people visiting the office overall. After migrating to Kubernetes which ran stable i decided to move on implementing the client part instead of experimenting with different frameworks.\\
+At time of this writing the Mender Integration server is still running stable on our managed Kubernetes cluster on Azure with Cerbot managing HTTPS traffic. This setup allowed us to easily add other services like Vault or a custom provisioning service to the cluster.\\
+Setting up the Yocto project was by far the most difficult part of the practical phase. There are not many tutorials on the internet because the community is really small. During my research i often ended up on outdated mailing lists which did not solve my problem. Yocto is also time consuming. One change to a source file means rebuilding the project for up to six hours. Despite these obstacles Yocto is a heavy tool which lets you customize everything. The final image is slim and optimized for its use case. The GitLab pipeline helped a lot in terms of productivity. Even though the build time is long, one can focus on other tasks while the server is doing the work. Building on the local computer slowed down all other work.\\
+Overall i had the chance to learn several different topics which was really interesting.
 \newpage
