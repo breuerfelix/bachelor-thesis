@@ -1,6 +1,7 @@
 % font size
 \documentclass[a4paper,11pt]{article}
-\usepackage[T1]{fontenc} 
+% T1 causes blurry fonts somehow
+%\usepackage[T1]{fontenc} 
 \usepackage[utf8]{inputenc}
 % language
 \usepackage[english]{babel}
@@ -47,12 +48,6 @@ colorlinks=true] {hyperref}
 \newenvironment{code}{\captionsetup{type=listing}}{}
 \SetupFloatingEnvironment{listing}{name=Listing}
 
-\usepackage{listings}
-
-% TODO define langauge
-\lstdefinelanguage{conf}{}
-\lstdefinelanguage{yaml}{}
-
 \author{Felix Breuer}
 \begin{document}
 \import{other/}{title}
@@ -66,7 +61,7 @@ colorlinks=true] {hyperref}
 
 \input{content/index}
 
-\import{other/}{declaration}
+%\import{other/}{declaration}
 \listoffigures\addcontentsline{toc}{section}{List of Figures}\newpage
 
 \bibliographystyle{IEEEtran}

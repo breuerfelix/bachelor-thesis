@@ -9,16 +9,14 @@ The practical phase took place in the setting of an Internet of Things "Smart Bu
 "Here at inovex, we are using an iterative strategy process to manage our own agile transformation. We also believe in flat hierarchies, and we base all our decisions on agile values.\\
 As all our project teams are self-organised and agile skills are, therefore, essential, every new inovex employee receives training in agile methods. We also support our employees by holding meetings in agile formats (like Lean Coffee) and by facilitating the internal transfer of knowledge (through brown bag lunches and tech days, for example).\\
 Many of our internal teams work agilely and thus enjoy a high level of transparency, quality and efficiency. Our Marketing Team, HR Team and Sales Team have each established different agile methods tailored specifically to their requirements and they use these in combination with our ISO-certified quality management processes."\cite{inovex}
-\newpage
 
 \subsection{Internet of Things}
 Internet of Things "is the concept of basically connecting any device with an on and off switch to [a network]. This includes everything from cellphones, coffee makers, washing machines, headphones, lamps [to] wearable devices ... .\\
 This also applies to components of machines, for example, a jet engine of an airplane or the drill of an oil rig."\cite{forbes-iot}
-
+\newpage
 \subsection{Smart Building}
 "Smart Building" is the digitization of an entire construction. This includes automating, controlling and linking every technical device inside the building. The purpose is to manage these devices more intelligently in order to reduce energy costs and lower the carbon footprint.\cite{kiwi-sb}\\
 A popular example is a lamp that automatically turns on when a person enters the corridor and turns off after it stops detecting movements. A more complex scenario would be windows that open and close depending on the CO2 saturation in the room.
-\newpage
 
 \section{Project}
 Inovex has seven locations with five to ten meeting rooms each. These can be added to any appointment in Google Calendar to be blocked for the duration of this event.\\
@@ -29,6 +27,7 @@ The solution might be smart meeting rooms that determine their real status and u
 "Mender is an open source over-the-air (OTA) software updater for embedded Linux devices. Mender comprises a client running at the embedded device, as well as a server that manages deployments across many devices. ...\\
 Robustness is ensured with atomic image-based deployments using a dual A/B rootfs partition layout. This makes it always possible to roll back to a working state, even when losing power at any time during the update process. ...\\
 Mender not only provides the client-side updater, but also the backend and UI for managing deployments as open source. The Mender server is designed as a microservices architecture and comprises several repositories."\cite{mender-github}
+\newpage
 
 \subsection{Mender Integration Server}
 Modern applications are often built with a microservice architecture. This structures the application into a collection of highly maintainable individual services, which are loosely coupled and independently deployed.\cite{microservicesio}\\
@@ -42,6 +41,7 @@ Figure \ref{fig:mender-integration} shows all microservices and their network co
     \label{fig:mender-integration}
 \end{figure}
 Minio is a third-party object storage. It can either be used to serve uploaded content on its own or to proxy requests to Amazon S3 compatible cloud providers. All other services are mender application logic web services.
+\newpage
 
 \subsubsection{Docker-Compose} \label{docker-compose}
 Docker-Compose, also referred to as Compose, is a tool used for defining and running multi-container Docker applications. With Compose, a YAML file is used to configure application services. Then, with a single command, all services from the configuration are created and started.\cite{docker-compose}\\
@@ -225,6 +225,7 @@ Listing \ref{org-dc} shows a YAML configuration to run Mender Hub via Docker-Com
 The project provides a flexible set of tools and a space where embedded developers worldwide can share technologies, software stacks, configurations, and best practices that can be used to create tailored Linux images for embedded and IoT devices, or anywhere a customized Linux OS is needed."\cite{yoctoproject}\\
 Popular distributions like Ubuntu Server ship with plenty of nice features, services and tools. IoT devices are dedicated to do a specific task. Many features of these generalized distributions are therefore not needed in IoT environments. Creating a minimal distribution with Yocto increases performance, battery life and free disk space.\\
 Mender Software maintains an official Yocto recipe which adds the Mender client to an image. This client connects the device to Mender Hub and enables over the air (OTA) updates. Community driven Yocto example setups for most popular microcontrollers like Raspberry Pi, Asus Tinkerboard or Intel NUC are available on the Mender Forums.
+\newpage
 
 \section{Prerequisites}
 \subsection{Transport Layer Security}
@@ -457,6 +458,7 @@ In the Smart Building project, we decided to choose Kubernetes instead of Docker
 The current meeting room status is stored in an Azure cloud database. Sensor data needs to be transmitted, filtered and stored into this database. One edge gateway in each inovex location is used to perform these steps. Sensors from corresponding locations connect to the gateway and transmit their data via WiFi. This data is then filtered and forwarded into the cloud by the gateway.\\
 The gateway should get a custom Linux image, which is built with Yocto, in order to evaluate this workflow for inovex. Choosing the correct version for a new Yocto project is important because all layers and recipes need to support this version. Needed layers in this project are \verb|meta-openembedded| for networking, \verb|meta-virtualization| for docker support and \verb|meta-mender| for the Mender client. \verb|meta-mender| only supports up to version \verb|warrior| which is an alias for Yocto version 2.7.\\
 There were two possible devices to run with Yocto version 2.7 in the context of the Smart Building project: Asus Tinker Board and Intel NUC.
+\newpage
 
 \subsection{Asus Tinker Board}
 "Tinker Board is a Single Board Computer (SBC) in an ultra-small form factor that offers class-leading performance while leveraging outstanding mechanical compatibility."\cite{asus-tinkerboard} The reason for choosing the Tinker Board over other ARM-based board was its built-in eMMC.\\
@@ -727,7 +729,6 @@ bitbake -f -c compile inovex-config
 bitbake core-image-minimal
   \end{minted}
 \end{code}
-\newpage
 
 \section{Conclusion}
 In the first iteration of this paper, I planned to have a closer look at frameworks like Kubernetes, Docker-Swarm, Nomad and Apache Mesos. This was not possible as the COVID-19 pandemic forced us to adjust the scope of our project. The focus shifted to measuring air quality and preparing meeting rooms as fast as possible. Air quality indicators would allow more people inside meeting rooms and therefore more people visiting the office overall. After migrating to Kubernetes, which ran stable, I decided to move on to the implementation of the Mender Client instead of experimenting with different frameworks.\\
