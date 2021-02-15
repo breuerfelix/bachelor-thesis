@@ -17,6 +17,23 @@ circuit breaking
 optional:
 multiplexing
 
+## idea
+
+- weighted round robin + sticky session based on client id + shared round robin based on sni
+  - what if the broker do not want the client id
+- LB as a huge state machine
+  - different LB techniques in different states
+  - state balanced: sticky sessions with clientid parsed (with lua filter)
+  - state new broker: weighted round robin
+- dynamic dns (with hivemq dynamic dns)
+
+use wasm network filter:
+https://www.envoyproxy.io/docs/envoy/latest/configuration/listeners/network_filters/wasm_filter
+
+!! lua only works as http filter
+lua filter https://github.com/envoyproxy/envoy/blob/main/examples/lua/envoy.yaml
+https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/lua_filter#config-http-filters-lua
+
 ## schlachtplan
 
 - k8s cluster mit hivemq aufsetzen

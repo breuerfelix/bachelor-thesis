@@ -1,33 +1,142 @@
+Guidelines:
+Seiten: 50
+Präsentation: 30 min / Disskusion: 15 min
+sonarqube als code scan
+
 \section{Einleitung}
-\subsection{Unternehmen}
+
+- Outline your work such that readers who have not read subsequent chapters get an idea of what
+  - your "problem domain" is (e.g. the software quality department of some company or the overarching research project you are working in)
+  - the situation is (e.g. software tests at some company are done in complete manual fash-ion)
+  - the complication / problem is (e.g. hotfixes have to be deployed totally untested in pro-duction)
+  - what your approach is (e.g. establishing a concept and tool evaluation for continuously improving code coverage of automated tests)
+  - what beyond the scope of your thesis is (e.g. also implementing a CICD pipeline)
+  - what the actual core results are (e.g. how many tools have been evaluated)
+
+From that it must clear, what your thesis'contribution actually is. Please delineate your contribution from every concept, method, tool, framework or whatever implementation your thesis took for granted and is built upon.
+
+This chapter deliberately anticipates contents of the latter chapters but please refrain from spe-cific technical termsof your application domain or solution here. Trade technical accuracy for com-mon comprehensibility here. Write this chapter as a "management summary" and do not spend more than two to three pages here.
+
+Also explain structure of your thesis, i.e., summarize the contents of each chapter in one sentence or paragraph and describe the overarching storyline, i.e., how chapters build upon each other.
+
+\section{Anwendungsfeld}
+
+- Describe the (business) domain of your work. Ask yourself: What does the common reader need to know about the domain in order to understand the results of your work? For example, if you work contributes to the claim handling process of some insurance company, describe the common claim handling process.
+- Please refrain from meandering explanations about details that have no relevance for later chapters (just in order to increase your page count).
+- The header "Domain / Anwendungsfeld" is supposed to be replaced or extended with some more specific header like: "Domain 'Claim handling'"
+
+\section{Technische Grundlagen}
+
+If your work makes use of existing non-standard systems, tools, frameworks, librariesetc. describe these as well. However, just give a broad overview and delve just into those details that are crucial for the understanding of the following chapters. For standard sys-tems, tools, frameworks, and libraries please refer to its authoritative documentation. Youare not supposed to give an thorough introduction into, e.g., Java or ReactJS.
+
+\section{Problembeschreibung}
+
+- Describe insufficiencies your project or thesis aims at. Example: "The automated parts of the claim handling process are susceptible to changes. Each change requires lots of man-ual steps in order to deploy these changes into production."
+- Do not take the term "problem" too literal. Sometimes, your project or thesis just aims at im-proving a good status quo or pursues new waysand opportunities that arise due to new technological advances or trends. In this case, describe the status quo and where the op-portunities for improvement are.
+- Exemplify things! Describe the problem / status quo by means of a specific scenario with concrete steps, concrete input and output data, etc., supported by expressive figures. Do not be afraid that the reader might think that your solution just works for that particular sce-nario. In general, readers can abstract from concrete details much easier that to envisionconcrete scenarios by interpreting overly generic, vague, meandering text passages. (More-over, writing in vague terms also leaves the impression that the writer either did not under-stand the problem for him- or herself or tries to blow up mundane issues.)
+
+\section{Vobereiten und verwandte Arbeiten}
+
+- If your work is based on preliminary work, then outline this preliminary work: "The de-ployment into production is itself semi-automatic. In a continuous integration pipeline..."
+- Do some research forrelated work, e.g., commercial products, research prototypes or con-ceptual research that have the same or similar objectives like your work. Compare and de-lineate your work with/from the related work.
+- Keep an eye on the proper citation of the works you are describing
+- Conclude this chapter with some insufficiencies or shortcomings of the preliminary or related work. This should motivate the necessity of your work.
+
+\section{Lösungskonzept}
+
+- This is supposed to be the core of your thesis or project. Describe your work from a con-ceptual viewpoint.
+- Example: In case you have developed some prototypical tool in your bachelor thesis, demonstrate how it is employed in its business context. More concrete example: Assume that your contribution is a Maven-Build-Plugin that further automates the deployment of changes to the claim handling process into production. In this case show how the plugin is integrated in the overall (continuous) integration and deployment process, which human ac-tors are involved, which external systems and so on. Elaborate on subtle edge cases you had to deal with, e.g., possible outages of external systems.
+- Usedi  agramswhere appropriate. Standard notations are better than informal box-and-line-diagrams. Typical standard notations for a solution concept are
+  - Business Process Modelling Notation (BPMN) or UML activity diagrams, that depict a workflow in which your tool is used
+  - UML component diagrams, where your tool is represented by just a single component (without its ingredients) together with connected external systems
+
+\section{Architektur und Implementation}
+
+- Describe the realization of your concepts, in case you have actually developed some-thing.
+- Elaborate on the software architecture of your tool, in case you have developed one. Use nested UML packages, components, and interfaces in a component diagram.
+- If applicable, show the deploymentof your tool in a production environment. Use UML's deployment diagram notation.
+- It must be clear from the architecture, what your thesis contributes and what it takes for granted like existing systems, code bases, libraries and frameworks. For example, you can decorate the components in a UML component diagram that you have implemented and those that you just used.
+- Do not delve into ordinary details by, e.g., intensively describing a "p lain old Java-object (POJO)" in all its dreary getter-setter-details. Instead pick some interesting details and de-scribe them, e.g.,
+  - if   you made extensive use of a certain design pattern, describe a single concrete appli-cation of it using, e.g., UML class diagrams or
+  - if your work involves a complicated conversation pattern or protocol, explained it using a UML sequence diagram, state chart, activity diagram and the like or
+  - if you have developed a central and canny algorithm, you may even show its implemen-tation in, e.g., Java code.
+- Show how the result of your work actually looks like. In case of a tool, provide some screenshots together with some explanatory text.
+- Describe the quantity of your work, e.g., in terms of lines of code or classes etc. Please just count your own hand-crafted code but not previously existing, imported or generated code.
+- Describe the quality of your work, e.g., if you have developed a large web application, run some performance tests, depicts results and draw conclusions from them.
+
+\section{Erprobung}
+
+If possible, do an (external) evaluation of your work. If you have developed some kind of tool, let us-ers test it, gather their feedback and describe that here. (Negative feedback will not contribute to a downgrading).
+
+\section{Zeitplanung und Arbeitspakete}
+
+- In the initiation phase, we agree on work packages. Give a (tabular overview) of which work packages have been finalized
+  - to what degree
+  - and in which time frame
+- Please described the unforeseen difficulties that resulted in unfinished or abandoned work packages
+
+
+\section{Ausblick}
+
+- Again, summarize your work. This time you can assume that reader have read the rest of the document, i.e., you are free to use even domain-specific terms.
+- In case of a master thesis in "Technische Informatik", you will have to provide an addi-tional "technical report" in English of 4-8 pages (cf. examination regulation document, §28, 1d). It is okay for me if you use this technical report as the summary here.
+- Usually, during your project or thesis new and extended questions arise that are not dealt with in your project or thesis due effort reasons. Please delineate these in the outlook.
+
+
+
+
+\section{Links}
 guidelines: https://ilias.th-koeln.de/goto.php?target=file_1364683_download&client_id=ILIAS_FH_Koeln
 
 beispiel simon kurth
 https://inovex.sharepoint.com/sites/lab/Abgeschlossene%20Thesen/Forms/AllItems.aspx?id=%2Fsites%2Flab%2FAbgeschlossene%20Thesen%2FSimon%5FKurth%5FVergleich%5Fvon%5FKubernetes%5FNetzwerk%5FPlug%2DIns%5Ffuer%5Fden%5FPraxiseinsatz%2Epdf&parent=%2Fsites%2Flab%2FAbgeschlossene%20Thesen&p=true&originalPath=aHR0cHM6Ly9pbm92ZXguc2hhcmVwb2ludC5jb20vOmI6L3MvbGFiL0VWcF9DZFdLTm1wTW9kU2tVTHJ2bk1BQms3bWltSHRzTXRrMTk3Tkh4aU1kalE_cnRpbWU9TjlUd1VOZTcyRWc
 
-- outline the work
-problemdomäne
-derzeitige situation
-was ist das problem ?
-wie löse ich dies ?
-was gehört nicht zum scope ?
-was sind die kern resultate
-- abgrenzen von frameworks / tools / konzepte / methoden die ich benutze
-
-eher eine management summary
-2-3 seiten
 
 2 ) domäne andwendungsfel
 
-\section{Introduction}
-\subsection{Company}
-"Inovex is an IT project centre driven by innovation and quality, focusing its services on "Digital Transformation". The main three subdivisions are "Application Development", "Data Management \& Analytics" and "IT Engineering \& Operations" in which I work in the scope of this project.\\
-"IT Engineering and Operations" handles the combined disciplines required for the flexible, reliable operation of systems in data centres: the design, installation and configuration of server infrastructures, and the daily maintenance and running of these systems. The focus is on high availability and scalability, migrations, the cloud, and open-source data centre management."\cite{inovex}
+\section{Quellen}
+hivemq:
 
-\subsubsection{Philosophy}
-"Here at inovex, we are using an iterative strategy process to manage our own agile transformation. We also believe in flat hierarchies, and we base all our decisions on agile values.\\
-As all our project teams are self-organised and agile skills are, therefore, essential, every new inovex employee receives training in agile methods. We also support our employees by holding meetings in agile formats (like Lean Coffee) and by facilitating the internal transfer of knowledge (through brown bag lunches and tech days, for example).\\
-Many of our internal teams work agilely and thus enjoy a high level of transparency, quality and efficiency. Our Marketing Team, HR Team and Sales Team have each established different agile methods tailored specifically to their requirements and they use these in combination with our ISO-certified quality management processes."\cite{inovex}
+hivemq extensions: https://www.hivemq.com/docs/hivemq/4.4/extensions/registries.html#modifiable-client-settings
+client takeover: https://www.hivemq.com/blog/mqtt-essentials-part-10-alive-client-take-over/
+resilience: https://www.hivemq.com/blog/are-your-mqtt-applications-resilient-enough/
+mqtt stresser: https://github.com/inovex/mqtt-stresser
+custom tlv fields in proxy protocol: https://www.hivemq.com/docs/hivemq/4.4/user-guide/proxy-protocol.html#custom-tlv
+
+lwt and client takeover issue: https://github.com/eclipse/mosquitto/issues/904
+
+envoy:
+
+draining: https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/operations/draining
+life of a request: https://www.envoyproxy.io/docs/envoy/latest/intro/life_of_a_request
+edge proxy: https://www.envoyproxy.io/docs/envoy/latest/configuration/best_practices/edge
+tcp proxy and link to reference: https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/listeners/tcp_proxy
+timeouts: https://www.envoyproxy.io/docs/envoy/latest/faq/configuration/timeouts
+hello world example: https://salmaan-rashid.medium.com/envoy-control-plane-hello-world-2f49b2865f29
+exmaple with python: https://salmaan-rashid.medium.com/envoy-discovery-hello-world-d3e44d19603d
+envoy discovery repo: https://github.com/salrashid123/envoy_discovery
+go control plane: https://github.com/envoyproxy/go-control-plane
+microservices resilience: https://www.getambassador.io/resources/getting-started-envoyproxy-microservices-resilience/
+matt klein talk: https://www.youtube.com/watch?v=gQF23Vw0keg
+per listener overhead too high: https://github.com/envoyproxy/envoy/issues/4196
+istio performance: https://istio.io/latest/docs/ops/deployment/performance-and-scalability/
+
+podcasts:
+podcast service mesh or a platform: https://www.weave.works/blog/is-envoy-a-service-mesh-or-a-platform
+envoy: https://kubernetespodcast.com/episode/033-envoy/
+matt klein 1: https://developertea.simplecast.com/episodes/50464d4b-4071c0b8
+matt klein 2: https://developertea.simplecast.com/episodes/10bb00cd-a148f095
+
+papers:
+
+LB survey: https://dl.acm.org/doi/10.1145/3281010
+
+inovex:
+
+confluence: https://confluence.inovex.de/display/ITKB/%28WIP%29+Smart+load+balancing+von+MQTT+traffic
+jira: https://jira.inovex.de/browse/ST-2828
+
+BEISPIELE:
 
 Figure \ref{fig:mender-integration} shows all microservices and their network connections.
 \begin{figure}
@@ -69,45 +178,3 @@ networks:
 \end{code}
 Listing \ref{org-dc} shows a YAML configuration to run Mender Hub via Docker-Compose on a local machine.
 
-Quellen:
-
-hivemq:
-
-hivemq extensions: https://www.hivemq.com/docs/hivemq/4.4/extensions/registries.html#modifiable-client-settings
-client takeover: https://www.hivemq.com/blog/mqtt-essentials-part-10-alive-client-take-over/
-resilience: https://www.hivemq.com/blog/are-your-mqtt-applications-resilient-enough/
-mqtt stresser: https://github.com/inovex/mqtt-stresser
-custom tlv fields in proxy protocol: https://www.hivemq.com/docs/hivemq/4.4/user-guide/proxy-protocol.html#custom-tlv
-
-lwt and client takeover issue: https://github.com/eclipse/mosquitto/issues/904
-
-envoy:
-
-draining: https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/operations/draining
-life of a request: https://www.envoyproxy.io/docs/envoy/latest/intro/life_of_a_request
-edge proxy: https://www.envoyproxy.io/docs/envoy/latest/configuration/best_practices/edge
-tcp proxy and link to reference: https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/listeners/tcp_proxy
-timeouts: https://www.envoyproxy.io/docs/envoy/latest/faq/configuration/timeouts
-hello world example: https://salmaan-rashid.medium.com/envoy-control-plane-hello-world-2f49b2865f29
-exmaple with python: https://salmaan-rashid.medium.com/envoy-discovery-hello-world-d3e44d19603d
-envoy discovery repo: https://github.com/salrashid123/envoy_discovery
-go control plane: https://github.com/envoyproxy/go-control-plane
-microservices resilience: https://www.getambassador.io/resources/getting-started-envoyproxy-microservices-resilience/
-matt klein talk: https://www.youtube.com/watch?v=gQF23Vw0keg
-per listener overhead too high: https://github.com/envoyproxy/envoy/issues/4196
-istio performance: https://istio.io/latest/docs/ops/deployment/performance-and-scalability/
-
-podcasts:
-podcast service mesh or a platform: https://www.weave.works/blog/is-envoy-a-service-mesh-or-a-platform
-envoy: https://kubernetespodcast.com/episode/033-envoy/
-matt klein 1: https://developertea.simplecast.com/episodes/50464d4b-4071c0b8
-matt klein 2: https://developertea.simplecast.com/episodes/10bb00cd-a148f095
-
-papers:
-
-LB survey: https://dl.acm.org/doi/10.1145/3281010
-
-inovex:
-
-confluence: https://confluence.inovex.de/display/ITKB/%28WIP%29+Smart+load+balancing+von+MQTT+traffic
-jira: https://jira.inovex.de/browse/ST-2828
