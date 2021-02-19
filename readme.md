@@ -19,6 +19,28 @@ multiplexing
 
 ## idea
 
+## what is smart?
+
+- cluster discovery that works with hivemq cluster discovery
+- sticky session via clientid
+  - weil clients auch oft ihre ip ändern -> client id meist persistent
+- weighted round robin (based on client credits for example)
+  - ist dies besser als cpu round robin?
+  - auf jeden fall besser als least connection -> wegen fetten downstream clients
+- least connection on new broker (on new broker... maybe handle this with weight?)
+  - how to handle rolling updates with a smart LB ?
+  - this should solve the problem!
+- shared subscriptions
+- circuit breaking
+
+- ist envoy grundlage oder teil der arbeit das wir uns für envoy entscheiden ?
+- wasm network filter für client id
+
+
+
+
+- hivemq testcontainer junit
+
 - weighted round robin + sticky session based on client id + shared round robin based on sni
   - what if the broker do not want the client id
 - LB as a huge state machine

@@ -5,6 +5,12 @@ sonarqube als code scan
 
 \section{Einleitung}
 
+\subsection{Motivation}
+\subsection{Unternehmen}
+\subsection{Zielsetzung}
+vielleicht im kapitel motivation?
+\subsection{Aufbau der Arbeit}
+
 - Outline your work such that readers who have not read subsequent chapters get an idea of what
   - your "problem domain" is (e.g. the software quality department of some company or the overarching research project you are working in)
   - the situation is (e.g. software tests at some company are done in complete manual fash-ion)
@@ -19,23 +25,98 @@ This chapter deliberately anticipates contents of the latter chapters but please
 
 Also explain structure of your thesis, i.e., summarize the contents of each chapter in one sentence or paragraph and describe the overarching storyline, i.e., how chapters build upon each other.
 
-\section{Anwendungsfeld}
+\section{Anwendungsfeld Internet of Things}
+
+ein grobes beispiel einet mqtt broker -> client anwendungs beschreiben
+ein / mehrere broker (mehrere millionen clients zb MAN, darf ich das erzählen ?)
+sehr viele iot clients
+big downstream clients -> backends
+industrial bereich
 
 - Describe the (business) domain of your work. Ask yourself: What does the common reader need to know about the domain in order to understand the results of your work? For example, if you work contributes to the claim handling process of some insurance company, describe the common claim handling process.
 - Please refrain from meandering explanations about details that have no relevance for later chapters (just in order to increase your page count).
 - The header "Domain / Anwendungsfeld" is supposed to be replaced or extended with some more specific header like: "Domain 'Claim handling'"
 
-\section{Technische Grundlagen}
+\section{Technische Grundlagen} - Technologische Grundlagen - Grundlagen /
+
+\subsection{MQTT}
+was ist das für ein protokoll ?
+standard v5: https://docs.oasis-open.org/mqtt/mqtt/v5.0/mqtt-v5.0.html
+MQTT is a Client Server publish/subscribe messaging transport protocol. It is light weight, open, simple, and designed to be easy to implement. These characteristics make it ideal for use in many situations, including constrained environments such as for communication in Machine to Machine (M2M) and Internet of Things (IoT) contexts where a small code footprint is required and/or network bandwidth is at a premium.
+
+The protocol runs over TCP/IP, or over other network protocols that provide ordered, lossless, bi-directional connections. Its features include:
+
+·         Use of the publish/subscribe message pattern which provides one-to-many message distribution and decoupling of applications.
+
+·         A messaging transport that is agnostic to the content of the payload.
+
+·         Three qualities of service for message delivery:
+
+o    "At most once", where messages are delivered according to the best efforts of the operating environment. Message loss can occur. This level could be used, for example, with ambient sensor data where it does not matter if an individual reading is lost as the next one will be published soon after.
+
+o    "At least once", where messages are assured to arrive but duplicates can occur.
+
+o    "Exactly once", where messages are assured to arrive exactly once. This level could be used, for example, with billing systems where duplicate or lost messages could lead to incorrect charges being applied.
+
+·         A small transport overhead and protocol exchanges minimized to reduce network traffic.
+
+·         A mechanism to notify interested parties when an abnormal disconnection occurs.
+
+\subsubsection{Shared Subscriptions}
+\subsection{HiveMQ Broker}
+\subsubsection{HiveMQ Cluster}
+\subsection{Load Balancing}
+was für load balancer gibt es ?
+\subsection{Envoy}
+vielleicht hier noch kein envoy ? ist dies grundlage oder teil der arbeit das wir uns für envoy entscheiden ?
 
 If your work makes use of existing non-standard systems, tools, frameworks, librariesetc. describe these as well. However, just give a broad overview and delve just into those details that are crucial for the understanding of the following chapters. For standard sys-tems, tools, frameworks, and libraries please refer to its authoritative documentation. Youare not supposed to give an thorough introduction into, e.g., Java or ReactJS.
 
 \section{Problembeschreibung}
+
+\subsection{Cluster Discovery}
+discovery that works with hivemq cluster discovery (dns)
+es kommen immer wieder neue nodes hinzu / weg zb bei rolling updates
+load balancer muss diese nodes dynamisch hinzufüger oder entfernen
+hivemq ist in der lage dynamische cluster joins zu machen also muss der lb auch in der lage dazu sein
+
+\subsection{Langlebige TCP Verbindungen}
+ein LB darf die tcp connections nicht terminieren bei einem update oder config änderung
+mqtt setzt auf langlebiege tcp verbindungen! nicht wie bei http! bei http -> drain
+-> ein drain bei mqtt kann tage dauern
+
+load balancer with data plane api -> good docs
+\subsection{Persistent Client Session}
+mqtt clients haben viel session auf dem broker
+bei einem reconnect wird ein client takeover ausgeführt -> teuer
+clients möglichst immer zum selben broker routen
+problem: iot clients haben oft sich ändernde ip adressen zb mobile geräte wie autos
+\subsubsection{Client Takeover}
+sehr teuer! die persistent client informationen müssen umgezogen werden auf neuen broker
+
+\subsection{Ungleiche Lastverteilung}
+mqtt clients sind unterschiedlich teuer (nicht wie bei http)
+beispiel: wildcard subscription
+
+\subsubsection{Downstream Clients}
+\subsubsection{Lightweight Clients}
+\subsubsection{Wildcard Subscriptions}
 
 - Describe insufficiencies your project or thesis aims at. Example: "The automated parts of the claim handling process are susceptible to changes. Each change requires lots of man-ual steps in order to deploy these changes into production."
 - Do not take the term "problem" too literal. Sometimes, your project or thesis just aims at im-proving a good status quo or pursues new waysand opportunities that arise due to new technological advances or trends. In this case, describe the status quo and where the op-portunities for improvement are.
 - Exemplify things! Describe the problem / status quo by means of a specific scenario with concrete steps, concrete input and output data, etc., supported by expressive figures. Do not be afraid that the reader might think that your solution just works for that particular sce-nario. In general, readers can abstract from concrete details much easier that to envisionconcrete scenarios by interpreting overly generic, vague, meandering text passages. (More-over, writing in vague terms also leaves the impression that the writer either did not under-stand the problem for him- or herself or tries to blow up mundane issues.)
 
 \section{Vobereiten und verwandte Arbeiten}
+vielleicht brauche ich diese sektion gar nicht ?
+
+\subsection{Load Balancer}
+was für load balancer gibt es? was haben diese für eigenschaften?
+
+\subsection{Shared Subscriptions}
+diese lösen das problem der teuren clients ABER clients müssen dann möglichst optimal auf die broker verteilt werden
+-> load balancer
+
+iot mqtt threat model ? maybe show this ?
 
 - If your work is based on preliminary work, then outline this preliminary work: "The de-ployment into production is itself semi-automatic. In a continuous integration pipeline..."
 - Do some research forrelated work, e.g., commercial products, research prototypes or con-ceptual research that have the same or similar objectives like your work. Compare and de-lineate your work with/from the related work.
@@ -43,6 +124,23 @@ If your work makes use of existing non-standard systems, tools, frameworks, libr
 - Conclude this chapter with some insufficiencies or shortcomings of the preliminary or related work. This should motivate the necessity of your work.
 
 \section{Lösungskonzept}
+nur das konzept WIE ich das lösen will zb. man kann wie clientid parsen mit einem WASM modul
+in der nächsten section zeige ich dann den eigentlichen code welcher dies tut
+
+\subsection{Envoy}
+\subsubsection{Data-Plane API}
+\subsubsection{Hot Restart}
+
+\subsection{DNS Service Discovery}
+
+\subsection{Weighted Round Robin}
+\subsubsection{Overload Protection}
+\subsubsection{Client Credits}
+\subsubsection{Global Tasks}
+
+\subsection{Sticky Session with Client ID}
+\subsubsection{MQTT CONNECT}
+\subsubsection{Envoy WASM Network Filter}
 
 - This is supposed to be the core of your thesis or project. Describe your work from a con-ceptual viewpoint.
 - Example: In case you have developed some prototypical tool in your bachelor thesis, demonstrate how it is employed in its business context. More concrete example: Assume that your contribution is a Maven-Build-Plugin that further automates the deployment of changes to the claim handling process into production. In this case show how the plugin is integrated in the overall (continuous) integration and deployment process, which human ac-tors are involved, which external systems and so on. Elaborate on subtle edge cases you had to deal with, e.g., possible outages of external systems.
@@ -51,6 +149,17 @@ If your work makes use of existing non-standard systems, tools, frameworks, libr
   - UML component diagrams, where your tool is represented by just a single component (without its ingredients) together with connected external systems
 
 \section{Architektur und Implementation}
+
+\subsection{Envoy}
+\subsubsection{Golang Data-Plane}
+\subsubsection{DNS Service Discovery}
+\subsubsection{HiveMQ Metriken}
+\subsubsection{Weighted Round Robin}
+\subsubsection{ClientID Network Filter}
+
+\subsection{Deployment}
+\subsubsection{HiveMQ}
+\subsubsection{Envoy}
 
 - Describe the realization of your concepts, in case you have actually developed some-thing.
 - Elaborate on the software architecture of your tool, in case you have developed one. Use nested UML packages, components, and interfaces in a component diagram.
@@ -65,6 +174,8 @@ If your work makes use of existing non-standard systems, tools, frameworks, libr
 - Describe the quality of your work, e.g., if you have developed a large web application, run some performance tests, depicts results and draw conclusions from them.
 
 \section{Erprobung}
+
+\subsection{Lastverteilung}
 
 If possible, do an (external) evaluation of your work. If you have developed some kind of tool, let us-ers test it, gather their feedback and describe that here. (Negative feedback will not contribute to a downgrading).
 
@@ -91,8 +202,6 @@ guidelines: https://ilias.th-koeln.de/goto.php?target=file_1364683_download&clie
 beispiel simon kurth
 https://inovex.sharepoint.com/sites/lab/Abgeschlossene%20Thesen/Forms/AllItems.aspx?id=%2Fsites%2Flab%2FAbgeschlossene%20Thesen%2FSimon%5FKurth%5FVergleich%5Fvon%5FKubernetes%5FNetzwerk%5FPlug%2DIns%5Ffuer%5Fden%5FPraxiseinsatz%2Epdf&parent=%2Fsites%2Flab%2FAbgeschlossene%20Thesen&p=true&originalPath=aHR0cHM6Ly9pbm92ZXguc2hhcmVwb2ludC5jb20vOmI6L3MvbGFiL0VWcF9DZFdLTm1wTW9kU2tVTHJ2bk1BQms3bWltSHRzTXRrMTk3Tkh4aU1kalE_cnRpbWU9TjlUd1VOZTcyRWc
 
-
-2 ) domäne andwendungsfel
 
 \section{Quellen}
 hivemq:
