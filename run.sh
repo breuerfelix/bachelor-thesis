@@ -1,2 +1,6 @@
+#!/bin/bash
+
 rm main.pdf
-texify --tex-option=--shell-escape --clean --pdf main.tex
+rm -rf gen
+python minted.py
+tectonic main.tex

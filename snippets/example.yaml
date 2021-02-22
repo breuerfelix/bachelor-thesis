@@ -1,0 +1,22 @@
+version: '2.1'
+services:
+
+  mender-deployments:
+    command: server --automigrate
+    image: mendersoftware/deployments:mender-2.4.0
+    restart: on-failure
+    volumes:
+      - ./storage.crt:/etc/ssl/certs/storage-proxy.crt
+    environment:
+      STORAGE_BACKEND_CERT: /etc/ssl/certs/storage-proxy.crt
+      DEPLOYMENTS_AWS_AUTH_KEY: minio
+      DEPLOYMENTS_AWS_AUTH_SECRET: minio123
+      DEPLOYMENTS_AWS_URI: https://storage-proxy:9000
+    networks:
+      - mender
+    depends_on:
+      - mender-mongo
+      - storage-proxy
+
+networks:
+  mender:

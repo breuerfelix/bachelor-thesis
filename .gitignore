@@ -3,4 +3,7 @@
 *.log
 *.gz
 *.txt
-lib.bib
+
+*.bib
+_minted-main
+gen
