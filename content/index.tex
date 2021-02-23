@@ -42,7 +42,7 @@ industrial bereich
 \subsection{MQTT}
 %https://www.paessler.com/it-explained/mqtt
 %https://www.hivemq.com/blog/how-to-get-started-with-mqtt/
-MQTT bedeutet 'Message Queuing Telemetry Transport'. Es wurde ursprünglich von Doktor Andy Stanford-Clark und Arlen Nipper im Jahr 1999 entworfen um Gas- und Ölpiplines zu überwachen. Diese lagen oftmals an entlegenen Orten wie zum Beispiel auf Übersee und konnten nicht mit Radiowellen oder einem Kabel zum Festland erreicht werden. Zu dieser Zeit war die einzige Option eine Satellitenkommunikation, welche auf Datendurchsatz abgerechnet wurde, damit die Sensoren ihre Daten an einen Server schicken können. Bei mehreren tausend Sensoren wurde somit ein Protokoll benötigt, welches die Daten zuverlässig mit minimaler Bandbreite an die Server auf dem Festland übermitteln kann.
+\acrfull{mqtt} wurde ursprünglich von Doktor Andy Stanford-Clark und Arlen Nipper im Jahr 1999 entworfen um Gas- und Ölpiplines zu überwachen. Diese lagen oftmals an entlegenen Orten wie zum Beispiel auf Übersee und konnten nicht mit Radiowellen oder einem Kabel zum Festland erreicht werden. Zu dieser Zeit war die einzige Option eine Satellitenkommunikation, welche auf Datendurchsatz abgerechnet wurde, damit die Sensoren ihre Daten an einen Server schicken können. Bei mehreren tausend Sensoren wurde somit ein Protokoll benötigt, welches die Daten zuverlässig mit minimaler Bandbreite an die Server auf dem Festland übermitteln kann.
 MQTT wurde im Jahr 2013 von der OASIS (Organization for the Advancement of Structured Information Standards) als Open Source standatisiert.
 
 MQTT ist ein Layer 7 'Publish and Subscribe' Protkoll, welches auf TCP / IP aufsetzt. Anders als das Request / Response Paradigma bei HTTP ist MQTT Event gesteuert und erlaubt Nachrichten direkt an einen bestimmten Client zu schicken. Dadurch muss dieser nicht periodisch nach neuen Nachrichten fragen und minimiert somit den Datendurchsatz.
@@ -253,7 +253,7 @@ Minio is a third-party object storage. It can either be used to serve uploaded c
 \newpage
 
 \begin{figure}
-    \import{gen/}{example}
+    %\import{gen/}{example}
     \caption{Example Code Listing}
     \label{code:example-label}
 \end{figure}

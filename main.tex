@@ -7,8 +7,11 @@
 % language
 \usepackage[ngerman]{babel}
 
+% abkürzungsverzeichnis
+\input{other/glossaries}
+
 % custom minted code until shell-escape is implemented in tectonic
-\input{snippets/minted.tex}
+\input{snippets/minted}
 
 \usepackage{graphicx}
 \usepackage{ragged2e}
@@ -52,6 +55,7 @@
 \usepackage{import}
 
 % syntax highlighting
+% TODO activate when shell escape is merged into tectonic
 %\usepackage[newfloat]{minted}
 %\usepackage{caption}
 %\newenvironment{code}{\captionsetup{type=listing}}{}
@@ -64,7 +68,6 @@
 \pagenumbering{Roman}
 
 \tableofcontents\newpage
-%\listoftables\addcontentsline{toc}{section}{List of Tables}\newpage
 
 \pagenumbering{arabic}
 
@@ -72,10 +75,20 @@
 
 %\import{other/}{declaration}
 \listoffigures\addcontentsline{toc}{section}{Abbildungsverzeichnis}\newpage
+%\listoftables\addcontentsline{toc}{section}{List of Tables}\newpage
 
+% anhang, quellen, glossar, index, eides, sperrvermerk
+
+% quellen
 \bibliographystyle{IEEEtran}
 \bibliography{lib}
 \newpage
+
+% glossar
+\printglossary
+% index
+%\printglossary[type=\acronymtype]
+
 
 %\appendix
 %\input{other/appendix}
