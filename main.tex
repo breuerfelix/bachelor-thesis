@@ -8,7 +8,7 @@
 \usepackage[ngerman]{babel}
 
 % abkürzungsverzeichnis
-\input{other/glossaries}
+\usepackage[printonlyused, withpage]{acronym}
 
 % custom minted code until shell-escape is implemented in tectonic
 \input{snippets/minted}
@@ -84,11 +84,7 @@
 \bibliography{lib}
 \newpage
 
-% glossar
-\printglossary
-% index
-\printglossary[type=\acronymtype]
-
+\input{other/glossaries}
 
 %\appendix
 %\input{other/appendix}
