@@ -40,76 +40,147 @@ industrial bereich
 \section{Technische Grundlagen} - Technologische Grundlagen - Grundlagen /
 
 \subsection{MQTT}
-%https://www.paessler.com/it-explained/mqtt
-%https://www.hivemq.com/blog/how-to-get-started-with-mqtt/
-\ac{mqtt} wurde ursprünglich von Doktor Andy Stanford-Clark und Arlen Nipper im Jahr 1999 entworfen um Gas- und Ölpiplines zu überwachen. Diese lagen oftmals an entlegenen Orten, wie zum Beispiel auf Übersee, und konnten nicht mit Radiowellen oder einem Kabel zum Festland erreicht werden. Zu dieser Zeit war die einzige Option um Sensordaten auf einen Server zu übertragen eine auf Datendurchsatz abgerechnete Satellitenkommunikation. Bei mehreren tausend Sensoren wurde somit ein Protokoll benötigt, welches die Daten zuverlässig mit minimaler Bandbreite an die Server auf dem Festland übermitteln kann.
-\acs{mqtt} wurde im Jahr 2013 von der \ac{oasis} als Open Source standatisiert und wird heutzutage von vielen großen \ac{iot} Platformen unterstützt.\cite{WhatMQTTDefinition}
+\acf{mqtt} wurde ursprünglich von Doktor Andy Stanford-Clark und Arlen Nipper im Jahr 1999 entworfen um Gas- und Ölpiplines zu überwachen. Diese lagen oftmals an entlegenen Orten, wie zum Beispiel auf Übersee, und konnten nicht mit Radiowellen oder einem Kabel zum Festland erreicht werden. Zu dieser Zeit war die einzige Option um Sensordaten auf einen Server zu übertragen eine auf Datendurchsatz abgerechnete Satellitenkommunikation. Bei mehreren tausend Sensoren wurde somit ein Protokoll benötigt, das die Daten zuverlässig mit minimaler Bandbreite an die Server auf dem Festland übermitteln kann.
+\ac{mqtt} wurde im Jahr 2013 von der \ac{oasis} als Open Source standatisiert und wird heutzutage von vielen gro{\ss}en \ac{iot} Platformen unterstützt.\cite{WhatMQTTDefinition}\\
+Es gibt derzeit zwei Versionen der MQTT Spezifikation: \verb|3.1.1| und \verb|5|. Alle Referenzen, falls nicht explizit gekennzeichnet, beziehen sich auf die aktuelle Version \verb|5| des Protokolls.\\
+\ac{mqtt} ist ein Layer 7 \textit{Publish and Subscribe} Protkoll, das auf \acs{tcp} / \acs{ip} aufsetzt. Anders als das Request / Response Paradigma bei \acs{http} ist \ac{mqtt} Event gesteuert und erlaubt Nachrichten direkt an einen bestimmten Client zu schicken. Somit muss nicht periodisch nach neuen Nachrichten gefragt werden. Zusammen mit einem fixen Paket-Header von nur zwei Byte sorgen diese Eigeschaften für einen minimalen Datendurchsatz.\cite{WhatMQTTDefinition}\\
 
-\acs{mqtt} ist ein Layer 7 'Publish and Subscribe' Protkoll, welches auf TCP / IP aufsetzt. Anders als das Request / Response Paradigma bei HTTP ist MQTT Event gesteuert und erlaubt Nachrichten direkt an einen bestimmten Client zu schicken. Dadurch muss dieser nicht periodisch nach neuen Nachrichten fragen und minimiert somit den Datendurchsatz.
-In dieser Architektur gibt es zwei unterschiedliche Systeme: Clients und Broker. Clients können Nachrichten veröffentlichen, konsumieren oder beides gleichzeitig.
-Ein Broker empfängt alle eingehenden Nachrichten von den Clients und leitet diese gegebenenfalls an andere Clients weiter. Clients können niemals direkt untereinander kommunizieren und müssen immer einen Broker ansprechen.
-
-Es gibt derzeit zwei Versionen der MQTT Spezifikation: \verb|3.1.1| und \verb|5|. Alle Referenzen, wenn nicht anders bezeichnet, beziehen sich auf die aktuelle Version \verb|5| des Protokolls.
-
-Um den Datendurchsatz zu verringern hat MQTT einen fixen Header von 2 Byte. Die Paketgrö{\ss}e eines Sensorwertes, welcher aus einem in C geschriebenen 32-Bit Integer Wert besteht, beträgt somit nur 6 Byte.
-% TODO stimmt nicht! das topic muss auch noch dazu denke ich
-% TODO vielleicht ein http vergleich?
-% https://stackoverflow.com/questions/9233316/what-is-the-smallest-possible-http-and-https-data-request
+\subsubsection{Publish and Subscribe}
+\ac{mqtt} nutzt das \textit{Publish and Subscribe} Kommunikationsschema, das eine Struktur bietet um Nachrichten zwischen Herausgeber und Abonnent auszutauschen. In diesem Schema gibt es zwei unterschiedliche Systeme:
+\begin{itemize}
+    \item Clients
+    \item Broker
+\end{itemize}
+Clients sind alle Teilnehmer dieses Systems, die Nachricht empfangen oder veröffentlichen wollen. Diese setzten auf einen Broker als Mittelsmann um die Nachrichten erfolgreich zu vermitteln.\cite{teamGettingStartedMQTT} Jede Nachricht wird durch den Herausgeber in bestimmte Klassen kategorisiert. Der Herausgeber weißt nicht ob, oder wer, an dieser Nachricht interessiert ist und schickt die klassifizierte Nachricht an den Broker. Clients, die an bestimmten Nachrichten interessiert sind, müssen bei dem Broker ein Abonnement erstellen und dabei die gewünschte Kategorie angeben. Somit kann der Broker eingehende kategorisierte Nachrichten an die entsprechenden Clients weiterleiten. Durch dieses System entsteht eine Entkopplung der einzelnen Clients, da sich diese untereinander nicht bewusst sind.\cite{EverythingYouNeed} In verteilten System, wo die einzelnen Komponenten oftmals sehr unterschiedlich sind, spielt ein solches Konzept eine große Rolle, da es eine einheitliche Abstraktion der Kommunikationsebene bietet.\cite{domingusDistributedSystemsIntroduction2020}\\
+% TODO mehr zu distributed systems
+% TODO bild publisher - subscriber topic
 % TODO bild von sensoren / broker / downstream clients
+\begin{figure}
+    \centering
+    %\includegraphics[scale=0.5]{images/integration-app.png}
+    \caption{Publish and Subscribe Architektur basirend auf Themen}
+    \label{fig:publish-subscribe}
+\end{figure}
 
-Eine MQTT Nachricht kann drei verschiedene QoS (Quality of Service) level haben. Mit diesen kann ein Client bestimmen wie zuverslässig seine Nachricht zugestellt wird.
+Im Kontext \ac{mqtt} werden Nachrichten in eine hieraschich aufgebaute Themenstruktur klassifiziert. Themen werden mit einem Schrägstrich (\verb|/|) getrennt und sehen zum Beispiel wie folgt aus: \verb|sensors/temperature/celcius|. Abbildung \ref{fig:publish-subscribe} zeigt einen Client, der auf das Thema \verb|bla| Nachrichten veröffentlicht. Diese wird an zwei weitere Clients durch den Broker weitergeleitet, da diese das Thema \verb|bla| abonniert haben. Themen müssen auf einem Broker nicht explizit angelegt werden. Sobald ein Client auf einem Thema publiziert oder es abonniert, wird dieses automatisch angelegt.\cite{WhatMQTTDefinition}\\
+Beim abonnieren eines Themas kann entweder ein spezifisches Thema oder eine Kombination aus Thema und Wildcard verwendet werden. Bei einer Wildcard werden zwischen den folgenden zwei unterschieden:\cite{mqtt5Specification}
 \begin{itemize}
-    \item QoS 1: Maximal eine Zustellung der Nachricht.
-    \item QoS 2: Mindestens eine Zustellung der Nachricht. Der Subscriber muss eine Bestätigung an der Broker schicken sobald er die Nachricht erhalten hat.
-    \item QoS 3: Genau eine Zustellung der Nachricht. Erfordert einen Vier-Schritte Handshake zwischen Broker und Subscriber.
+    \item Multi-level '\verb|#|': Schließt das Vorgänger- und alle nachfolgenden Themen mit ein.
+    \item Single-level '\verb|+|': Schließt alle Themen auf einer einzigen Ebene mit ein.
+\end{itemize}
+Bei der folgenden Themenstruktur
+\begin{itemize}
+    \item \verb|sensors|
+    \item \verb|sensors/temperature|
+    \item \verb|sensors/temperature/celcius|
+    \item \verb|sensors/temperature/kelvin|
+    \item \verb|sensors/fuel|
+    \item \verb|sensors/fuel/tank1|
+    \item \verb|sensors/fuel/tank2|
+\end{itemize}
+schließt ein Abonnement auf \verb|sensors/#| alle Themen mit ein. Bei einem Abonnement auf \verb|sensors/+| sind hingegen nur diese Themen mit eingeschlossen:
+\begin{itemize}
+    \item \verb|sensors/temperature|
+    \item \verb|sensors/fuel|
 \end{itemize}
 
-Nachrichten werden auf einem Broker immer in hieraschich aufgebauten Themen publiziert. Diese werden mit einem Schrägstrich (\verb|/|) getrennt und sehen zum Beispiel wie folgt aus: \verb|sensors/temperature|. Clients müssen beim publizieren oder subskribieren immer ein Thema angeben. Anhand dieses Themas kann der Broker entscheiden an welche Clients der Broker ein Paket weiterleiten soll. Beim subskribieren kann entweder ein spezifisches Thema oder eine kombination aus Thema und Wildcard verwendet werden. Bei einer Wildcard werden zwischen den folgenden unterschieden:
-% TODO cite mqtt specification that there must be a topic
+\subsubsection{Quality of Service}
+Je zuverlässiger eine Nachricht übermittelt werden soll, desto mehr Datendurchsatz verursacht diese Nachricht im gesamten System. Wenn ein Client wissen will, ob seine Nachricht im Broker eingetroffen ist, muss der Broker dem Client eine entsprechende Rückmeldung geben. Andernfalls kann der Client seine Nachricht an den Broker schicken ohne eine Rückmeldung zu erwarten. Dies ist vergleichsweise im \ac{http} nicht möglicht. Dort muss auf jede Nachricht geantwortet werden.\\
+Bei \ac{mqtt} wird die Zuverlässigkeit der Übermittlung einer Nachricht mit einem \textit{\acf{qos}} Level festgelegt. Eine Nachricht publizierte Nachricht muss einen der drei \ac{qos} Level haben:
 \begin{itemize}
-    \item Multi-level '\verb|#|': Wenn ein Client auf \verb|sensors/#| subskribiert, erhält er Nachrichten von folgenden Themen:
-    \begin{itemize}
-        \item \verb|sensors|
-        \item \verb|sensors/temperature|
-        \item \verb|sensors/temperature/celcius|
-        \item \verb|sensors/waterlevel|
-    \end{itemize}
-    \item Single-level '\verb|+|': Wenn ein Client auf \verb|sensors/+| subskribiert, erhält er hingegen nur Nachrichten von folgenden Themen:
-    \begin{itemize}
-        \item \verb|sensors/temperature|
-        \item \verb|sensors/waterlevel|
-    \end{itemize}
+    \item \ac{qos} 1: Maximal eine Zustellung der Nachricht.
+    \item \ac{qos} 2: Mindestens eine Zustellung der Nachricht.
+    \item \ac{qos} 3: Genau eine Zustellung der Nachricht.
 \end{itemize}
+Bei \ac{qos} Level 2 und 3 werden Handshakes zur Verifizierung der Paketübermittelung eingesetzt.\cite{mqtt5Specification}
 
+\subsubsection{Paket Struktur}
+\ac{mqtt} hat die Absicht ein leichtgewichtiges Protokoll zu sein. Tabelle \ref{table:mqtt-packet-structure} zeigt den Aufbau eines jeden \ac{mqtt} Paketes. Die fixe Kopfzeile ist zwei Byte groß und muss in jedem Paket vorhanden sein. Basierend auf der Art des Paketes, das in der fixen Kopfzeile angegeben wird, sind zusätzlich eine variable Kopfzeile und weitere Daten möglich.\cite{mqtt5Specification}
+\begin{table}[h!]
+\centering
+\renewcommand{\arraystretch}{1.5}
+\begin{tabular}{|c|}
+    \hline
+    Fixe Kopfzeile, muss in jedem \ac{mqtt} Paket vorhanden sein \\
+    \hline
+    Variable Kopfzeile, optional \\
+    \hline
+    Daten des Pakets, optional \\
+    \hline
+\end{tabular}
+\caption{Struktur eines \ac{mqtt} Paketes}
+\label{table:mqtt-packet-structure}
+\end{table}
+Tabelle \ref{table:fixed-header} zeigt den detaillierten Aufbau der fixen Kopfzeile. Im ersten Byte werden Bit sieben bis vier für die spezifische Art des Paketes verwendet. Tabelle \ref{table:mqtt-packet-types} enhält eine Liste mit allen möglichen Pakettypen und deren Wert. Byte zwei gibt die restliche Paketlänge encodiert als \textit{Variable Byte Integer} an. Ein \textit{Variable Byte Integer} ist ... . Somit ist eine maximale Paketgröße von xyz möglich.\cite{mqtt5Specification}
+% TODO was ist ein variable byte integer
+\begin{table}[h!]
+\centering
+\renewcommand{\arraystretch}{1.5}
+\begin{tabularx}{\textwidth}{|c| *{8}{Y|}}
+    \hline
+    Bit & 7 & 6 & 5 & 4 & 3 & 2 & 1 & 0 \\
+    \hline
+    \hline
+    Byte 1 & \multicolumn{4}{c|}{\ac{mqtt} Paketart} & \multicolumn{4}{c|}{Paketart spezifische Kennzeichnung} \\
+    \hline
+    Byte 2 & \multicolumn{8}{c|}{Restliche Paketlänge} \\
+    \hline
+\end{tabularx}
+\caption{Aufbau der fixen \ac{mqtt} Kopfzeile}
+\label{table:fixed-header}
+\end{table}
+
+\begin{table}[h!]
+\centering
+\renewcommand{\arraystretch}{1.5}
+\begin{tabular}{|c|c|}
+    \hline
+    \textbf{Name} & \textbf{Wert} \\
+    \hline
+    \hline
+    Reserved & 0 \\
+    \hline
+    CONNECT & 1 \\
+    \hline
+    CONNACK & 2 \\
+    \hline
+    PUBLISH & 3 \\
+    \hline
+    PUBACK & 4 \\
+    \hline
+    PUBREC & 5 \\
+    \hline
+    PUBREL & 6 \\
+    \hline
+    PUBCOMP & 7 \\
+    \hline
+    SUBSCRIBE & 8 \\
+    \hline
+    SUBACK & 9 \\
+    \hline
+    UNSUBSCRIBE & 10 \\
+    \hline
+    UNSUBACK & 11 \\
+    \hline
+    PINGREQ & 12 \\
+    \hline
+    PINGRESP & 13 \\
+    \hline
+    DISCONNECT & 14 \\
+    \hline
+    AUTH & 15 \\
+    \hline
+\end{tabular}
+\caption{Verfügbare \ac{mqtt} Paketarten und deren Wert}
+\label{table:mqtt-packet-types}
+\end{table}
+
+\subsubsection{MQTT CONNECT}
+\subsubsection{Shared Subscriptions}
 
 
 \newpage
 
-
-
-
-%standard v5: https://docs.oasis-open.org/mqtt/mqtt/v5.0/mqtt-v5.0.html
-MQTT is a Client Server publish/subscribe messaging transport protocol. It is light weight, open, simple, and designed to be easy to implement. These characteristics make it ideal for use in many situations, including constrained environments such as for communication in Machine to Machine (M2M) and Internet of Things (IoT) contexts where a small code footprint is required and/or network bandwidth is at a premium.
-
-The protocol runs over TCP/IP, or over other network protocols that provide ordered, lossless, bi-directional connections. Its features include:
-
-·         Use of the publish/subscribe message pattern which provides one-to-many message distribution and decoupling of applications.
-
-·         A messaging transport that is agnostic to the content of the payload.
-
-·         Three qualities of service for message delivery:
-
-o    "At most once", where messages are delivered according to the best efforts of the operating environment. Message loss can occur. This level could be used, for example, with ambient sensor data where it does not matter if an individual reading is lost as the next one will be published soon after.
-
-o    "At least once", where messages are assured to arrive but duplicates can occur.
-
-o    "Exactly once", where messages are assured to arrive exactly once. This level could be used, for example, with billing systems where duplicate or lost messages could lead to incorrect charges being applied.
-
-·         A small transport overhead and protocol exchanges minimized to reduce network traffic.
-
-·         A mechanism to notify interested parties when an abnormal disconnection occurs.
-
-\subsubsection{Shared Subscriptions}
 \subsection{HiveMQ Broker}
 \subsubsection{HiveMQ Cluster}
 \subsection{Load Balancing}

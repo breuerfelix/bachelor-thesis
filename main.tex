@@ -54,6 +54,9 @@
 ] {hyperref}
 \usepackage{import}
 
+\usepackage{tabularx}
+\newcolumntype{Y}{>{\centering\arraybackslash}X}
+
 % syntax highlighting
 % TODO activate when shell escape is merged into tectonic
 %\usepackage[newfloat]{minted}
@@ -75,7 +78,7 @@
 
 %\import{other/}{declaration}
 \listoffigures\addcontentsline{toc}{section}{Abbildungsverzeichnis}\newpage
-%\listoftables\addcontentsline{toc}{section}{List of Tables}\newpage
+\listoftables\addcontentsline{toc}{section}{Tabellenverzeichnis}\newpage
 
 % anhang, quellen, glossar, index, eides, sperrvermerk
 
