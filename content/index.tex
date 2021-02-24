@@ -51,7 +51,7 @@ Es gibt derzeit zwei Versionen der MQTT Spezifikation: \verb|3.1.1| und \verb|5|
     \item Clients
     \item Broker
 \end{itemize}
-Clients sind alle Teilnehmer dieses Systems, die Nachricht empfangen oder veröffentlichen wollen. Diese setzten auf einen Broker als Mittelsmann um die Nachrichten erfolgreich zu vermitteln.\cite{teamGettingStartedMQTT} Jede Nachricht wird durch den Herausgeber in bestimmte Klassen kategorisiert. Der Herausgeber weißt nicht ob, oder wer, an dieser Nachricht interessiert ist und schickt die klassifizierte Nachricht an den Broker. Clients, die an bestimmten Nachrichten interessiert sind, müssen bei dem Broker ein Abonnement erstellen und dabei die gewünschte Kategorie angeben. Somit kann der Broker eingehende kategorisierte Nachrichten an die entsprechenden Clients weiterleiten. Durch dieses System entsteht eine Entkopplung der einzelnen Clients, da sich diese untereinander nicht bewusst sind.\cite{EverythingYouNeed} In verteilten System, wo die einzelnen Komponenten oftmals sehr unterschiedlich sind, spielt ein solches Konzept eine große Rolle, da es eine einheitliche Abstraktion der Kommunikationsebene bietet.\cite{domingusDistributedSystemsIntroduction2020}\\
+Clients sind alle Teilnehmer dieses Systems, die Nachricht empfangen oder veröffentlichen wollen. Diese setzten auf einen Broker als Mittelsmann um die Nachrichten erfolgreich zu vermitteln.\cite{teamGettingStartedMQTT} Jede Nachricht wird durch den Herausgeber in bestimmte Klassen kategorisiert. Der Herausgeber wei{\ss}t nicht ob, oder wer, an dieser Nachricht interessiert ist und schickt die klassifizierte Nachricht an den Broker. Clients, die an bestimmten Nachrichten interessiert sind, müssen bei dem Broker ein Abonnement erstellen und dabei die gewünschte Kategorie angeben. Somit kann der Broker eingehende kategorisierte Nachrichten an die entsprechenden Clients weiterleiten. Durch dieses System entsteht eine Entkopplung der einzelnen Clients, da sich diese untereinander nicht bewusst sind.\cite{EverythingYouNeed} In verteilten System, wo die einzelnen Komponenten oftmals sehr unterschiedlich sind, spielt ein solches Konzept eine gro{\ss}e Rolle, da es eine einheitliche Abstraktion der Kommunikationsebene bietet.\cite{domingusDistributedSystemsIntroduction2020}\\
 % TODO mehr zu distributed systems
 % TODO bild publisher - subscriber topic
 % TODO bild von sensoren / broker / downstream clients
@@ -65,8 +65,8 @@ Clients sind alle Teilnehmer dieses Systems, die Nachricht empfangen oder veröf
 Im Kontext \ac{mqtt} werden Nachrichten in eine hieraschich aufgebaute Themenstruktur klassifiziert. Themen werden mit einem Schrägstrich (\verb|/|) getrennt und sehen zum Beispiel wie folgt aus: \verb|sensors/temperature/celcius|. Abbildung \ref{fig:publish-subscribe} zeigt einen Client, der auf das Thema \verb|bla| Nachrichten veröffentlicht. Diese wird an zwei weitere Clients durch den Broker weitergeleitet, da diese das Thema \verb|bla| abonniert haben. Themen müssen auf einem Broker nicht explizit angelegt werden. Sobald ein Client auf einem Thema publiziert oder es abonniert, wird dieses automatisch angelegt.\cite{WhatMQTTDefinition}\\
 Beim abonnieren eines Themas kann entweder ein spezifisches Thema oder eine Kombination aus Thema und Wildcard verwendet werden. Bei einer Wildcard werden zwischen den folgenden zwei unterschieden:\cite{mqtt5Specification}
 \begin{itemize}
-    \item Multi-level '\verb|#|': Schließt das Vorgänger- und alle nachfolgenden Themen mit ein.
-    \item Single-level '\verb|+|': Schließt alle Themen auf einer einzigen Ebene mit ein.
+    \item Multi-level '\verb|#|': Schlie{\ss}t das Vorgänger- und alle nachfolgenden Themen mit ein.
+    \item Single-level '\verb|+|': Schlie{\ss}t alle Themen auf einer einzigen Ebene mit ein.
 \end{itemize}
 Bei der folgenden Themenstruktur
 \begin{itemize}
@@ -78,7 +78,7 @@ Bei der folgenden Themenstruktur
     \item \verb|sensors/fuel/tank1|
     \item \verb|sensors/fuel/tank2|
 \end{itemize}
-schließt ein Abonnement auf \verb|sensors/#| alle Themen mit ein. Bei einem Abonnement auf \verb|sensors/+| sind hingegen nur diese Themen mit eingeschlossen:
+schlie{\ss}t ein Abonnement auf \verb|sensors/#| alle Themen mit ein. Bei einem Abonnement auf \verb|sensors/+| sind hingegen nur diese Themen mit eingeschlossen:
 \begin{itemize}
     \item \verb|sensors/temperature|
     \item \verb|sensors/fuel|
@@ -95,7 +95,7 @@ Bei \ac{mqtt} wird die Zuverlässigkeit der Übermittlung einer Nachricht mit ei
 Bei \ac{qos} Level 2 und 3 werden Handshakes zur Verifizierung der Paketübermittelung eingesetzt.\cite{mqtt5Specification}
 
 \subsubsection{Paket Struktur}
-\ac{mqtt} hat die Absicht ein leichtgewichtiges Protokoll zu sein. Tabelle \ref{table:mqtt-packet-structure} zeigt den Aufbau eines jeden \ac{mqtt} Paketes. Die fixe Kopfzeile ist zwei Byte groß und muss in jedem Paket vorhanden sein. Basierend auf der Art des Paketes, das in der fixen Kopfzeile angegeben wird, sind zusätzlich eine variable Kopfzeile und weitere Daten möglich.\cite{mqtt5Specification}
+\ac{mqtt} hat die Absicht ein leichtgewichtiges Protokoll zu sein. Tabelle \ref{table:mqtt-packet-structure} zeigt den Aufbau eines jeden \ac{mqtt} Paketes. Die fixe Kopfzeile ist zwei Byte gro{\ss} und muss in jedem Paket vorhanden sein. Basierend auf der Art des Paketes, das in der fixen Kopfzeile angegeben wird, sind zusätzlich eine variable Kopfzeile und weitere Daten möglich.\cite{mqtt5Specification}
 \begin{table}[h!]
 \centering
 \renewcommand{\arraystretch}{1.5}
@@ -111,7 +111,7 @@ Bei \ac{qos} Level 2 und 3 werden Handshakes zur Verifizierung der Paketübermit
 \caption{Struktur eines \ac{mqtt} Paketes}
 \label{table:mqtt-packet-structure}
 \end{table}
-Tabelle \ref{table:fixed-header} zeigt den detaillierten Aufbau der fixen Kopfzeile. Im ersten Byte werden Bit sieben bis vier für die spezifische Art des Paketes verwendet. Tabelle \ref{table:mqtt-packet-types} enhält eine Liste mit allen möglichen Pakettypen und deren Wert. Byte zwei gibt die restliche Paketlänge encodiert als \textit{Variable Byte Integer} an. Ein \textit{Variable Byte Integer} ist ... . Somit ist eine maximale Paketgröße von xyz möglich.\cite{mqtt5Specification}
+Tabelle \ref{table:fixed-header} zeigt den detaillierten Aufbau der fixen Kopfzeile. Im ersten Byte werden Bit sieben bis vier für die spezifische Art des Paketes verwendet. Tabelle \ref{table:mqtt-packet-types} enhält eine Liste mit allen möglichen Pakettypen und deren Wert. Byte zwei gibt die restliche Paketlänge encodiert als \textit{Variable Byte Integer} an. Ein \textit{Variable Byte Integer} ist ... . Somit ist eine maximale Paketgrö{\ss}e von xyz möglich.\cite{mqtt5Specification}
 % TODO was ist ein variable byte integer
 \begin{table}[h!]
 \centering
