@@ -51,7 +51,14 @@ Es gibt derzeit zwei Versionen der MQTT Spezifikation: \verb|3.1.1| und \verb|5|
     \item Clients
     \item Broker
 \end{itemize}
-Clients sind alle Teilnehmer dieses Systems, die Nachricht empfangen oder veröffentlichen wollen. Diese setzten auf einen Broker als Mittelsmann um die Nachrichten erfolgreich zu vermitteln.\cite{teamGettingStartedMQTT} Jede Nachricht wird durch den Herausgeber in bestimmte Klassen kategorisiert. Der Herausgeber wei{\ss}t nicht ob, oder wer, an dieser Nachricht interessiert ist und schickt die klassifizierte Nachricht an den Broker. Clients, die an bestimmten Nachrichten interessiert sind, müssen bei dem Broker ein Abonnement erstellen und dabei die gewünschte Kategorie angeben. Somit kann der Broker eingehende kategorisierte Nachrichten an die entsprechenden Clients weiterleiten. Durch dieses System entsteht eine Entkopplung der einzelnen Clients, da sich diese untereinander nicht bewusst sind.\cite{EverythingYouNeed} In verteilten System, wo die einzelnen Komponenten oftmals sehr unterschiedlich sind, spielt ein solches Konzept eine gro{\ss}e Rolle, da es eine einheitliche Abstraktion der Kommunikationsebene bietet.\cite{domingusDistributedSystemsIntroduction2020}\\
+Clients sind alle Teilnehmer dieses Systems, die Nachricht empfangen oder veröffentlichen wollen. Diese setzten auf einen Broker als Mittelsmann um die Nachrichten erfolgreich zu vermitteln.\cite{teamGettingStartedMQTT} Jede Nachricht wird durch den Herausgeber in bestimmte Klassen kategorisiert. Der Herausgeber wei{\ss}t nicht ob, oder wer, an dieser Nachricht interessiert ist und schickt die klassifizierte Nachricht an den Broker. Clients, die an bestimmten Nachrichten interessiert sind, müssen bei dem Broker ein Abonnement erstellen und dabei die gewünschte Kategorie angeben. Somit kann der Broker eingehende kategorisierte Nachrichten an die entsprechenden Clients weiterleiten. Der Broker kann Nachrichten zudem auch aufbewahren, sodass Clients, die zu einem späteren Zeitpunkt auf ein Thema abonnieren, ebenfalls die vergangenen Nachrichten erhalten. Durch dieses System entsteht eine Entkopplung der einzelnen Clients auf mehreren Ebenen.\cite{EverythingYouNeed}
+\begin{itemize}
+    \item \textbf{Räumliche Entkopplung:} Herausgeber und Abonnent der Nachricht müssen sich nicht kennen.
+    \item \textbf{Zeitliche Entkopplung:} Herausgeber und Abonnent müssen nicht zur selben Zeit aktiv sein.
+    \item \textbf{Synchronisierungs Entkopplung:} Herausgeber und Abonnent müssen ihre Operationen beim publizieren und konsumieren nicht unterbrechen. TODO warum?:
+\end{itemize}
+\cite{teamPublishSubscribeMQTT}
+In verteilten System, wo einzelne Komponenten oftmals sehr unterschiedlich sind, spielt ein solches Konzept eine gro{\ss}e Rolle, da es eine einheitliche Abstraktion der Kommunikationsebene bietet.\cite{domingusDistributedSystemsIntroduction2020}\\
 % TODO mehr zu distributed systems
 % TODO bild publisher - subscriber topic
 % TODO bild von sensoren / broker / downstream clients
@@ -176,6 +183,7 @@ Tabelle \ref{table:fixed-header} zeigt den detaillierten Aufbau der fixen Kopfze
 \end{table}
 
 \subsubsection{MQTT CONNECT}
+
 \subsubsection{Shared Subscriptions}
 
 
