@@ -1,11 +1,19 @@
 \section{Technische Grundlagen} - Technologische Grundlagen - Grundlagen /
+TODO:
+- im folgenden bezieht sich Client auf MQTT Client
+- publishen / subscriben wird zu veröffentlichen / abonnieren
+- kann man publisher und subscriber benutzen ? anstatt herausgeber und abonnent
+- Thema in Topic umändern
+
+Erklärung zu den einzelnen kapiteln und was sich darin befindet (in den grundlagen)
 \subsection{MQTT}
 \acf{mqtt} wurde ursprünglich von Doktor Andy Stanford-Clark und Arlen Nipper im Jahr 1999 entworfen um Gas- und Ölpiplines zu überwachen. Diese lagen oftmals an entlegenen Orten, wie zum Beispiel auf Übersee, und konnten nicht mit Radiowellen oder einem Kabel zum Festland erreicht werden. Zu dieser Zeit war die einzige Option um Sensordaten auf einen Server zu übertragen eine auf Datendurchsatz abgerechnete Satellitenkommunikation. Bei mehreren tausend Sensoren wurde somit ein Protokoll benötigt, das die Daten zuverlässig mit minimaler Bandbreite an die Server auf dem Festland übermitteln kann.
-\ac{mqtt} wurde im Jahr 2013 von der \ac{oasis} als Open Source standatisiert und wird heutzutage von vielen gro{\ss}en \ac{iot} Platformen unterstützt.\cite{WhatMQTTDefinition}\\
+\ac{mqtt} wurde im Jahr 2013 von der \ac{oasis} als Open Source standatisiert und wird heutzutage von vielen gro{\ss}en \ac{iot} Platformen unterstützt. TODO welche ??\cite{WhatMQTTDefinition}\\
 Es gibt derzeit zwei Versionen der MQTT Spezifikation: \verb|3.1.1| und \verb|5|. Alle Referenzen, falls nicht explizit gekennzeichnet, beziehen sich auf die aktuelle Version \verb|5| des Protokolls.\\
-\ac{mqtt} ist ein Layer 7 \textit{Publish and Subscribe} Protkoll, das auf \acs{tcp} / \acs{ip} aufsetzt. Anders als das Request / Response Paradigma bei \acs{http} ist \ac{mqtt} Event gesteuert und erlaubt Nachrichten direkt an einen bestimmten Client zu schicken. Somit muss nicht periodisch nach neuen Nachrichten gefragt werden. Zusammen mit einem fixen Paket-Header von nur zwei Byte sorgen diese Eigeschaften für einen minimalen Datendurchsatz.\cite{WhatMQTTDefinition}
+\ac{mqtt} ist ein Layer 7 \textit{Publish and Subscribe} Protkoll, das auf \acs{tcp} / \acs{ip} aufsetzt. Anders als das Request / Response Paradigma bei \acs{http} ist \ac{mqtt} Event gesteuert und erlaubt Nachrichten direkt an einen bestimmten Client zu schicken. Somit muss nicht periodisch nach neuen Nachrichten gefragt werden. Zusammen mit einem fixen Paket-Header von nur zwei Byte sorgen diese Eigeschaften für einen geringen Datendurchsatz.\cite{WhatMQTTDefinition}
 
 \subsubsection{Publish and Subscribe}
+TODO erwähnen das es sich um filter handelt
 \ac{mqtt} nutzt das \textit{Publish and Subscribe} Kommunikationsschema, das eine Struktur bietet um Nachrichten zwischen Herausgeber und Abonnent auszutauschen. In diesem Schema gibt es zwei unterschiedliche Systeme:
 \begin{itemize}
     \item Clients
@@ -60,8 +68,22 @@ Bei \ac{mqtt} wird die Zuverlässigkeit der Übermittlung einer Nachricht mit ei
 \end{itemize}
 Bei \ac{qos} Level 2 und 3 werden Handshakes zur Verifizierung der Paketübermittelung eingesetzt.\cite{mqtt5Specification}
 
-\subsubsection{Last Will}
-muss das noch dazu? i don't know
+\subsubsection{Retained Message} - titel lieber deutsch? -
+In \ac{mqtt} kann pro Topic die letzte veröffentlichte Nachricht aufbewahrt werden.
+Dazu muss im \verb|PUBLISH| Paket die \verb|RETAIN| Kennzeichnung gesetzt werden.
+In diesem Fall speichert der Broker die Nachricht mit dem dazugehörigen Topic und \ac{qos} Level ab.
+Falls bereits eine Aufbewahrte Nachricht (engl. \textit(Retained Message)) auf diesem Topic vorhanden ist, wird sie überschrieben.
+Jeder Client, der ein Topic abonniert das eine Retained Message besitzt, bekommt diese Nachricht direkt nach dem abonnieren zugeschickt.
+Dies trifft auch zu, falls das Topic mit der Retained Message durch einen Wildcard Filter abonniert wurde.
+\cite{teamRetainedMessagesMQTT}
+Um eine Retained Message zu löschen muss eine neue Nachricht auf dem Topic veröffentlicht werden mit der \verb|RETAIN| Kennzeichnung und einem leeren Payload. Der Broker löscht die aktuelle Retained Message und neue Subscriber werden erst Nachrichten von diesem Topic erhalten, sobald eine neue Nachricht dort veröffentlich wird.
+% TODO zeitliche zeichnung mit mehreren clients und subscribe events
+Falls ein Topic eine Retained Message (folglich \textit{M1} genannt) besitzt und eine neue Nachricht ohne \verb|RETAIN| Kennzeichnung auf diesem Topic veröffentlicht wird, überschreibt diese nicht die aktuelle Retained Message. Neue Subscriber erhalten weiterhin die Nachricht \textit{M1}. TODO zeichnung!
+\cite{mqtt5Specification}
+\\
+Retained Messages helfen neuen Subscribern direkt einen Wert zu kriegen nachdem sie ein Topic abonniert haben. Eine Retained Messaged wird auch \textit{last known good value} genannt.
+\cite{teamRetainedMessagesMQTT}
+Als Beispiel dient ein Temperatursensor, der alle zehn Minuten seine Temperatur auf das Topic \verb|sensors/temperature| veröffentlicht. Um den aktuellen Temperaturwert abzufragen gibt es ein Konsolenprogramm, das bei der Ausführung eine Verbindung zu dem Broker herstellt, das Topic \verb|sensors/temperature| abonniert, den ersten erhaltenen Wert auf der Konsole ausgibt, das Topic deabonniert und die Verbindung wieder schlie{\ss}t. Wenn das Programm eine Minute nachdem der Temperatursensor seine Nachricht veröffentlicht hat ausgeführt wird, muss der Benutzer neun Minuten warten bis er die aktuelle Temperatur angezeigt bekommt. Wenn der Temperatursensor seine Nachrichten hingegen als Retained Message veröffentlicht, bekommt das Konsolenprogramm nach dem abonnieren den letzten Temperaturwert und kann diesen anzeigen.
 
 \subsubsection{Paket Struktur}
 \ac{mqtt} hat die Absicht ein leichtgewichtiges Protokoll zu sein. Tabelle \ref{table:mqtt-packet-structure} zeigt den Aufbau eines jeden \ac{mqtt} Paketes. Die fixe Kopfzeile ist zwei Byte gro{\ss} und muss in jedem Paket vorhanden sein. Basierend auf der Art des Paketes, das in der fixen Kopfzeile angegeben wird, sind zusätzlich eine variable Kopfzeile und weitere Daten möglich.\cite{mqtt5Specification}
@@ -190,7 +212,7 @@ TODO auch die anderen optionalen daten erklären?
     Byte 7 & Protokoll Version & 5 & 0 & 0 & 0 & 0 & 0 & 1 & 0 & 1 \\
     \hline
     Byte 8 &
-        \makecell[l]{Benutzername Kennzeichnung \\ Passwort Kennzeichnung \\ \textit{Will} speichern \\ \textit{Will} \ac{qos} Level \\ \textit{Will} Kennzeichnung \\ Frischer Start \\ Reserviert} &
+        \makecell[l]{Benutzername Kennzeichnung \\ Passwort Kennzeichnung \\ \textit{Will} speichern \\ \textit{Will} \ac{qos} Level \\ \textit{Will} Kennzeichnung \\ Frische Session \\ Reserviert} &
         \makecell{1 \\ 1 \\ 0 \\ 01 \\ 1 \\ 1 \\ 0} &
         1 & 1 & 0 & 0 & 1 & 1 & 1 & 0 \\
     \hline
@@ -201,21 +223,133 @@ TODO auch die anderen optionalen daten erklären?
     Byte 11 & Länge der Eigenschaften & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
     \hline
 \end{tabularx}
-\caption{Verfügbare \ac{mqtt} Paketarten und deren Wert}
+\caption{Beispielhaftes \ac{mqtt} CONNECT Paket}
 \label{table:mqtt-connect-packet-variable-header}
 \end{table}
 Der Broker muss eine \verb|CONNECT| Nachricht von einem Client mit einem \verb|CONNACK| Paket beantworten.\cite{mqtt5Specification}
 
+\subsubsection{Last Will Nachricht}
+Ein Client kann bei der Verbindung zu einem Broker einen letzten Willen (engl. \textit{Last Will}) als Nachricht definieren. Diese Nachricht wird auf ein ebenfalls angegebenes Topic veröffentlich sobald die Verbindung zum Client unterbricht und dieser nicht in einer definierten Zeit seine Verbindung zum Broker wieder aufbauen kann. Falls der Client seine Verbindung Protokollkonform beendet, wird die Last Will Nachricht nicht veröffentlicht.
+\cite{soniSURVEYMQTTPROTOCOL}\\
+Die Last Will Nachricht kann in Sicherheitsrelevanten Applikationen eingesetzt werden. Als Beispiel dient ein Bewegungssensor der eine Eingangtür überwachen soll. Falls dieser Sensor vor einem Einbruch mutwillig zerstört wird, verliert dieser die Verbindung zum Broker und seine Last Will Nachricht wird veröffentlicht. Somit kann ein System auch auf ungeplante Events reagieren.
+
 \subsubsection{Shared Subscriptions}
+In \ac{mqtt} Version 5 wurden \textit{Shared Subscriptions} eingeführt, die es Clients erlauben ein Abonnement untereinander zu teilen. Diese Clients werden in eine \textit{Shared Subscription Group} zusammengefasst. Bei einem normalen Abonnement erhält jeder Client, der das gleiche Thema abonniert hat, eine Kopie der Nachricht. Bei einer \textit{Shared Subscription} erhält immer nur ein Client der \textit{Shared Subscription Group} die Nachricht in abwechselnder Reihenfolge. Dieser Mechanismus wird auch als \textit{Client Load Balancing} bezeichnet, da die Last eines Themas auf mehrere Abonnenten verteilt wird.\cite{raschbichlerMQTTHowNew}
+Shared Subscriptions verwenden Standard \ac{mqtt} Mechanismen. Jeder Client kann Teil einer Shared Subscription Group werden, indem er diese Topic Struktur einhält: \verb|$share/GROUPID/TOPIC|.
+\begin{itemize}
+    \item \verb|$share|: Statische Shared Subscription Identifikation.
+    \item \verb|GROUPID|: Identifikation einer Shared Subscription Group. Darf \verb|/|, \verb|#| und \verb|+| nicht enthalten.
+    \item \verb|TOPIC|: Das zu abonnierende Topic.
+\end{itemize}
+Ein konkretes Beispiel für das abonnieren einer Shared Subscription ist: \verb|$share/group1/sensors/temperature|.
+% TODO bild einer shared subscription group
 
 \newpage
 
 \subsection{HiveMQ Broker}
+TODO write that chapter
+Der HiveMQ Broker ist ein Java basierter \ac{mqtt} Broker, der sich auf das Anwendungsfall \acl{iot} spezialisiert.
+Er unterstützt alle Versionen des \ac{mqtt} Protokolls und ist Clusterfähig. 
+HiveMQ Broker ist erweiterbar mit Extensions.
+
 \subsubsection{HiveMQ Cluster}
+Ein Merkmal des HiveMQ Broker ist die Möglichkeit ein Broker Cluster zu bilden.
+Ein Broker Cluster (folgend Cluster genannt) ist ein verteiltes System in welchem sich mehrere HiveMQ Broker zusammenschlie{\ss}en.
+Ein Cluster bildet für Clients eine einzige logische Einheit.
+Dies bedeutet, für einen Client macht es keinen Unterschied ob er zu einem einzigen HiveMQ Broker oder zu einem Cluster verbunden ist.
+\cite{HiveMQClusterHiveMQ}
+Durch das clustern der HiveMQ Broker ensteht eine horizontale Skalierung. Wie in Kapitel TODO label anwendungsdomäne bereits erläutert, kann der Anwendungsfall \ac{iot} zu mehreren Millionen Clients führen wobei eine vertikale Skalierung an ihre Grenzen sto{\ss}en kann.
+TODO erkären warum an die grenzen sto{\ss}en?
+\begin{itemize}
+    \item \textbf{Vertikale Skalierung:} Fügt mehr Rechen- oder Speichereinheiten zu einem Server hinzu.
+    \item \textbf{Horizontale Skalierung:} Fügt mehrere Server zu einer logischen Recheneinheit hinzu. Dabei kann die Arbeitslast auf die einzelnen Server verteilt werden.
+\end{itemize}
+TODO bessere quelle für skalierung?
+\cite{HowScaleIT}
+
+Ein HiveMQ Broker in einem HiveMQ Cluster wird als ein HiveMQ Node (folgend Node genannt) bezeichnet.
+Damit sich mehrere Nodes zu einem Cluster zusammenschlie{\ss}en muss jeder Node:
+\begin{itemize}
+    \item ein HiveMQ Enterprise Broker sein.
+    \item die anderen Nodes über ein Netzwerk erreichen können.
+    \item das \textit{clustering} in seiner Konfiguration eingeschaltet haben.
+    \item die anderen Nodes mit der \textit{Cluster Discovery} auffinden können.
+\end{itemize}
+Die Cluster Discovery beschreibt den Mechanismus wie sich individuelle Nodes gegenseitig finden können um ein Cluster zu bilden. Es stehen folgende Möglichkeiten zur Verfügung:
+\begin{itemize}
+    \item \textbf{static:} Jeder Node wird mit einer statischen Liste von allen Nodes und deren \ac{ip} Adresse / Port provisioniert.
+    \item \textbf{multicast:} Nodes finden dynamisch andere Nodes, die die selbe multicast Adresse und Port benutzen.
+    \item \textbf{broadcast:} Nodes finden dynamisch andere Nodes im selben Subnetzwerk indem sie die Broadcast \ac{ip} Adresse benutzen.
+    \item \textbf{extension:} Es kann eine HiveMQ Erweiterung benutzt werden um andere Nodes zu entdecken.
+    \item \textbf{dns extension:} Nodes finden dynamisch andere Nodes über einen \textit{round-robin} \acs{dns} A record.
+\end{itemize}
+HiveMQ ist in der Lage die Clustergrö{\ss}e zur Laufzeit dynamisch anzupassen. Diesen Mechanismus muss der gewählte Cluster Discovery Modus jedoch unterstützten.
+\cite{HiveMQClusterHiveMQ}
+
+\subsubsubsection{DNS Discovery}
+\subsubsubsection{Client Queue}
+
+\subsubsection{Persistente Session} \label{s:persistent-session}
+Um Nachrichten von einem \ac{mqtt} Broker zu erhalten, muss sich ein Client zu diesem verbinden und eine Subscription auf ein Topic erstellen.
+Jedes mal wenn die Verbindung zum Client unterbrochen wird, müssen die Verbindung und alle Subscriptions neu aufgebaut werden.
+Für einen Client mit limitierten Ressourcen ist dies eine Belastung.
+Um diese Belastung zu reduzieren kann der Client beim Aufbau der Verbindung eine persistente Session anfordern, indem dieser Bit eins von Byte acht des variablen Header der \verb|CONNECT| Nachricht (siehe Tabelle \ref{table:mqtt-connect-packet-variable-header}) auf null setzt.
+Ist dieses Bit hingegen auf eins gesetzt, werden alle Nachrichten und Informationen von vorherigen Sessions gelöscht.
+Eine persistente Session speichert folgende Daten auf dem Broker:
+\begin{itemize}
+    \item Die Existenz einer persistenten Session. Als Identifikation wird die \acs{clientid} verwendet.
+    \item Alle Subscriptions des Clients.
+    \item Alle Nachrichten mit einem \ac{qos} Level eins oder zwei, die der Client noch nicht bestätigt hat.
+    \item Alle Nachrichten mit einem \ac{qos} Level eins oder zwei, die der Client aufgrund der unterbrochenen Verbindung nicht erhalten konnte.
+    \item Alle Nachrichten mit einem \ac{qos} Level zwei, die der Client veröffentlicht hat und noch nicht bestätigt wurden.
+\end{itemize}
+Neben dem Broker muss ein Client auch Informationen bei einer persistenten Session speichern. Er ist verantwortlich die folgenden Daten zu persistieren:
+\begin{itemize}
+    \item Seine eigene \ac{clientid}. Diese wird als Identifikationsmerkmal einer persistenten Session auf dem Broker genutzt und muss bei einer erneuten Verbindung immer gleich sein.
+    \item Alle \ac{qos} Level eins oder zwei Nachrichten, die noch nicht vom Broker bestätigt wurden.
+    \item Alle \ac{qos} Level zwei Nachrichten, die der Client vom Broker erhalten hat und noch nicht vollständig bestätigt wurden.
+\end{itemize}
+Sobald ein Client die Verbindung zu einem Broker verliert und eine persistente Session aktiv ist, versucht der Broker die Daten des Clients solange wie möglich zu persistieren bis dieser sich erneut verbindet. Falls der Broker während der Zeit, die der Client nicht verbunden ist, keinen verfügbaren Arbeitsspeicher mehr hat, besteht die Möglichkeit, dass die persistente Session vom Broker gelöscht wird.
+\cite{teamPersistentSessionQueuing}
+
+\subsubsubsection{Client Takeover} \label{s:client-takeover}
+Wie bereits im Kapitel \ref{s:persistent-session} beschrieben kann ein Client eine persistente Session bei einem Broker anfordern. Dabei werden zum Beispiel Nachrichten mit einem \ac{qos} Level von eins oder zwei auf dem Broker nachgehalten, falls der Client seine Verbindung verliert. Ein Client Takeover findet statt, wenn der Broker eine neue Client Verbindung erhält aber noch eine offene Verbindung mit der selben \ac{clientid} hat. Dies kann bei \textit{halb-offenen \acs{tcp} Verbindungen} vorkommen, die, wie Andy Stanford-Clark beschreibt, auch bei \ac{tcp} auftreten können:
+"Although TCP/IP in theory notifies you when a socket breaks, in practice, particularly on things like mobile and satellite links, which often 'fake' TCP over the air and put headers back on at each end, it’s quite possible for a TCP session to 'black hole', i.e. it appears to be open still, but in fact is just dumping anything you write to it onto the floor."
+% TODO quelle: https://groups.google.com/forum/#!msg/mqtt/zRqd8JbY4oM/XrMwlQ5TU0EJ
+Der Broker beendet die existierende Verbindung und assoziiert die persistente Session - falls vorhanden - nun mit dem neuen Client.
+\cite{teamKeepAliveClient}
+%TODO where to quote?
+
+\subsubsection{Client Queue}
+vielleicht raus?
+
 \subsection{Load Balancing}
-was für load balancer gibt es ?
-\subsection{Envoy}
-vielleicht hier noch kein envoy ? ist dies grundlage oder teil der arbeit das wir uns für envoy entscheiden ?
+TODO Beispiel Web-Applikation
+Um Applikationen auf einem Server bereitzustellen muss man einen geeigneten Server suchen. In diesem Prozess testet man die Applikation wie viel \acs{cpu}, \acs{ram} und Speicherplatz diese in einer Produktivumgebung benötigt. Wenn nun mehr Leute als erwartet die Applikation benutzen braucht diese mehr Recheneinheiten um die neue Arbeitslast abzuarbeiten. Eine Möglichkeit ist, den Server herunterzufahren, ihm mehr \acs{cpu} und \acs{ram} zu geben und ihn wieder zu starten. Dieser Prozess wird auch vertikale Skalierung genannt und hat Grenzen.\cite{bourkeServerLoadBalancing2001}
+Als Beispiel für diese Grenze ist der Rechenleistungsstärkste Server, den man zurzeit bei Amazon AWS mieten kann, mit 96 virtuellen \acs{cpu} Kernen und 375 Gigabyte \acs{ram}.\cite{EC2OnDemandInstance}
+Es gibt mehrere Gründe wann eine vertikale Skalierung an ihre Grenzen stö{\ss}t:
+\begin{itemize}
+    \item Der Server ist nicht mehr erweiterbar an \acs{cpu}, \acs{ram} oder Speicherplatz.
+    \item Ein neustarten des Servers um eine vertikale Skalierung durchzuführen ist nicht möglich.
+\end{itemize}
+\cite{bourkeServerLoadBalancing2001}
+Die alternative zu einer vertikalen Skalierung ist die horizontale Skalierung. Bei einer horizontalen Skalierung werden nicht die Kapazitäten des Servers erhöht, sondern es werden weitere Server bereitgestellt.
+Wird Beispielweise ein \acs{http} Web-Server, der auf jeden Request ein \verb|"Hello World"| zurückgibt, auf einem Server bereitgestellt, der zwei \ac{cpu} Kerne und zwei Gigabyte \ac{ram} hat, sieht eine Skalierung wie folgt aus:
+\begin{itemize}
+    \item \textbf{Vertikale Skalierung:} Es werden vier \ac{cpu} Kerne und vier Gigabyte \ac{ram} zu dem Server hinzugefügt.
+    \item \textbf{Horizontale Skalierung:} Es wird ein weiterer unabhängiger Server mit der Web-Applikation bereitgestellt, der die Requests bearbeiten kann.
+\end{itemize}
+Nicht jede Applikation ist für eine horizontale Applikation geeignet. Würde der Web-Server einen internen Zähler an den Benutzer zurückgeben, wie viele Requests der Server bereits abgearbeitet hat, müsste die Applikation diesen Zähler mit allen anderen Servern die an der horizontalen Skalierung teilnehmen teilen.
+Ein weiteres Problem ist die Bereitstellung der horizontalen Server. Der Endnutzer der Web-Applikation muss die \ac{ip} Adressen aller Server kennen um auf diese zuzugreifen.
+% TODO cite horizontale und vertikale skalierung
+
+\subsubsection{DNS Round Robin}
+% TODO link hivemq dns extension with this chapter
+Um die \ac{ip} Adressen aller Teilnehmer einer horzontalen Skalierung einem Endnutzer mitzuteilen wurde das \ac{dns} A Eintrag Round Robin Load Balancing entwickelt. Bei einen \ac{dns} A Eintrag muss eine \ac{ip}v4 Adresse hinterlegt werden. Bei einem \ac{dns} Round Robin können mehrere \ac{ip}v4 Adressen bei einer Domain hinterlegt werden, sodass ein Endnutzer nur den Domainnamen kennen muss und alle Teilnehmer einer horizontalen Skalierung erreichen kann.
+
+Literatur zu der Limitierung von \ac{dns} A Round Robin findet sich im Buch Server Load Balancing von Tony Bourke.\cite{bourkeServerLoadBalancing2001}
+
+\subsubsection{Envoy}
 
 If your work makes use of existing non-standard systems, tools, frameworks, librariesetc. describe these as well. However, just give a broad overview and delve just into those details that are crucial for the understanding of the following chapters. For standard sys-tems, tools, frameworks, and libraries please refer to its authoritative documentation. Youare not supposed to give an thorough introduction into, e.g., Java or ReactJS.
 

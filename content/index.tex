@@ -38,40 +38,7 @@ industrial bereich
 - The header "Domain / Anwendungsfeld" is supposed to be replaced or extended with some more specific header like: "Domain 'Claim handling'"
 
 \import{content/}{grundlagen}
-
-\section{Problembeschreibung}
-
-\subsection{Cluster Discovery}
-discovery that works with hivemq cluster discovery (dns)
-es kommen immer wieder neue nodes hinzu / weg zb bei rolling updates
-load balancer muss diese nodes dynamisch hinzufüger oder entfernen
-hivemq ist in der lage dynamische cluster joins zu machen also muss der lb auch in der lage dazu sein
-
-\subsection{Langlebige TCP Verbindungen}
-ein LB darf die tcp connections nicht terminieren bei einem update oder config änderung
-mqtt setzt auf langlebiege tcp verbindungen! nicht wie bei http! bei http -> drain
--> ein drain bei mqtt kann tage dauern
-
-load balancer with data plane api -> good docs
-\subsection{Persistent Client Session}
-mqtt clients haben viel session auf dem broker
-bei einem reconnect wird ein client takeover ausgeführt -> teuer
-clients möglichst immer zum selben broker routen
-problem: iot clients haben oft sich ändernde ip adressen zb mobile geräte wie autos
-\subsubsection{Client Takeover}
-sehr teuer! die persistent client informationen müssen umgezogen werden auf neuen broker
-
-\subsection{Ungleiche Lastverteilung}
-mqtt clients sind unterschiedlich teuer (nicht wie bei http)
-beispiel: wildcard subscription
-
-\subsubsection{Downstream Clients}
-\subsubsection{Lightweight Clients}
-\subsubsection{Wildcard Subscriptions}
-
-- Describe insufficiencies your project or thesis aims at. Example: "The automated parts of the claim handling process are susceptible to changes. Each change requires lots of man-ual steps in order to deploy these changes into production."
-- Do not take the term "problem" too literal. Sometimes, your project or thesis just aims at im-proving a good status quo or pursues new waysand opportunities that arise due to new technological advances or trends. In this case, describe the status quo and where the op-portunities for improvement are.
-- Exemplify things! Describe the problem / status quo by means of a specific scenario with concrete steps, concrete input and output data, etc., supported by expressive figures. Do not be afraid that the reader might think that your solution just works for that particular sce-nario. In general, readers can abstract from concrete details much easier that to envisionconcrete scenarios by interpreting overly generic, vague, meandering text passages. (More-over, writing in vague terms also leaves the impression that the writer either did not under-stand the problem for him- or herself or tries to blow up mundane issues.)
+\import{content/}{problem}
 
 \section{Vobereiten und verwandte Arbeiten}
 vielleicht brauche ich diese sektion gar nicht ?

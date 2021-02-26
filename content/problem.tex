@@ -1,0 +1,42 @@
+\section{Problembeschreibung}
+
+\subsection{Cluster Discovery}
+discovery that works with hivemq cluster discovery (dns)
+es kommen immer wieder neue nodes hinzu / weg zb bei rolling updates
+load balancer muss diese nodes dynamisch hinzufüger oder entfernen
+hivemq ist in der lage dynamische cluster joins zu machen also muss der lb auch in der lage dazu sein
+
+\subsection{Langlebige TCP Verbindungen}
+ein LB darf die tcp connections nicht terminieren bei einem update oder config änderung
+mqtt setzt auf langlebiege tcp verbindungen! nicht wie bei http! bei http -> drain
+-> ein drain bei mqtt kann tage dauern
+
+load balancer with data plane api -> good docs
+
+\subsection{Persistente Client Session}
+Wie in Kapitel \ref{s:persistent-session} beschrieben können Clients eine persistente Session bei einem Broker anfordern. Dabei werden Nachrichten und Session relevante Daten im Arbeitsspeicher gespeichert für den Fall, dass die Verbindung zum Client unterbrochen wird. Sobald der Client seine Verbindung wieder aufbaut, findet ein Client Takeover (\ref{s:client-takeover}) statt.
+Dieser Prozess findet bei einem Broker im Arbeitsspeicher statt.
+Dort muss zu den existierenden persistierten Daten der dazugehörige \ac{tcp} Socket ausgetauscht werden.
+Wenn der Broker jedoch aus einem Cluster besteht, und sich der neue Client auf einem anderen Node als der alte Client verbindet, ist ein Client Takeover komplizierter.
+In diesem Szenario muss der Node, auf dem der alte Client verbunden war, alle persistierten Daten an den neuen Node übermitteln.
+Wenn der alte Client über einen längeren Zeitraum nicht verbunden war, können sich viele Daten anhäufen.
+Persistierte Daten müssen über den Cluster Transport auf den neuen Node transferiert werden. Im Optimallfall wird der neue Client auf dem selben Node verbunden, auf dem er vorher ebenfalls verbunden war, um internen Cluster Traffic zu vermeiden. Durch das verschieben der Daten auf einen anderen Node entstehen zudem Latenzen in der Kommunikation mit dem neuen Client. Die Verbindung kann erst bestätigt werden, wenn alle Daten auf den neuen Node migriert wurden.
+\\
+Um einen Client immer zum selben Node zu verbinden werden bei anderen Protokollen wie \ac{http} zum Beispiel Cookies verwendet. Die Cookies werden von dem Load Balancer ausgelesen und enthalten Informationen zu welchem Node der Client als letztes verbunden war. Das \ac{mqtt} Protokoll unterstützt keinen Mechanismus, der wie \ac{http} Cookies funktioniert.
+Eine weitere Option einen Client immer zum selben Node zu verbinden ist \verb|MAGLEV|. Dabei werden Layer vier Informationen des Clients ausgelesen wie zum Beispiel die \ac{ip} Adresse und gehasht. Anhand des Hashes wird anschlie{\ss}end der Node bestimmt, zu welchem der Client verbunden wird. Solange sich keine der gehashten Informationen ändert, wird der Client immer an den selben Node weitergeleitet. Da \ac{mqtt} auf Layer vier aufsetzt, kann \verb|MAGLEV| verwendet werden.
+Je nach Anwendungsfall verbinden sich \ac{mqtt} Clients auch über das Mobilfunknetz. Als Beispiel dienen Lastkraftwagen(LKW), die innerhalb Europas unterwegs sind. Durch den ständigen Standortwechsel wird zwangsweise ebenfalls der Mobilfunkmast gewechselt. Es wird nicht garantiert, dass der LKW immer die selbe \ac{ip} behält. \verb|MAGLEV| würde somit bei einem Verbindungsabbruch den Client an einen neuen Node weiterleiten.
+% TODO cite maglev paper
+% TODO beispiel für changing ip address in mobil data
+
+\subsection{Ungleiche Lastverteilung}
+mqtt clients sind unterschiedlich teuer (nicht wie bei http)
+beispiel: wildcard subscription
+
+\subsubsection{Downstream Clients}
+\subsubsection{Lightweight Clients}
+\subsubsection{Wildcard Subscriptions}
+
+- Describe insufficiencies your project or thesis aims at. Example: "The automated parts of the claim handling process are susceptible to changes. Each change requires lots of man-ual steps in order to deploy these changes into production."
+- Do not take the term "problem" too literal. Sometimes, your project or thesis just aims at im-proving a good status quo or pursues new waysand opportunities that arise due to new technological advances or trends. In this case, describe the status quo and where the op-portunities for improvement are.
+- Exemplify things! Describe the problem / status quo by means of a specific scenario with concrete steps, concrete input and output data, etc., supported by expressive figures. Do not be afraid that the reader might think that your solution just works for that particular sce-nario. In general, readers can abstract from concrete details much easier that to envisionconcrete scenarios by interpreting overly generic, vague, meandering text passages. (More-over, writing in vague terms also leaves the impression that the writer either did not under-stand the problem for him- or herself or tries to blow up mundane issues.)
+
