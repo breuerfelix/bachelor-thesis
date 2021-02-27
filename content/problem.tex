@@ -1,17 +1,17 @@
 \section{Problembeschreibung}
+Der HiveMQ Broker ist, wie in Kapitel \ref{s:hivemq-cluster} beschrieben, clusterfähig und in der Lage zur Laufzeit die grö{\ss}e des Clusters anzupassen.
+Um das HiveMQ Cluster für \ac{mqtt} Clients zu einem virtuellen Broker mit einer einzigen \ac{ip} Adresse oder Domain zu abstrahieren, wird ein Load Balancer benötigt. Dieser kann die Last transparent zum Client auf alle Nodes des Clusters verteilen.
+In diesem Kapitel werden Anforderung für einen Load Balancer definiert um \ac{mqtt} Traffic klug zu allen Nodes eines HiveMQ Clusters zu verteilen.
 
 \subsection{Cluster Discovery}
-discovery that works with hivemq cluster discovery (dns)
-es kommen immer wieder neue nodes hinzu / weg zb bei rolling updates
-load balancer muss diese nodes dynamisch hinzufüger oder entfernen
-hivemq ist in der lage dynamische cluster joins zu machen also muss der lb auch in der lage dazu sein
+Ein HiveMQ Cluster ist, wie in Kapitel \ref{s:hivemq-cluster} beschrieben, in der Lage zur Laufzeit die grö{\ss}e des Clusters anzupassen. Der Load Balancer muss daher ebenfalls in der Lage sein neue HiveMQ Nodes zur Laufzeit zu entdecken und neue Clients mit den neuen Nodes zu verbinden. Falls sich die Anzahl der Nodes verringert, darf der Load Balancer keine neuen Verbindungen mehr mit den alten Nodes aufbauen. Dies würde zu Fehlermeldungen bei den Clients führen.
+Eine statische Konfigurierung der Nodes ist somit nicht möglich.
 
 \subsection{Langlebige TCP Verbindungen}
-ein LB darf die tcp connections nicht terminieren bei einem update oder config änderung
-mqtt setzt auf langlebiege tcp verbindungen! nicht wie bei http! bei http -> drain
--> ein drain bei mqtt kann tage dauern
-
-load balancer with data plane api -> good docs
+In Kapitel \ref{s:mqtt} wurde erläutert, dass \ac{mqtt} langlebiege \ac{tcp} Verbindungen benutzt um den Datendurchsatz gering zu halten. Dadurch kann der Broker Nachrichten zum Client schicken, ohne das dieser periodisch nach neuen Nachrichten fragen muss.
+Dies führt bei einem Update des Load Balancers zu Problemen. Bei \ac{http} kann ein zweiter Load Balancer mit der neuen Version gestartet und als \ac{dns} A Eintrag für die Domain eingetragen werden. Da \ac{http} dem Request / Response Schema folgt sind die Verbindungen kurzlebiger als die von \ac{mqtt}. Folgender Artikel zeigt, wie nach einer Stunde alle \ac{http} Verbindungen zu einem alten Load Balancer abgebaut waren.
+TODO cite this!
+Um einen \ac{lb} im Kontext von \ac{mqtt} zu updaten, muss dieser neugestartet werden ohne die aktiven Verbindungen zu terminieren.
 
 \subsection{Persistente Client Session}
 Wie in Kapitel \ref{s:persistent-session} beschrieben können Clients eine persistente Session bei einem Broker anfordern. Dabei werden Nachrichten und Session relevante Daten im Arbeitsspeicher gespeichert für den Fall, dass die Verbindung zum Client unterbrochen wird. Sobald der Client seine Verbindung wieder aufbaut, findet ein Client Takeover (\ref{s:client-takeover}) statt.
@@ -29,8 +29,8 @@ Je nach Anwendungsfall verbinden sich \ac{mqtt} Clients auch über das Mobilfunk
 % TODO beispiel für changing ip address in mobil data
 
 \subsection{Ungleiche Lastverteilung}
-mqtt clients sind unterschiedlich teuer (nicht wie bei http)
-beispiel: wildcard subscription
+\ac{mqtt} Clients haben keine Grenze an Topics die sie abonnieren können. Mit einer Wildscard Subscription ist es sogar möglich, alle Topics die auf einem Broker existieren mit einer Subscription zu abonnieren: \verb|#|. Ein Client, der eine solche Subscription hat, verursacht mehr Traffic und Arbeitslast auf einem Broker als ein Client, der alle zehn Minuten einen Integer Wert auf dem Topic \verb|sensors/temperature| veröffentlicht.
+Bei einem Round-Robin Load Balancer führt dieses Verhalten zu einer ungleichen Lastverteilung im Cluster. Ein \ac{lb} muss in der Lage die eingehenden Verbindungen auf die Nodes eines HiveMQ Clusters basierend ihrere derzeitigen Arbeitslast zu gewichten.
 
 \subsubsection{Downstream Clients}
 \subsubsection{Lightweight Clients}
