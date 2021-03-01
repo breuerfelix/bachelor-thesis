@@ -7,6 +7,7 @@ jobs:
     steps:
       - run: sudo apt-get install -y python3
       - run: pip install pygments
+      - run: sudo apt-get install libfontconfig1-dev libgraphite2-dev libharfbuzz-dev libicu-dev libssl-dev zlib1g-dev
       - uses: actions-rs/cargo@v1
         with:
           command: install
