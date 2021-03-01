@@ -78,7 +78,7 @@ Bei \ac{mqtt} wird die Zuverlässigkeit der Übermittlung einer Nachricht mit ei
 \end{itemize}
 Bei \ac{qos} Level 2 und 3 werden Handshakes zur Verifizierung der Paketübermittelung eingesetzt.\cite{mqtt5Specification}
 
-\subsubsection{Retained Message} \label{s:retained-messages} - titel lieber deutsch? -
+\subsubsection{Retained Message} \label{s:retained-messages}
 In \ac{mqtt} kann pro Topic die letzte veröffentlichte Nachricht aufbewahrt werden.
 Dazu muss im \verb|PUBLISH| Paket die \verb|RETAIN| Kennzeichnung gesetzt werden.
 In diesem Fall speichert der Broker die Nachricht mit dem dazugehörigen Topic und \ac{qos} Level ab.
@@ -382,6 +382,7 @@ Um die \ac{ip} Adressen aller Teilnehmer einer horzontalen Skalierung einem Endn
 Literatur zu der Limitierung von \ac{dns} A Round Robin findet sich im Buch Server Load Balancing von Tony Bourke.\cite{bourkeServerLoadBalancing2001}
 
 \subsubsubsection{Round Robin}
+\subsubsubsection{Weighted Round Robin}
 \subsubsubsection{Least Connection}
 
 \subsubsection{Server Load Balancing}

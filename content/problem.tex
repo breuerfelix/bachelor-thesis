@@ -34,18 +34,21 @@ Es gibt viele verschiedene \ac{mqtt} Clients im Anwedungsfeld \ac{iot}. Manche s
 Die Drehzahlsensoren verursachen durch die erhöhte Frequenz der Nachrichten mehr Traffic und Arbeitslast auf einem Broker.
 Bei \textit{Round-robin} und \textit{least connection} Load Balacing Algorithmen führt dieses Verhalten zu einer ungleichen Lastverteilung im Cluster. Dies wird durch folgendes vereinfachtes Beispiel deutlich:
 Es gibt neun Temperatursensoren, einen Drehzahlsensor und ein HiveMQ Cluster bestehend aus zwei Nodes. Ein Drehzahlsensor benötigt zehn \ac{cpu} Einheiten und ein Temperatursensor benötigt zwei \ac{cpu} Einheiten. Bei dem Round-robin sowie least connection Load Balancing Algorithmus würden fünf Temperatursensor auf Node1 und vier Temperatursensoren plus ein Drehzahlsensor auf Node2 verbunden sein. Die Gesamtlast auf Node1 beträgt zehn \ac{cpu} Einheiten und auf Node2 achtzehn \ac{cpu} Einheiten. Dieses System hat eine ungleiche Lastverteilung.\\
-Dieses Szenario würde bei \ac{http} zu keiner ungleichen Lastverteilung führen. Der Load Balancer kann für jede Nachricht die an das Cluster geschickt wird eine erneute Entscheidung treffen, an welchen Node diese geschickt werden kann. Somit können die Nachrichten des Drehzahlsensors auf beide Nodes aufgeteilt werden und müssen nicht nur von einem Node verarbeitet werden.
+Dieses Szenario würde bei \ac{http} zu keiner ungleichen Lastverteilung führen. Der Load Balancer kann für jede Nachricht die an das Cluster geschickt wird eine erneute Entscheidung treffen, an welchen Node diese geschickt werden soll. Somit können die Nachrichten des Drehzahlsensors auf beide Nodes aufgeteilt werden und müssen nicht nur von einem Node verarbeitet werden.\\
 % TODO vielleicht Grafik?
+Bei \ac{mqtt} kann man die Load Balancing Entscheidung nicht auf Nachrichten Basis treffen, wie bei \ac{http}, sondern nur auf Client Ebene. Sobald die \ac{tcp} Verbindung einmal aufgebaut ist, werden alle Nachrichten an den selben Node weitergeleitet.\\
+% TODO ich will sagen bei http ist es auf nachrichten ebene
+Ein \ac{lb} für \ac{mqtt} muss in der Lage sein, die eingehenden Verbindungen basierend der derzeitigen Arbeitslast der einzelnen Nodes zu gewichten.
 
+% TODO erklären warum least connection nicht ausreicht
+% warum least connection bei http geht aber nicht bei mqtt
+%https://blog.envoyproxy.io/examining-load-balancing-algorithms-with-envoy-1be643ea121c
 
-
-Ein \ac{lb} muss in der Lage sein, die eingehenden Verbindungen auf die Nodes eines HiveMQ Clusters basierend ihrere derzeitigen Arbeitslast zu gewichten.
-
-
-
+\begin{comment}
 \ac{mqtt} Clients haben keine Grenze an Topics die sie abonnieren können. Mit einer Wildcard Subscription ist es sogar möglich, alle Topics die auf einem Broker existieren mit einer Subscription zu abonnieren: \verb|#|. Ein Client, der eine solche Subscription hat, verursacht mehr Traffic und Arbeitslast auf einem Broker als ein Client, der alle zehn Minuten einen Integer Wert auf dem Topic \verb|sensors/temperature| veröffentlicht.
 Wie in Kapitel \ref{s:domain} erläutert sind im Anwendungsfeld \ac{iot} die beschriebenen Clients keine seltenheit.
 % TODO muss ich das begründen?
+\end{comment}
 
 \begin{comment}
 - Describe insufficiencies your project or thesis aims at. Example: "The automated parts of the claim handling process are susceptible to changes. Each change requires lots of man-ual steps in order to deploy these changes into production."
