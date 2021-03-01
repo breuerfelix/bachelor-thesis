@@ -7,7 +7,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - run: sudo apt-get install -y python3
-      - run: pip install pygmentize
+      - run: pip install pygments
       - uses: actions-rs/toolchain@v1
       - run: cargo install tectonic
       - run: bash run.sh
