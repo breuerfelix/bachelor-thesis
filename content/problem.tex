@@ -29,13 +29,23 @@ Je nach Anwendungsfall verbinden sich \ac{mqtt} Clients auch über das Mobilfunk
 % TODO beispiel für changing ip address in mobile data
 
 \subsection{Ungleiche Lastverteilung}
-\ac{mqtt} Clients haben keine Grenze an Topics die sie abonnieren können. Mit einer Wildscard Subscription ist es sogar möglich, alle Topics die auf einem Broker existieren mit einer Subscription zu abonnieren: \verb|#|. Ein Client, der eine solche Subscription hat, verursacht mehr Traffic und Arbeitslast auf einem Broker als ein Client, der alle zehn Minuten einen Integer Wert auf dem Topic \verb|sensors/temperature| veröffentlicht.
-% TODO muss ich das begründen?
-Bei einem Round-Robin Load Balancer führt dieses Verhalten zu einer ungleichen Lastverteilung im Cluster. Ein \ac{lb} muss in der Lage sein, die eingehenden Verbindungen auf die Nodes eines HiveMQ Clusters basierend ihrere derzeitigen Arbeitslast zu gewichten.
 
-\subsubsection{Downstream Clients}
-\subsubsection{Lightweight Clients}
-\subsubsection{Wildcard Subscriptions}
+Es gibt viele verschiedene \ac{mqtt} Clients im Anwedungsfeld \ac{iot}. Manche sind zum Beispiel Temperatursensoren, die alle zehn Minuten einen Integer Wert auf ein Topic veröffentlichen, andere sind Drehzahlsensoren, die alle 500 Millisekunden die aktuelle Drehzahl eines Motors zur Geschwindigkeitsermittlung veröffentlichen.
+Die Drehzahlsensoren verursachen durch die erhöhte Frequenz der Nachrichten mehr Traffic und Arbeitslast auf einem Broker.
+Bei \textit{Round-robin} und \textit{least connection} Load Balacing Algorithmen führt dieses Verhalten zu einer ungleichen Lastverteilung im Cluster. Dies wird durch folgendes vereinfachtes Beispiel deutlich:
+Es gibt neun Temperatursensoren, einen Drehzahlsensor und ein HiveMQ Cluster bestehend aus zwei Nodes. Ein Drehzahlsensor benötigt zehn \ac{cpu} Einheiten und ein Temperatursensor benötigt zwei \ac{cpu} Einheiten. Bei dem Round-robin sowie least connection Load Balancing Algorithmus würden fünf Temperatursensor auf Node1 und vier Temperatursensoren plus ein Drehzahlsensor auf Node2 verbunden sein. Die Gesamtlast auf Node1 beträgt zehn \ac{cpu} Einheiten und auf Node2 achtzehn \ac{cpu} Einheiten. Dieses System hat eine ungleiche Lastverteilung.\\
+Dieses Szenario würde bei \ac{http} zu keiner ungleichen Lastverteilung führen. Der Load Balancer kann für jede Nachricht die an das Cluster geschickt wird eine erneute Entscheidung treffen, an welchen Node diese geschickt werden kann. Somit können die Nachrichten des Drehzahlsensors auf beide Nodes aufgeteilt werden und müssen nicht nur von einem Node verarbeitet werden.
+% TODO vielleicht Grafik?
+
+
+
+Ein \ac{lb} muss in der Lage sein, die eingehenden Verbindungen auf die Nodes eines HiveMQ Clusters basierend ihrere derzeitigen Arbeitslast zu gewichten.
+
+
+
+\ac{mqtt} Clients haben keine Grenze an Topics die sie abonnieren können. Mit einer Wildcard Subscription ist es sogar möglich, alle Topics die auf einem Broker existieren mit einer Subscription zu abonnieren: \verb|#|. Ein Client, der eine solche Subscription hat, verursacht mehr Traffic und Arbeitslast auf einem Broker als ein Client, der alle zehn Minuten einen Integer Wert auf dem Topic \verb|sensors/temperature| veröffentlicht.
+Wie in Kapitel \ref{s:domain} erläutert sind im Anwendungsfeld \ac{iot} die beschriebenen Clients keine seltenheit.
+% TODO muss ich das begründen?
 
 \begin{comment}
 - Describe insufficiencies your project or thesis aims at. Example: "The automated parts of the claim handling process are susceptible to changes. Each change requires lots of man-ual steps in order to deploy these changes into production."

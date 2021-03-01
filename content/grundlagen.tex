@@ -297,8 +297,26 @@ Die Cluster Discovery beschreibt den Mechanismus wie sich individuelle Nodes geg
 HiveMQ ist in der Lage die Clustergrö{\ss}e zur Laufzeit dynamisch anzupassen. Diesen Mechanismus muss der gewählte Cluster Discovery Modus jedoch unterstützten.
 \cite{HiveMQClusterHiveMQ}
 
+\subsubsubsection{Overload Protection}
+HiveMQ stellt einen eingebauten Überlastschutz (engl. \textit{Overload Protection}) für ein HiveMQ Cluster bereit. Jeder Node eines Cluster ist in der Lage die Rate der eingehenden Nachrichten zu reduzieren. Dieser Mechanismus erhöht die Stabilität des Cluster indem gezielt Clients, die zu einer Überlast beitragen, gedrosselt werden. Dadurch kann sich das Cluster von einer Überlastsituation erholen ohne die Service Qualität für alle Clients zu reduzieren.
+Jeder Node eines Clusters berechnet durchgehend einen individuellen \textit{Overload Protection Level} auf Basis der Menge aller:
+\begin{itemize}
+    \item eingehenden \verb|PUBLISH| Nachrichten
+    \item Retained Messages
+    \item verbundenen Clients
+    \item Queued Messages
+\end{itemize}
+% TODO explain queued messages
+Das drosseln von Clients basiert auf einem Credit System. Jeder Client erhält nach dem Aufbau einer Verbindung ein Guthaben von 50,000 Credits. Um auf einem Topic Nachrichten zu veröffentlichen muss ein Client mit seinen Credits bezahlen. Diese werden alle 200 Millisekunden um einen bestimmten Wert regeniert bis das maximale Guthaben von 50,000 erreicht wurde. Dieser Wert richtet sich nach dem derzeitigen Overload Protection Level des Nodes, auf dem der Client verbunden ist.
+% TODO ist es wirklich der Node ? oder ist es der Node auf dem das Topic liegt?
+Hat ein Client alle seine Credits verbraucht, wird \ac{tcp} Backpressure auf dem Socket des Clients angewandt und dieser kann keine Nachrichten mehr veröffentlichen.
+Ist der Zeitraum, in dem \ac{tcp} Backpressure für einen Client angewandt wird, länger als der konfigurierte Keep-Alive Wert, wird die Verbindung des Clients unterbrochen.
+Neben \ac{mqtt} Clients kann auch eine Topologieänderung des Clusters zu einer Erhöhung des Overload Protection Levels führen.
+\cite{ClusterOverloadProtection}
+
 \subsubsubsection{DNS Discovery}
 \subsubsubsection{Client Queue}
+\subsubsubsection{Replication}
 
 \subsubsection{Persistente Session} \label{s:persistent-session}
 Um Nachrichten von einem \ac{mqtt} Broker zu erhalten, muss sich ein Client zu diesem verbinden und eine Subscription auf ein Topic erstellen.
@@ -331,9 +349,6 @@ Der Broker beendet die existierende Verbindung und assoziiert die persistente Se
 \cite{teamKeepAliveClient}
 %TODO where to quote?
 
-\subsubsection{Client Queue}
-%vielleicht raus?
-
 \subsection{Load Balancing} \label{s:load-balancing}
 %TODO Beispiel Web-Applikation
 Um Applikationen auf einem Server bereitzustellen muss man einen geeigneten Server suchen. In diesem Prozess testet man die Applikation wie viel \acs{cpu}, \acs{ram} und Speicherplatz diese in einer Produktivumgebung benötigt. Wenn nun mehr Leute als erwartet die Applikation benutzen braucht diese mehr Recheneinheiten um die neue Arbeitslast abzuarbeiten. Eine Möglichkeit ist, den Server herunterzufahren, ihm mehr \acs{cpu} und \acs{ram} zu geben und ihn wieder zu starten. Dieser Prozess wird auch vertikale Skalierung genannt und hat Grenzen.\cite{bourkeServerLoadBalancing2001}
@@ -353,12 +368,21 @@ Wird Beispielweise ein \acs{http} Web-Server, der auf jeden Request ein \verb|"H
 Nicht jede Applikation ist für eine horizontale Applikation geeignet. Würde der Web-Server einen internen Zähler an den Benutzer zurückgeben, wie viele Requests der Server bereits abgearbeitet hat, müsste die Applikation diesen Zähler mit allen anderen Servern die an der horizontalen Skalierung teilnehmen teilen.
 Ein weiteres Problem ist die Bereitstellung der horizontalen Server. Der Endnutzer der Web-Applikation muss die \ac{ip} Adressen aller Server kennen um auf diese zuzugreifen.
 % TODO cite horizontale und vertikale skalierung
+% TODO verschiedenen LB Algorithmen
+% least connection
+% round robin
 
-\subsubsection{DNS Round Robin} \label{s:dns-round-robin}
+\subsubsection{Load Balancing Algorithmen}
+% TODO vielleicht keine ganzen kapitel
+
+\subsubsubsection{DNS Round Robin} \label{s:dns-round-robin}
 % TODO link hivemq dns extension with this chapter
 Um die \ac{ip} Adressen aller Teilnehmer einer horzontalen Skalierung einem Endnutzer mitzuteilen wurde das \ac{dns} A Eintrag Round Robin Load Balancing entwickelt. Bei einen \ac{dns} A Eintrag muss eine \ac{ip}v4 Adresse hinterlegt werden. Bei einem \ac{dns} Round Robin können mehrere \ac{ip}v4 Adressen bei einer Domain hinterlegt werden, sodass ein Endnutzer nur den Domainnamen kennen muss und alle Teilnehmer einer horizontalen Skalierung erreichen kann.
 
 Literatur zu der Limitierung von \ac{dns} A Round Robin findet sich im Buch Server Load Balancing von Tony Bourke.\cite{bourkeServerLoadBalancing2001}
+
+\subsubsubsection{Round Robin}
+\subsubsubsection{Least Connection}
 
 \subsubsection{Server Load Balancing}
 Ein Load Balancer ist ein Gerät, das Traffic auf verschiedene Maschinen verteilt. Dies hat den Effekt, das mehrere Maschinen als Eine erscheinen.
