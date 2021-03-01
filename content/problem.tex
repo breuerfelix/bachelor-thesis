@@ -26,11 +26,12 @@ Um einen Client immer zum selben Node zu verbinden werden bei anderen Protokolle
 Eine weitere Option einen Client immer zum selben Node zu verbinden ist \verb|MAGLEV|. Dabei werden Layer vier Informationen des Clients ausgelesen wie zum Beispiel die \ac{ip} Adresse und gehasht. Anhand des Hashes wird anschlie{\ss}end der Node bestimmt, zu welchem der Client verbunden wird. Solange sich keine der gehashten Informationen ändert, wird der Client immer an den selben Node weitergeleitet. Da \ac{mqtt} auf Layer vier aufsetzt, kann \verb|MAGLEV| verwendet werden.
 Je nach Anwendungsfall verbinden sich \ac{mqtt} Clients auch über das Mobilfunknetz. Als Beispiel dienen Lastkraftwagen(LKW), die innerhalb Europas unterwegs sind. Durch den ständigen Standortwechsel wird zwangsweise ebenfalls der Mobilfunkmast gewechselt. Es wird nicht garantiert, dass der LKW immer die selbe \ac{ip} behält. \verb|MAGLEV| würde somit bei einem Verbindungsabbruch den Client an einen neuen Node weiterleiten.
 % TODO cite maglev paper
-% TODO beispiel für changing ip address in mobil data
+% TODO beispiel für changing ip address in mobile data
 
 \subsection{Ungleiche Lastverteilung}
 \ac{mqtt} Clients haben keine Grenze an Topics die sie abonnieren können. Mit einer Wildscard Subscription ist es sogar möglich, alle Topics die auf einem Broker existieren mit einer Subscription zu abonnieren: \verb|#|. Ein Client, der eine solche Subscription hat, verursacht mehr Traffic und Arbeitslast auf einem Broker als ein Client, der alle zehn Minuten einen Integer Wert auf dem Topic \verb|sensors/temperature| veröffentlicht.
-Bei einem Round-Robin Load Balancer führt dieses Verhalten zu einer ungleichen Lastverteilung im Cluster. Ein \ac{lb} muss in der Lage die eingehenden Verbindungen auf die Nodes eines HiveMQ Clusters basierend ihrere derzeitigen Arbeitslast zu gewichten.
+% TODO muss ich das begründen?
+Bei einem Round-Robin Load Balancer führt dieses Verhalten zu einer ungleichen Lastverteilung im Cluster. Ein \ac{lb} muss in der Lage sein, die eingehenden Verbindungen auf die Nodes eines HiveMQ Clusters basierend ihrere derzeitigen Arbeitslast zu gewichten.
 
 \subsubsection{Downstream Clients}
 \subsubsection{Lightweight Clients}
