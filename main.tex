@@ -11,7 +11,8 @@
 %\usepackage{aeguill}
 
 % abkürzungsverzeichnis
-\usepackage[printonlyused, withpage]{acronym}
+% withpage option prints the page number to definition
+\usepackage[printonlyused]{acronym}
 
 % custom minted code until shell-escape is implemented in tectonic
 \input{snippets/minted}
@@ -56,10 +57,11 @@
     colorlinks = true,
 ] {hyperref}
 \usepackage{import}
+\usepackage{verbatim} % used for comments
 
-\usepackage{makecell} % creates multirow cell
 \usepackage{tabularx}
 \newcolumntype{Y}{>{\centering\arraybackslash}X} % creates equally spaced columns
+\usepackage{makecell} % creates multirow cell
 
 % makes \subsubsubsection
 \usepackage{titlesec}

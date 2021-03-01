@@ -10,7 +10,7 @@ Eine statische Konfigurierung der Nodes ist somit nicht möglich.
 \subsection{Langlebige TCP Verbindungen}
 In Kapitel \ref{s:mqtt} wurde erläutert, dass \ac{mqtt} langlebiege \ac{tcp} Verbindungen benutzt um den Datendurchsatz gering zu halten. Dadurch kann der Broker Nachrichten zum Client schicken, ohne das dieser periodisch nach neuen Nachrichten fragen muss.
 Dies führt bei einem Update des Load Balancers zu Problemen. Bei \ac{http} kann ein zweiter Load Balancer mit der neuen Version gestartet und als \ac{dns} A Eintrag für die Domain eingetragen werden. Da \ac{http} dem Request / Response Schema folgt sind die Verbindungen kurzlebiger als die von \ac{mqtt}. Folgender Artikel zeigt, wie nach einer Stunde alle \ac{http} Verbindungen zu einem alten Load Balancer abgebaut waren.
-TODO cite this!
+%TODO cite this!
 Um einen \ac{lb} im Kontext von \ac{mqtt} zu updaten, muss dieser neugestartet werden ohne die aktiven Verbindungen zu terminieren.
 
 \subsection{Persistente Client Session}
@@ -36,7 +36,8 @@ Bei einem Round-Robin Load Balancer führt dieses Verhalten zu einer ungleichen 
 \subsubsection{Lightweight Clients}
 \subsubsection{Wildcard Subscriptions}
 
+\begin{comment}
 - Describe insufficiencies your project or thesis aims at. Example: "The automated parts of the claim handling process are susceptible to changes. Each change requires lots of man-ual steps in order to deploy these changes into production."
 - Do not take the term "problem" too literal. Sometimes, your project or thesis just aims at im-proving a good status quo or pursues new waysand opportunities that arise due to new technological advances or trends. In this case, describe the status quo and where the op-portunities for improvement are.
 - Exemplify things! Describe the problem / status quo by means of a specific scenario with concrete steps, concrete input and output data, etc., supported by expressive figures. Do not be afraid that the reader might think that your solution just works for that particular sce-nario. In general, readers can abstract from concrete details much easier that to envisionconcrete scenarios by interpreting overly generic, vague, meandering text passages. (More-over, writing in vague terms also leaves the impression that the writer either did not under-stand the problem for him- or herself or tries to blow up mundane issues.)
-
+\end{comment}

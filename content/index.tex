@@ -1,16 +1,17 @@
+\begin{comment}
 Guidelines:
 Seiten: 50
 Präsentation: 30 min / Disskusion: 15 min
 sonarqube als code scan
-
+\end{comment}
 \section{Einleitung}
-
 \subsection{Motivation}
 \subsection{Unternehmen}
 \subsection{Zielsetzung}
-vielleicht im kapitel motivation?
+%vielleicht im kapitel motivation?
 \subsection{Aufbau der Arbeit}
 
+\begin{comment}
 - Outline your work such that readers who have not read subsequent chapters get an idea of what
   - your "problem domain" is (e.g. the software quality department of some company or the overarching research project you are working in)
   - the situation is (e.g. software tests at some company are done in complete manual fash-ion)
@@ -24,9 +25,11 @@ From that it must clear, what your thesis'contribution actually is. Please delin
 This chapter deliberately anticipates contents of the latter chapters but please refrain from spe-cific technical termsof your application domain or solution here. Trade technical accuracy for com-mon comprehensibility here. Write this chapter as a "management summary" and do not spend more than two to three pages here.
 
 Also explain structure of your thesis, i.e., summarize the contents of each chapter in one sentence or paragraph and describe the overarching storyline, i.e., how chapters build upon each other.
+\end{comment}
 
-\section{Anwendungsfeld Internet of Things}
+\section{Anwendungsfeld Internet of Things} \label{s:domain}
 
+\begin{comment}
 ein grobes beispiel einet mqtt broker -> client anwendungs beschreiben
 ein / mehrere broker (mehrere millionen clients zb MAN, darf ich das erzählen ?)
 sehr viele iot clients
@@ -36,17 +39,20 @@ industrial bereich
 - Describe the (business) domain of your work. Ask yourself: What does the common reader need to know about the domain in order to understand the results of your work? For example, if you work contributes to the claim handling process of some insurance company, describe the common claim handling process.
 - Please refrain from meandering explanations about details that have no relevance for later chapters (just in order to increase your page count).
 - The header "Domain / Anwendungsfeld" is supposed to be replaced or extended with some more specific header like: "Domain 'Claim handling'"
+\end{comment}
 
 \import{content/}{grundlagen}
 \import{content/}{problem}
 
 \section{Vobereiten und verwandte Arbeiten}
-vielleicht brauche ich diese sektion gar nicht ?
+%vielleicht brauche ich diese sektion gar nicht ?
 
 \subsection{Load Balancer}
-was für load balancer gibt es? was haben diese für eigenschaften?
+%was für load balancer gibt es? was haben diese für eigenschaften?
 
 \subsection{Shared Subscriptions}
+
+\begin{comment}
 diese lösen das problem der teuren clients ABER clients müssen dann möglichst optimal auf die broker verteilt werden
 -> load balancer
 
@@ -56,10 +62,11 @@ iot mqtt threat model ? maybe show this ?
 - Do some research forrelated work, e.g., commercial products, research prototypes or con-ceptual research that have the same or similar objectives like your work. Compare and de-lineate your work with/from the related work.
 - Keep an eye on the proper citation of the works you are describing
 - Conclude this chapter with some insufficiencies or shortcomings of the preliminary or related work. This should motivate the necessity of your work.
+\end{comment}
 
 \section{Lösungskonzept}
-nur das konzept WIE ich das lösen will zb. man kann wie clientid parsen mit einem WASM modul
-in der nächsten section zeige ich dann den eigentlichen code welcher dies tut
+%nur das konzept WIE ich das lösen will zb. man kann wie clientid parsen mit einem WASM modul
+%in der nächsten section zeige ich dann den eigentlichen code welcher dies tut
 
 \subsection{Envoy}
 \subsubsection{Data-Plane API}
@@ -76,11 +83,13 @@ in der nächsten section zeige ich dann den eigentlichen code welcher dies tut
 \subsubsection{MQTT CONNECT}
 \subsubsection{Envoy WASM Network Filter}
 
+\begin{comment}
 - This is supposed to be the core of your thesis or project. Describe your work from a con-ceptual viewpoint.
 - Example: In case you have developed some prototypical tool in your bachelor thesis, demonstrate how it is employed in its business context. More concrete example: Assume that your contribution is a Maven-Build-Plugin that further automates the deployment of changes to the claim handling process into production. In this case show how the plugin is integrated in the overall (continuous) integration and deployment process, which human ac-tors are involved, which external systems and so on. Elaborate on subtle edge cases you had to deal with, e.g., possible outages of external systems.
 - Usedi  agramswhere appropriate. Standard notations are better than informal box-and-line-diagrams. Typical standard notations for a solution concept are
   - Business Process Modelling Notation (BPMN) or UML activity diagrams, that depict a workflow in which your tool is used
   - UML component diagrams, where your tool is represented by just a single component (without its ingredients) together with connected external systems
+\end{comment}
 
 \section{Architektur und Implementation}
 
@@ -95,6 +104,7 @@ in der nächsten section zeige ich dann den eigentlichen code welcher dies tut
 \subsubsection{HiveMQ}
 \subsubsection{Envoy}
 
+\begin{comment}
 - Describe the realization of your concepts, in case you have actually developed some-thing.
 - Elaborate on the software architecture of your tool, in case you have developed one. Use nested UML packages, components, and interfaces in a component diagram.
 - If applicable, show the deploymentof your tool in a production environment. Use UML's deployment diagram notation.
@@ -106,26 +116,30 @@ in der nächsten section zeige ich dann den eigentlichen code welcher dies tut
 - Show how the result of your work actually looks like. In case of a tool, provide some screenshots together with some explanatory text.
 - Describe the quantity of your work, e.g., in terms of lines of code or classes etc. Please just count your own hand-crafted code but not previously existing, imported or generated code.
 - Describe the quality of your work, e.g., if you have developed a large web application, run some performance tests, depicts results and draw conclusions from them.
+\end{comment}
 
 \section{Erprobung}
 
 \subsection{Lastverteilung}
 
-If possible, do an (external) evaluation of your work. If you have developed some kind of tool, let us-ers test it, gather their feedback and describe that here. (Negative feedback will not contribute to a downgrading).
+%If possible, do an (external) evaluation of your work. If you have developed some kind of tool, let us-ers test it, gather their feedback and describe that here. (Negative feedback will not contribute to a downgrading).
 
 \section{Zeitplanung und Arbeitspakete}
 
+\begin{comment}
 - In the initiation phase, we agree on work packages. Give a (tabular overview) of which work packages have been finalized
   - to what degree
   - and in which time frame
 - Please described the unforeseen difficulties that resulted in unfinished or abandoned work packages
-
+\end{comment}
 
 \section{Ausblick}
 
+\begin{comment}
 - Again, summarize your work. This time you can assume that reader have read the rest of the document, i.e., you are free to use even domain-specific terms.
 - In case of a master thesis in "Technische Informatik", you will have to provide an addi-tional "technical report" in English of 4-8 pages (cf. examination regulation document, §28, 1d). It is okay for me if you use this technical report as the summary here.
 - Usually, during your project or thesis new and extended questions arise that are not dealt with in your project or thesis due effort reasons. Please delineate these in the outlook.
+\end{comment}
 
 BEISPIELE:
 
