@@ -1,0 +1,15 @@
+clusters:
+- name: hivemq
+  connect_timeout: 0.25s
+  type: STRICT_DNS
+  dns_lookup_family: v4_only
+  lb_policy: round_robin
+  load_assignment:
+    cluster_name: hivemq
+    endpoints:
+    - lb_endpoints:
+      - endpoint:
+          address:
+            socket_address:
+              address: example.cluster
+              port_value: 1883

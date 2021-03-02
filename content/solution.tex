@@ -2,9 +2,46 @@
 %nur das konzept WIE ich das lösen will zb. man kann wie clientid parsen mit einem WASM modul
 %in der nächsten section zeige ich dann den eigentlichen code welcher dies tut
 
-\subsection{DNS Cluster Discovery}
-
+\subsection{Cluster Discovery}
 % was ist das ? hivemq extension! what is ttl? health checks? try a connect and disconnect as health check?
+
+HiveMQ hat mehrere Mechanismen um die individuellen Nodes zu entdecken, die in das Cluster aufgenommen werden sollen. Ein \ac{lb} muss in der Lage sein die Nodes des Clusters mit dem selben Mechanismus wie HiveMQ ausfindig zu machen. Wenn der \ac{lb} einen anderen Mechanismus benutzen würde, dann könnte der \ac{lb} eine andere Cluster Topologie als der HiveMQ Cluster bilden.\\
+Envoy hat bereits mehrere Möglichkeiten Hosts eines Clusters zu entdecken:
+\begin{itemize}
+  \item \textbf{Static:} Alle Nodes eines Clusters werden statisch in die Envoy Konfiguration eingetragen.
+  \item \textbf{Strict \ac{dns}:} Envoy löst periodisch und asynchron einen konfigurierten \ac{dns} Namen auf. Jede eingetragene \ac{ip} Adresse wird zu einem Node des Clusters. Falls ein Node entfernt wurde, werden keine neuen Clients mehr mit diesem Node verbunden werden. Mit der Variable \verb|dns_refresh_rate| kann die Frequenz, in welcher der \ac{dns} Eintrag abgefragt wird, bestimmt werden.
+  \item \textbf{Logical \ac{dns}:} Ähnlich wie bei Strict \ac{dns} löst Envoy einen konfigurierten \ac{dns} Namen auf. Bei jeder neuen eingehenden Verbindung wird der \ac{dns} Name erneut aufgelöst und die erste \ac{ip} Adresse als Ziel der neuen Verbindung genommen.
+  \item \textbf{Original Destination:} Envoy leitet eingehende Verbindungen anhand der \textit{Redirect Metadata} weiter. Eingehende Verbindungen müssen dafür mit einem \textit{iptables REDIRECT}, \textit{TPROXY target} oder \textit{Proxy Protocol} an Envoy weitergeleitet werden.
+  \item \textbf{Endpoint Discovery Service:} Envoy ruft die Nodes eines Cluster bei einem \textit{xDS Management Server} ab. Es werden Java und Golang Bibliotheken angeboten um einen Management Server für Envoy zu programmieren und bereitzustellen. Somit ist es möglich eine komplexe Service Discovery zu implementieren.
+\end{itemize}
+\cite{ServiceDiscoveryEnvoy}
+In Kapitel \ref{s:hivemq-cluster} wurden folgende Methoden der HiveMQ Cluster Discovery erläutert:
+\begin{itemize}
+  \item static
+  \item multicast
+  \item broadcast
+  \item extension
+  \item dns extension
+\end{itemize}
+Envoy und HiveMQ stellen beide eine statische Cluster Discovery zur Verfügung. Diese Methode ist für Cloud oder Container Umgebungen nicht optimal. Sie bietet keine Möglichkeit die Cluster Topologie dynamisch zu verändern. Container Management Umgebungen wie zum Beispiel Kubernetes erlauben dynamische Vorgänge wie das Skalieren der Replika-Sets oder Rolling-Updates. Eine statische Cluster Konfiguration schlie{\ss}t diese oder ähnliche dynamische Vorgänge aus.\\
+% TODO cite dynamische vorgänge in k8s
+Eine weitere gemeinsame Cluster Discovery Methode ist die Strict \ac{dns} Methode. HiveMQ hat diese Methode nicht in der Standard Version eingebaut, stellt für diesen Anwendungsfall aber eine frei zugängliche Erweiterung bereit.
+Bei dieser Methode werden periodisch alle Einträge zu einem gegebenen \ac{dns} Eintrag abgefragt. Alle erhaltenen Einträge werden als Nodes des Cluster anerkannt. Die Frequenz der Abfrage kann in Envoy mit der Variable \verb|dns_refresh_rate| bestimmt werden. In der HiveMQ Erweiterung ist die Einstellung der Frequenz derzeit noch nicht möglich. Ein Issue \cite{AllowConfigurationDiscovery} und ein Pull Request \cite{ExponentialBackoffGeneral} wurden bereits zu diesem Feature auf GitHub erstellt.
+\\
+TODO beispiel DIG command zeigen mit ip auflösung
+\\
+Der Quellcodeauszug \ref{code:envoy-strict-dns} zeigt eine Envoy Cluster Konfiguration, die den \ac{dns} namen \verb|example.cluster| auflöst und neue Verbindungen auf alle Einträge an den Port \verb|1883| verteilt.
+\begin{figure}
+    \import{gen/}{envoy-strict-dns}
+    \caption{Envoy Strict \ac{dns} Konfiguration}
+    \label{code:envoy-strict-dns}
+\end{figure}
+Die \textit{HiveMQ DNS Cluster Discovery Extension} \cite{HiveMQExtensionDNS} muss auf allen Nodes in den Ordner \verb|/opt/hivemq/extensions| kopiert werden. Der Quellcodeauszug \ref{code:hivemq-dnsdiscovery} zeigt eine Konfigurationsdatei, die im Pfad \verb|/opt/hivemq/conf/dnsdiscovery.properties| liegen muss und das Cluster aus allen Einträgen des \ac{dns} Namens \verb|example.cluster| bildet.
+\begin{figure}
+    \import{gen/}{dnsdiscovery}
+    \caption{HiveMQ \ac{dns} Cluster Discovery Konfiguration}
+    \label{code:hivemq-dnsdiscovery}
+\end{figure}
 
 \subsection{Envoy Data-Plane}
 
@@ -20,7 +57,8 @@
 \subsubsection{Overload Protection}
 \subsubsection{Client Credits}
 \subsubsection{Global Tasks}
-
+\subsubsection{Cluster Discovery}
+% strict dns kann nicht mehr verwendet werden
 
 \begin{comment}
 - This is supposed to be the core of your thesis or project. Describe your work from a con-ceptual viewpoint.

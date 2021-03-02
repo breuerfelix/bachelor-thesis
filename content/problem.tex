@@ -3,7 +3,7 @@ Der HiveMQ Broker ist, wie in Kapitel \ref{s:hivemq-cluster} beschrieben, cluste
 Um das HiveMQ Cluster für \ac{mqtt} Clients zu einem virtuellen Broker mit einer einzigen \ac{ip} Adresse oder Domain zu abstrahieren, wird ein Load Balancer benötigt. Dieser kann die Last transparent zum Client auf alle Nodes des Clusters verteilen.
 In diesem Kapitel werden Anforderung für einen Load Balancer definiert um \ac{mqtt} Traffic klug zu allen Nodes eines HiveMQ Clusters zu verteilen.
 
-\subsection{Cluster Discovery}
+\subsection{Cluster Discovery} \label{sp:cluster-discovery}
 Ein HiveMQ Cluster ist, wie in Kapitel \ref{s:hivemq-cluster} beschrieben, in der Lage zur Laufzeit die grö{\ss}e des Clusters anzupassen. Der Load Balancer muss daher ebenfalls in der Lage sein neue HiveMQ Nodes zur Laufzeit zu entdecken und neue Clients mit den neuen Nodes zu verbinden. Falls sich die Anzahl der Nodes verringert, darf der Load Balancer keine neuen Verbindungen mehr mit den alten Nodes aufbauen. Dies würde zu Fehlermeldungen bei den Clients führen.
 Eine statische Konfigurierung der Nodes ist somit nicht möglich.
 

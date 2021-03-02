@@ -7,6 +7,8 @@
 - Überschriften auf english oder deutsch?
 - titel der arbeit, englisch oder deutsch?
 
+- logical dns refresh rate??
+
 ## structure
 
 einleitung:
