@@ -43,7 +43,54 @@ Die \textit{HiveMQ DNS Cluster Discovery Extension} \cite{HiveMQExtensionDNS} mu
     \label{code:hivemq-dnsdiscovery}
 \end{figure}
 
-\subsection{Envoy Data-Plane}
+\subsubsection{Health Check}
+
+\subsection{Lastverteilung HiveMQ Cluster}
+
+In Kapitel \ref{sp:load} wurde erläutert, dass in einem HiveMQ Cluster eine ungleiche Lastverteilung durch die verschiedenen Verhaltensweisen der Clients auftreten kann.
+In dem Fall, dass ein Node eine höhere Belastung als ein anderer Node aufweist, möchte man die Gewichtung der Verteilung aller neuer Clients an die Situation anpassen. Es sollen mehr Clients an den Node mit geringerer Belastung Verbunden werden.
+Einen Mechanismus, der erlaubt die Gewichtung der Nodes eines Clusters anzugeben, nennt sich \textit{weighted Round-robing}.
+Envoy hat mehrere Load Balancing Algorithmen eingebaut. Darunter befindet sich auch weighted Round-robin. Jedem Node eines Cluster wird eine Gewichtung in Form eines Integer Wertes zugeordnet. Der Wert muss grö{\ss}er als eins sein und die Werte alles Nodes addiert darf nicht grö{\ss}er als 4294967295 sein.
+Um den Prozentsatz zu berechnen, wie viele Clients mit einem individuellen Node verbunden werden, teil Envoy die Gewichtung des jeweiligen Node durch die Summe der Gewichtungen aller Nodes und mulipliziert das Ergebnis mit 100.
+\cite{SupportedLoadBalancers}
+\\
+Tabelle \ref{table:example-cluster-weight} zeigt drei Nodes mit ihren Gewichtungen und den dazu berechneten Prozentsatz aller Clients die mit diesem Node verbunden werden.
+
+\begin{table}[h!]
+\centering
+\renewcommand{\arraystretch}{1.5}
+\begin{tabular}{|l|c|c|}
+    \hline
+    \textbf{Node} & \textbf{Gewichtung} & \textbf{Prozent Traffic} \\
+    \hline
+    \hline
+    Node 1 & 10 & 40\% \\
+    \hline
+    Node 2 & 10 & 40\% \\
+    \hline
+    Node 3 & 5 & 20\% \\
+    \hline
+\end{tabular}
+\caption{Nodes mit ihren Gewichtungen und berechnetem Prozensatz}
+\label{table:example-cluster-weight}
+\end{table}
+% TODO better table caption
+Der Quellcodeauszug \ref{code:envoy-cluster-weight} zeigt eine statische Envoy Konfiguration um ein Cluster aus drei Nodes zu formen mit den Gewichtungen wie in Tabelle \ref{table:example-cluster-weight} angezeigt.
+\begin{figure}
+    \import{gen/}{envoy-weighted-round-robin}
+    \caption{Envoy weighted Round-robin Konfiguration}
+    \label{code:envoy-cluster-weight}
+\end{figure}
+Die Problematik bei diesem Vorgehen ist, das man die Nodes individuell angeben muss.
+
+\subsubsection{HiveMQ Metriken}
+\subsubsection{Overload Protection}
+\subsubsection{Client Credits}
+\subsubsection{Global Tasks}
+\subsubsection{Cluster Discovery}
+% strict dns kann nicht mehr verwendet werden
+\subsubsection{Health Check}
+% lbendpoint health status -> can be set via control plane
 
 \subsection{Sticky Session}
 \subsubsection{Client Identifier}
@@ -51,14 +98,6 @@ Die \textit{HiveMQ DNS Cluster Discovery Extension} \cite{HiveMQExtensionDNS} mu
 
 \subsubsection{Hash?}
 %\subsubsection{Envoy WASM Network Filter}
-
-\subsection{Weighted Round Robin}
-\subsubsection{HiveMQ Metriken}
-\subsubsection{Overload Protection}
-\subsubsection{Client Credits}
-\subsubsection{Global Tasks}
-\subsubsection{Cluster Discovery}
-% strict dns kann nicht mehr verwendet werden
 
 \begin{comment}
 - This is supposed to be the core of your thesis or project. Describe your work from a con-ceptual viewpoint.

@@ -28,8 +28,7 @@ Je nach Anwendungsfall verbinden sich \ac{mqtt} Clients auch über das Mobilfunk
 % TODO cite maglev paper
 % TODO beispiel für changing ip address in mobile data
 
-\subsection{Ungleiche Lastverteilung}
-
+\subsection{Ungleiche Lastverteilung} \label{sp:load}
 Es gibt viele verschiedene \ac{mqtt} Clients im Anwedungsfeld \ac{iot}. Manche sind zum Beispiel Temperatursensoren, die alle zehn Minuten einen Integer Wert auf ein Topic veröffentlichen, andere sind Drehzahlsensoren, die alle 500 Millisekunden die aktuelle Drehzahl eines Motors zur Geschwindigkeitsermittlung veröffentlichen.
 Die Drehzahlsensoren verursachen durch die erhöhte Frequenz der Nachrichten mehr Traffic und Arbeitslast auf einem Broker.
 Bei \textit{Round-robin} und \textit{least connection} Load Balacing Algorithmen führt dieses Verhalten zu einer ungleichen Lastverteilung im Cluster. Dies wird durch folgendes vereinfachtes Beispiel deutlich:
