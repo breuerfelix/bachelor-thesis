@@ -297,7 +297,7 @@ Die Cluster Discovery beschreibt den Mechanismus wie sich individuelle Nodes geg
 HiveMQ ist in der Lage die Clustergrö{\ss}e zur Laufzeit dynamisch anzupassen. Diesen Mechanismus muss der gewählte Cluster Discovery Modus jedoch unterstützten.
 \cite{HiveMQClusterHiveMQ}
 
-\subsubsubsection{Overload Protection}
+\subsubsubsection{Overload Protection} \label{sb:overload-protection}
 HiveMQ stellt einen eingebauten Überlastschutz (engl. \textit{Overload Protection}) für ein HiveMQ Cluster bereit. Jeder Node eines Cluster ist in der Lage die Rate der eingehenden Nachrichten zu reduzieren. Dieser Mechanismus erhöht die Stabilität des Cluster indem gezielt Clients, die zu einer Überlast beitragen, gedrosselt werden. Dadurch kann sich das Cluster von einer Überlastsituation erholen ohne die Service Qualität für alle Clients zu reduzieren.
 Jeder Node eines Clusters berechnet durchgehend einen individuellen \textit{Overload Protection Level} auf Basis der Menge aller:
 \begin{itemize}

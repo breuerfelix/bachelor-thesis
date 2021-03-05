@@ -6,8 +6,7 @@
 - tabelle anmerkung: (Quelle: bla, übersetzt)
 - Überschriften auf english oder deutsch?
 - titel der arbeit, englisch oder deutsch?
-
-- logical dns refresh rate??
+- muss die caption am anfang groß geschrieben und mit einem punkt beendet werden?
 
 ## structure
 

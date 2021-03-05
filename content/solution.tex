@@ -2,7 +2,7 @@
 %nur das konzept WIE ich das lösen will zb. man kann wie clientid parsen mit einem WASM modul
 %in der nächsten section zeige ich dann den eigentlichen code welcher dies tut
 
-\subsection{Cluster Discovery}
+\subsection{Cluster Discovery} \label{ss:cluster-discovery}
 % was ist das ? hivemq extension! what is ttl? health checks? try a connect and disconnect as health check?
 
 HiveMQ hat mehrere Mechanismen um die individuellen Nodes zu entdecken, die in das Cluster aufgenommen werden sollen. Ein \ac{lb} muss in der Lage sein die Nodes des Clusters mit dem selben Mechanismus wie HiveMQ ausfindig zu machen. Wenn der \ac{lb} einen anderen Mechanismus benutzen würde, dann könnte der \ac{lb} eine andere Cluster Topologie als der HiveMQ Cluster bilden.\\
@@ -43,13 +43,13 @@ Die \textit{HiveMQ DNS Cluster Discovery Extension} \cite{HiveMQExtensionDNS} mu
     \label{code:hivemq-dnsdiscovery}
 \end{figure}
 
-\subsubsection{Health Check}
-
 \subsection{Lastverteilung HiveMQ Cluster}
 
 In Kapitel \ref{sp:load} wurde erläutert, dass in einem HiveMQ Cluster eine ungleiche Lastverteilung durch die verschiedenen Verhaltensweisen der Clients auftreten kann.
 In dem Fall, dass ein Node eine höhere Belastung als ein anderer Node aufweist, möchte man die Gewichtung der Verteilung aller neuer Clients an die Situation anpassen. Es sollen mehr Clients an den Node mit geringerer Belastung Verbunden werden.
 Einen Mechanismus, der erlaubt die Gewichtung der Nodes eines Clusters anzugeben, nennt sich \textit{weighted Round-robing}.
+
+\subsubsection{Weighted Round Robin}
 Envoy hat mehrere Load Balancing Algorithmen eingebaut. Darunter befindet sich auch weighted Round-robin. Jedem Node eines Cluster wird eine Gewichtung in Form eines Integer Wertes zugeordnet. Der Wert muss grö{\ss}er als eins sein und die Werte alles Nodes addiert darf nicht grö{\ss}er als 4294967295 sein.
 Um den Prozentsatz zu berechnen, wie viele Clients mit einem individuellen Node verbunden werden, teil Envoy die Gewichtung des jeweiligen Node durch die Summe der Gewichtungen aller Nodes und mulipliziert das Ergebnis mit 100.
 \cite{SupportedLoadBalancers}
@@ -81,22 +81,124 @@ Der Quellcodeauszug \ref{code:envoy-cluster-weight} zeigt eine statische Envoy K
     \caption{Envoy weighted Round-robin Konfiguration}
     \label{code:envoy-cluster-weight}
 \end{figure}
-Die Problematik bei diesem Vorgehen ist, das man die Nodes individuell angeben muss.
+Die Problematik bei diesem Vorgehen ist, dass man die Nodes inklusiver Gewichtung statisch und manuell in der Konfigurationsdatei angeben muss.
+Neben der statischen Konfigurationsdatei bietet Envoy zwei Mechanismen für eine dynamische Konfiguration an.
+\begin{itemize}
+  \item \textbf{Dynamisch via Dateisystem:} Envoy liest Konfigurationsdateien, die das \textit{xDS} Protokoll implementiert haben, vom Dateisystem ein. Wenn sich die Dateien auf dem Dateisystem ändern, aktualisiert Envoy automatisch seine Konfiguration.
+    \cite{ConfigurationDynamicFilesystem}
+  \item \textbf{Dynamisch via Control-Plane:} Envoy holt sich seine Konfiguration dynamisch von einer Control Plane ab. Eine Control Plane ist ein \ac{api} Server, der Envoy Konfigurationen an Envoy Server schickt. Um die Konfiguration an den Envoy zu schicken benutzt die Control Plane die \textit{Data-Plane API}\cite{EnvoyproxyDataplaneapi2021} von Envoy.
+    \cite{ConfigurationDynamicControl}
+\end{itemize}
+Die dynamische Konfiguration via Dateisystem ist gut für einzelne Envoy Instanzen, da keine individuelle Control Plane programmiert werden muss. Betreibt man jedoch ein Envoy Cluster, in dem jede Envoy Instanz die selbe Konfiguration besitzt, muss man bei einer Aktualisierung der Konfiguration die neue Datei auf die Dateisysteme aller Envoys verteilen.
+Für den Anwendungsfall eines Envoy Clusters ist das dynamische verteilen mit einer Control Plane besser geeignet. Jeder Envoy wird mit einer statischen Konfigurationsdatei konfiguriert, in der die Adresse der Control Plane eingetragen ist. Sobald ein Envoy startet registriert sich dieser an der Control Plane und erhält seine Konfiguration. Das Verteilen der Konfigurationsaktualisierungen an die Envoy Instanzen wird nun von der Control Plane übernommen.
+\\
+Quellcodeauszug \ref{code:envoy-control-plane} zeigt eine statische Konfigurationsdatei um sich bei einer Control Plane zu registrieren die unter \verb|example.control.plane:18000| erreichbar ist.
+\begin{figure}
+    \import{gen/}{envoy-control-plane}
+    \caption{Statische Envoy Konfiguration um sich zu einer Control Plane zu verbinden}
+    \label{code:envoy-control-plane}
+\end{figure}
+Die Konfigurationsdatei ist in drei Teile unterteilt:
+\begin{itemize}
+  \item \verb|node:| Identifikation der Envoy Instanz bei der Control Plane. Eine Control Plane ist in der Lage verschiedene Konfigurationen zu handhaben. Durch \verb|node.id| kann die Envoy Instanz einer Konfiguration zugeordnet werden.
+  \item \verb|dynamic_resources:| Gibt die Quelle der dynamischen Provisionierung an. Im Beispiel \ref{code:envoy-control-plane} wird eine \verb|GRPC| \ac{api} Namens \verb|xds_cluster| verwendet.
+  \item \verb|static_resources:| Es wird die Quelle für eine dynamische Provisionierung definiert. Im Beispiel \ref{code:envoy-control-plane} wird eine Quelle Namens \verb|xds_cluster| definiert. Diese Quelle wird in \verb|dynamic_resources| referenziert.
+\end{itemize}
+Eine Control Plane kann in jeder Programmiersprache entwickelt werden und muss nur die Spezifikationen der Data-Plane API \cite{EnvoyproxyDataplaneapi2021} berücksichtigen. Um den Einstieg für Entwickler zu erleichtern stellt Envoy Bibliotheken für Java und Golang bereit. Diese abstrahieren die Implementierung der Data-Plane API.
+\\
+Um die Skalierung der Envoy Instanzen zu ermöglichen wird im Rahmen der Thesis eine dynamische Konfiguration via Control Plane in Golang entwickelt. Der Grund für die Auswahl der Programmiersprache ist eine persönliche Präferenz. Wie erläutert, hat diese keine Auswirkung auf das Load Balancing des Envoys.
+
+\subsubsection{Control Plane}
+Envoy stellt eine Beispiels Control Plane \cite{DynamicConfigurationControl} bereit, die als Starthilfe für eine anwendungsspezifische Control Plane dient. Für den Anwedungsfall \ac{mqtt} soll die Control Plane eine Konfiguration ähnlich dem Beispiel \ref{code:envoy-weighted-round-robin} erzeugen. Dabei werden die Nodes und deren Gewichtung von der Control Plane bestimmt.
+\\
+Die in Kapitel \ref{ss:cluster-discovery} beschriebene HiveMQ Cluster Discovery kann zusammen mit einem gewichtenen Round-robin nicht implementiert werden. Wenn man den einzelnen Envoy Instanzen die Ermittlung der HiveMQ Nodes überlässt, hat man in der Control Plane keine Möglichkeit diesen HiveMQ Nodes individuelle Gewichtungen zu geben. Daher muss die Cluster Discovery in der Control Plane implementiert werden. Dem Envoy werden dann explizit alle HiveMQ Node \ac{ip} Adressen mit deren Gewichtungen und Port vermittelt.
+
+\subsubsection{DNS Cluster Discovery}
+Die Implementierung der HiveMQ Cluster Discovery in der Control Plane muss sich Konzeptuell der \ac{dns} Cluster Discovery von der HiveMQ Erweiterung anlehnen. Wie schon in Kapitel \ref{ss:cluster-discovery} beschrieben würde sonst die Topolgie des HiveMQ Clusters im Envoy mit der tatsächlichen Topologie divergieren.
+Die Control Plane muss asynchron und periodisch einen gegebenen Domain Namen auflösen und alle hinterlegten \ac{ip} Adressen als Nodes eines HiveMQ Clusters eintragen. Das Interval der periodischen Auflösung sollte sehr gering gehalten werden, zum Beispiel fünf Sekunden, um auf Topologie Änderungen schnell zu reagieren. In der Regel sind in gro{\ss}en Infrastrukturen eigene \ac{dns} Server installiert, die eine hohe Abfragerate verarbeiten können.
+Quellcodeauszug \ref{code:dns-resolve-net} zeige die Auflösung aller \ac{ip} Adressen eines Domain Namens in Golang mit der Standard \verb|net| Bibliothek.
+\begin{figure}
+    \import{gen/}{dns-resolve-net}
+    \caption{\ac{ip} Adressen Auflösung eines Domain Namens in Golang}
+    \label{code:dns-resolve-net}
+\end{figure}
 
 \subsubsection{HiveMQ Metriken}
+Um HiveMQ Nodes zu Gewichten müssen Metriken erarbeitet werden, die einen Indikator für die Auslastung des Nodes sind. Ein HiveMQ Broker stellt seine Metriken über folgende Schnittstellen bereit:
+\begin{itemize}
+  \item Prometheus
+  \item InfluxDB
+  \item Java Management Extension
+\end{itemize}
+\cite{MonitoringHiveMQDocumentation}
+Für Golang gibt es eine Bibliothek, die es ermöglicht Prometheus Metriken zu parsen. Grafana bietet zudem eine Anbindung für Prometheus um Metriken zu Visualisieren.\\
+Um das Monitoring von HiveMQ via Prometheus zu aktivieren, muss die \textit{Prometheus Monitoring Extension} \cite{HiveMQExtensionPrometheus} installiert werden. Um die Erweiterung zu konfigurieren kann eine Datei Namens \verb|/opt/hivemq/conf/prometheusConfiguration.properties| erstellt werden. Quellcodeauszug \ref{code:hivemq-prometheus-extension} zeigt eine Beispielskonfiguration.
+\begin{figure}
+    \import{gen/}{hivemq-prometheus-extension}
+    \caption{Beispielskonfiguration für die HiveMQ Prometheus Metriken Erweiterung}
+    \label{code:hivemq-prometheus-extension}
+\end{figure}
+Wie in Kapitel \ref{sb:overload-protection} erläutert, hat HiveMQ einen eingebauten Überlastschutz. Der aktuelle Status des Überlastschutzes kann auch über die Metriken abgefragt werden. HiveMQ stellt zudem auch noch Metriken des Host Systems, wie zum Beispiel die aktuelle \ac{cpu} Auslastung, und viele weitere Metriken bereit. Eine Liste aller Metriken findet sich in der HiveMQ Dokumentation \cite{MonitoringHiveMQDocumentation}. Tabelle \ref{table:overload-protection-metrics} gibt eine Übersicht der Metriken, die eine aktuelle Auslastung des Brokers widerspiegeln. Alle Metriken, die sich auf Clients beziehen, beinhalten nur die Daten der Clients, die auf diesem Node verbunden sind. Die Relevanz dieser Metriken für die Erstellung der Gewichtung eines Nodes wird in den Folgekapiteln untersucht.
+\cite{ClusterOverloadProtection}
+\begin{table}[htbp]
+\centering
+\renewcommand{\arraystretch}{1.5}
+\begin{tabularx}{\textwidth}{|p{5cm}|X|}
+    \hline
+    \textbf{Metrik} & \textbf{Beschreibung} \\
+    \hline
+    \hline
+    \verb|com.hivemq.supervision.| \verb|overload.protection.level| & Aktueller \textit{Overload Protection Level} zwischen 1 und 10 \\
+    \hline
+    \verb|com.hivemq.overload-| \verb|protection.credits.| \verb|per-tick| & Anzahl der Credits, die ein Client alle 200 Millisekunden erhält \\
+    \hline
+    \verb|com.hivemq.overload-| \verb|protection.clients.| \verb|average-credits| & Durchschnittliche Anzahl der Credits aller Clients \\
+    \hline
+    \verb|com.hivemq.overload-| \verb|protection.clients.| \verb|using-credits| & Anzahl der Clients, die weniger als 50.000 Credits haben \\
+    \hline
+    \verb|com.hivemq.overload-| \verb|protection.clients.| \verb|backpressure-active| & Anzahl der Clients, die durch eine Overload Protection \ac{tcp} Backpressure haben \\
+    \hline
+    \verb|com.hivemq.overload-| \verb|protection.global.tasks| & Anzahl der ausstehenden Aufgaben \\
+    \hline
+    \verb|com.hivemq.system.os.| \verb|global.cpu.total.total| & \ac{cpu} Auslastung \\
+    \hline
+\end{tabularx}
+\caption{HiveMQ Metriken, die eine Auskunft über die Auslastung des Brokers geben}
+\label{table:overload-protection-metrics}
+\end{table}
+
+\subsubsection{Test Szenario}
+
 \subsubsection{Overload Protection}
 \subsubsection{Client Credits}
 \subsubsection{Global Tasks}
-\subsubsection{Cluster Discovery}
-% strict dns kann nicht mehr verwendet werden
+
 \subsubsection{Health Check}
 % lbendpoint health status -> can be set via control plane
+
+\subsubsection{Aktualisierung der Konfiguration}
+Um Aktualisierungen an eine Envoy Instanz zu schicken werden versionierte Momentaufnahmen (engl. \textit{Snapshots}) von einem Zustand der Konfiguration erstellt. Wenn die Version des Snapshots auf dem Envoy eine andere Version ist als die Version des aktuellen Snapshots auf der Control Plane, liefert die Control Plane den Snapshot an die Envoy Instanz aus.
+Für die Entwicklung einer Control Plane bedeutet dies, sobald sich die Konfiguration ändert muss, sich auch die Version ändern, damit die neue Konfiguration an die Envoys ausgeliefert wird. Wenn die Konfiguration einen Zustand annimmt, für den sie in der Vergangenheit schon eine Version gebildet hat, sollte die Control Plane diese Version wiederverwenden. Somit kann man Snapshots mit ihrere Version in einem Cache-Speicher hinterlegen.
+\\
+Um bei der gleichen Cluster Konfiguration immer die selbe Version zu benutzen kann man die Cluster Konfiguration in eine Hash Funktion geben und bekommt einen String mit fixer Länge als Rückgabewert zurück. Die Hash Funktion garantiert einen immer gleichen Rückgabewert bei gleichem Input.
+% TODO hash beschreiben
+Die Eingabe der Hash Funktion sind alle Informationen bei deren Änderung eine neue Version erstellt werden soll. Dies ist eine Liste aller HiveMQ Nodes mit folgenden Werten:
+\begin{itemize}
+  \item \ac{ip} Adresse
+  \item Port
+  \item Gewichtung
+  \item Status
+\end{itemize}
+Die Reihenfolge, in der die Nodes in der Liste vorkommen, ist von relevanz. Falls alle Nodes die selben Werte haben, sich aber die Reihenfolge der Liste geändert hat, würde die Hash Funktion einen neuen Wert zurückgeben. Daher muss sichergestellt werden, dass die Nodes immer in der gleichen Reihenfolge vorkommen. Um die Liste der Nodes zu sortieren muss überlegt werden welche Werte des Nodes als Vergleich benutzt werden. Dafür müssen Eigenschaften definiert werden, die einen Node einzigartig machen.
+Es können niemals zwei HiveMQ Nodes die selbe \ac{ip} Adresse und den selben Port haben. Beide Werte als String vereint können somit miteinander verglichen werden um bei gleichbleibenden Nodes die selbe Reihenfolge in einer Liste einzuhalten.
+% TODO soll man dafür ein beispiel machen?
 
 \subsection{Sticky Session}
 \subsubsection{Client Identifier}
 \subsubsection{MQTT CONNECT}
 
 \subsubsection{Hash?}
+% clientid hash bestimmt das backend
 %\subsubsection{Envoy WASM Network Filter}
 
 \begin{comment}
