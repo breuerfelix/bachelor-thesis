@@ -72,11 +72,11 @@ schlie{\ss}t ein Abonnement auf \verb|sensors/#| alle Themen mit ein. Bei einem 
 Je zuverlässiger eine Nachricht übermittelt werden soll, desto mehr Datendurchsatz verursacht diese Nachricht im gesamten System. Wenn ein Client wissen will, ob seine Nachricht im Broker eingetroffen ist, muss der Broker dem Client eine entsprechende Rückmeldung geben. Andernfalls kann der Client seine Nachricht an den Broker schicken ohne eine Rückmeldung zu erwarten. Dies ist vergleichsweise im \ac{http} nicht möglicht. Dort muss auf jede Nachricht geantwortet werden.\\
 Bei \ac{mqtt} wird die Zuverlässigkeit der Übermittlung einer Nachricht mit einem \textit{\acf{qos}} Level festgelegt. Eine Nachricht publizierte Nachricht muss einen der drei \ac{qos} Level haben:
 \begin{itemize}
-    \item \ac{qos} 1: Maximal eine Zustellung der Nachricht.
-    \item \ac{qos} 2: Mindestens eine Zustellung der Nachricht.
-    \item \ac{qos} 3: Genau eine Zustellung der Nachricht.
+    \item \ac{qos} 0: Maximal eine Zustellung der Nachricht.
+    \item \ac{qos} 1: Mindestens eine Zustellung der Nachricht.
+    \item \ac{qos} 2: Genau eine Zustellung der Nachricht.
 \end{itemize}
-Bei \ac{qos} Level 2 und 3 werden Handshakes zur Verifizierung der Paketübermittelung eingesetzt.\cite{mqtt5Specification}
+Bei \ac{qos} Level 1 und 2 werden Handshakes zur Verifizierung der Paketübermittelung eingesetzt.\cite{mqtt5Specification}
 
 \subsubsection{Retained Message} \label{s:retained-messages}
 In \ac{mqtt} kann pro Topic die letzte veröffentlichte Nachricht aufbewahrt werden.

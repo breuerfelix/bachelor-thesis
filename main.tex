@@ -101,6 +101,33 @@
 
 \author{Felix Breuer}
 \begin{document}
+
+roter faden:
+was ist iot ?
+was ist mqtt ?
+was ist load balancing ? und warum braucht man es ?
+
+warum ist load balancing in mqtt schwer ?
+was macht denn eigentlich ein smart lb?
+und wie hab ich das ganze implementiert ?
+wie gehts jetzt mit dem projekt weiter?
+
+% start TODO delete
+was macht ein smart lb ?
+Cluster discovery via DNS
+
+weighted round robin based on cpu
+
+health checks -> mqtt connect, subscribe, publish, disconnect -> vielleicht metrik cluster node count?
+
+state machine
+-> cluster healthy vs cluster unhealthy
+-> sticky session based on clientid vs circuit breaking
+
+
+\newpage
+% end
+
 \import{other/}{title}
 
 \pagenumbering{Roman}
@@ -115,7 +142,7 @@
 \listoffigures\addcontentsline{toc}{section}{Abbildungsverzeichnis}\newpage
 \listoftables\addcontentsline{toc}{section}{Tabellenverzeichnis}\newpage
 
-% anhang, quellen, glossar, index, eides, sperrvermerk
+% reihenfolge: anhang, quellen, glossar, index, eides, sperrvermerk
 
 % quellen
 \bibliographystyle{IEEEtran}

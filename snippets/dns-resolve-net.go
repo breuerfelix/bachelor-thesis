@@ -3,14 +3,27 @@ package main
 import (
 	"net"
 	"fmt"
+	"time"
 )
 
-func main() {
-	ips, _ := net.LookupIP("cluster.hivemq.internal")
+var INTERVAL = 5 * time.Second
 
-	for _, ip := range ips {
-		fmt.Printf("IP: %s\n", ip.String())
+func refreshDNS(domain string) {
+	for {
+		ips, _ := net.LookupIP(domain)
+
+		for _, ip := range ips {
+			fmt.Printf("IP: %s\n", ip.String())
+		}
+
+		time.Sleep(INTERVAL)
 	}
+}
+
+func main() {
+	go refreshDNS("hivemq.fbr.ai")
+
+	// ...
 }
 
 // Output:
