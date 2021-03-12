@@ -221,9 +221,33 @@ Quellcodeauszug \ref{code:dns-resolve-net} zeige die Auflösung aller \ac{ip} Ad
 %\end{table}
 % TODO update the cpu metric to match the correct one
 
-\subsubsection{Weighted Round Robin based on CPU}
-Die Testszenarien aus Kapitel \ref{ss:test} zeigen, dass es bei \ac{mqtt} viele verschieden Client Verhaltensmuster gibt. Ein Client kann sein Verhalten zur Laufzeit um 180 Grad verändern und der Load Balancer ist nicht mehr in der Lage diesen Client mit einem anderen Node zu verbinden. Der Node muss das neue Verhalten des Clients nun verarbeiten. Ein Load Balancer kann jedoch die Entscheidung, wohin neue Clients verbunden werden, basierend auf dem neuen Verhalten des Clients treffen.
-Eine \ac{tcp} Verbindung korreliert bei \ac{mqtt} nicht mit der verursachten Arbeitslast auf dem Broker. In Szenario 2 haben 300 Publisher doppelt so viel Last erzeugt wie 3000 Subscriber und 1000 Publisher zusammen.
+\subsubsection{Weighted CPU Round Robin}
+Die Testszenarien aus Kapitel \ref{ss:test} zeigen, dass es bei \ac{mqtt} viele verschieden Client Verhaltensmuster gibt. Ein Client kann sein Verhalten zur Laufzeit um 180 Grad verändern und der Load Balancer ist nicht mehr in der Lage diesen Client mit einem anderen Node zu verbinden. Der Node muss das neue Verhalten des Clients nun verarbeiten.
+Daher korreliert eine \ac{tcp} Verbindung bei \ac{mqtt} nicht mit der verursachten Arbeitslast auf dem Broker. In Szenario 2 haben 300 Publisher doppelt so viel Last erzeugt wie 3000 Subscriber und 1000 Publisher zusammen.
+Die Anzahl der Verbindungen eines Nodes reicht im Fall \ac{mqtt} nicht aus um eine geeignete Load Balancing Entscheidung zu treffen.
+
+Über eine Control Plane kann man die Gewichtung einzelner Nodes eines Cluster im Envoy dynamisch anpassen.
+Die Control Plane muss periodisch und asynchron die aktuelle \ac{cpu} Auslastung eines jeden Nodes abfragen und darauf basierend die Nodes gewichten.
+HiveMQ stellt die \ac{cpu} Auslastung über die Prometheus Erweiterung unter dem Schlüssel \verb|com_hivemq_system_os_global_cpu_total_total| bereit.
+Die Prometheus Metriken kann man über einen in der Konfiguration angegebenen Endpunkt jederzeit über \ac{http} Abfragen. Standardmä{\ss}ig befindet sich der Endpunkt unter \verb|http://localhost:9399/metrics|.
+Quellcodeauszug \ref{code:prometheus-curl} zeigt die Abfrage der Metriken eines HiveMQ Brokers gefiltert nach \verb|cpu_total_total|. Der Datentyp dieser Metrik ist ein \textit{Gauge}, der einen einzelnen numerischen Wert darstellt.\cite{prometheusMetricTypesPrometheus} Der Wert beträgt in diesem Beispiel \verb|5.0| und bedeutet, dass die aktuelle \ac{cpu} Auslastung fünf Prozent beträgt.
+\begin{figure}
+    \import{gen/}{prometheus-curl}
+    \caption{Abfrage von Prometheus Metriken mit curl und grep in einem Terminal.}
+    \label{code:prometheus-curl}
+\end{figure}
+Für die programmatische Auswertung von Prometheus Metriken stellt Prometheus mehrere Bibliotheken für verschiedene Programmiersprachen bereit. Darunter befindet sich ebenfalls eine Bibliothek für Golang. Das \verb|expfmt| Paket dieser Bibliothek ist für das Parsen der Metriken zuständig.\cite{ExpfmtPkgGo}
+
+\begin{figure}
+    \import{gen/}{expfmt}
+    \caption{Abfrage und parsen von Prometheus Metriken in Golang mit \textit{expfmt}.}
+    \label{code:expfmt}
+\end{figure}
+
+
+
+% TODO Abbildung
+Abbildung \ref{figure:}
 
 \subsubsection{Circuit Breaking}
 Die Overload eines HiveMQ Brokers unterbricht die Verbindung zu Clients, die zu viel Last auf dem Broker verursachen.
