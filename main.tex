@@ -19,6 +19,7 @@
 
 \usepackage{graphicx}
 \usepackage{ragged2e}
+\usepackage{amsmath} % used for formulas
 
 \usepackage[
     format = plain,
@@ -123,6 +124,10 @@ health checks -> mqtt connect, subscribe, publish, disconnect -> vielleicht metr
 state machine
 -> cluster healthy vs cluster unhealthy
 -> sticky session based on clientid vs circuit breaking
+
+future work:
+- nur die cpu abfragen und nicht alle hivemq metriken
+- roaming clients
 
 
 \newpage

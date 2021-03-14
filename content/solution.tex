@@ -96,7 +96,7 @@ Nach Phase 6 sind Node 1 und 2 jeweils doppelt so sehr ausgelastet wie Node 3. D
 \\
 TODO Fazit ??
 
-\subsubsection{Weighted Round Robin}
+\subsubsection{Weighted Round Robin} \label{ss:weighted-rr}
 Kapitel \ref{ss:test} zeigt, dass ein Least Connection Balancer in Szenario 3 und ein Round Robin Load Balancer in Szenario 2 die Last gleichmä{\ss}ig verteilen kann. Bei den anderen Szenarien befindet sich der Cluster jedoch anschlie{\ss}end in einem ungleich Lastverhältnis. Da \ac{mqtt} auf langlebige \ac{tcp} Verbindungen basiert, wird sich dieses Lastverhältnis nicht verändern bis die Clients ihre Verbindung neu aufbauen.
 Der Load Balancer muss dynamisch auf ein bestimmtes Szenario reagieren und Clients basierend der Arbeitslast der einzelnen Nodes verteilen.
 Dabei werden die einzelnen Nodes basierend der aktuellen Arbeitslast gewichtet. Diese Gewichtung wird bei der Entscheidung, zu welchem Node ein neuer Client verbunden werden soll, mit eingezogen.
@@ -105,6 +105,7 @@ Diese Mechanik wird bereits bei anderen Protokollen wir \ac{http} eingesetzt. Be
 Envoy hat mehrere Load Balancing Algorithmen eingebaut. Darunter befindet sich auch weighted Round-robin. Jedem Node eines Cluster wird eine Gewichtung in Form eines Integer Wertes zugeordnet. Der Wert muss grö{\ss}er als eins sein und die Werte alles Nodes addiert darf nicht grö{\ss}er als 4294967295 sein.
 Um den Prozentsatz zu berechnen, wie viele Clients mit einem individuellen Node verbunden werden, teil Envoy die Gewichtung des jeweiligen Node durch die Summe der Gewichtungen aller Nodes und mulipliziert das Ergebnis mit 100.
 \cite{SupportedLoadBalancers}
+% TODO vielleicht die formel aufschreiben? sieht immer gut aus!
 \\
 Tabelle \ref{table:example-cluster-weight} zeigt drei Nodes mit ihren Gewichtungen und den dazu berechneten Prozentsatz aller Clients die mit diesem Node verbunden werden.
 
@@ -237,17 +238,84 @@ Quellcodeauszug \ref{code:prometheus-curl} zeigt die Abfrage der Metriken eines 
     \label{code:prometheus-curl}
 \end{figure}
 Für die programmatische Auswertung von Prometheus Metriken stellt Prometheus mehrere Bibliotheken für verschiedene Programmiersprachen bereit. Darunter befindet sich ebenfalls eine Bibliothek für Golang. Das \verb|expfmt| Paket dieser Bibliothek ist für das Parsen der Metriken zuständig.\cite{ExpfmtPkgGo}
-
+Quellcodeauszug \ref{code:expfmt} zeigt ein Golang Programm, das periodisch und asynchron die Prometheus Metrik \verb|com_hivemq_system_os_global_cpu_total_total| von einem HiveMQ Broker unter der Adresse \verb|http://localhost:9399/metrics| abruft. Der Wert der Metrik kann alle Werte zwischen 0 (keine Auslastung) und 100 (volle Auslastung) annehmen. Er wird in der Variable \verb|value| als Gleitkommazahl gespeichert.
 \begin{figure}
     \import{gen/}{expfmt}
-    \caption{Abfrage und parsen von Prometheus Metriken in Golang mit \textit{expfmt}.}
+    \caption{Abfragen und parsen von Prometheus Metriken in Golang mit \textit{expfmt} und \textit{net/http}.}
     \label{code:expfmt}
 \end{figure}
-
-
+\\
 
 % TODO Abbildung
-Abbildung \ref{figure:}
+Abbildung \ref{figure:} zeigt, dass der \ac{cpu} Wert eines Nodes innerhalb von Minuten um fünf bis zehn Prozen schwanken kann. Mögliche Ursachen sind zum Beispiel der Java Garbage Collector, eine kurzfristige Traffic Spitze oder ein Client-Takeover.
+Diese kurzfristigen Unterschiede der Auslastung dürfen nicht direkt zu einer Veränderung der Gewichtung des Nodes führen. Es ist möglich, dass die Auslastung eines Nodes in den letzten 10 Minuten im Durchschnitt geringer ist, als bei allen anderen im Cluster, aber zu dem Zeitpunkt, wenn ein neuer Client eine Verbindung mit dem Cluster aufbaut, die Auslastung des Nodes am höchsten ist, weil in diesem Moment ein Client mehrere Nachrichten veröffentlich hat, der dies aber nur halbstündlich tut. Wenn die Control Plane diese Auslastungsspitze sofort in die Gewichtung mit einberechnet, würde der neue Client nicht auf den Node mit der durchschnittlich geringsten Auslastung verbunden werden.
+Um den direkten Einfluss solcher Auslastungsspitzen zu vermeiden, werden Werte über einen bestimmten Zeitraum gesammeln und gemittelt. Der Mittelwert ist somit die durchschnittliche Arbeitslast eines Nodes in Prozent für Dauer \verb|x|.
+
+% TODO code that measures median of x values
+Als finalen Schritt muss nun die durchschnittliche Arbeitslast in eine Gewichtung für Envoy konvertiert werden. Je grö{\ss}er der Wert der Gewichtung im Vergleich zu den Gewichtungen der anderen Nodes ist, je mehr Clients werden mit diesem Node verbunden. In Kapitel \ref{ss:weighted-rr} wurde die Berechnung bereits beschrieben. Demnach ist es nicht möglich die durchschnittliche Arbeitslast direkt als Gewichtung zu benutzen. Es würde ein gegenteiliger Effekt erzielt werden.
+Tabelle \ref{table:example-cluster-cpu} zeigt drei Beispielhafte Nodes mit ihrer durchschnittlichen Auslastung über einen Zeitraum \verb|x|. Wenn die Gewichtung der Nodes gleich der durchschnittlichen Auslastung wäre, dann würden sie jeweils folgenden Prozensatz neuer Clients erhalten:
+\begin{itemize}
+  \item \textbf{Node 1:}
+    \begin{align}
+      60 / (60 + 30 + 5 + 22) \cdot 100 \approx 51,3
+    \end{align}
+  \item \textbf{Node 2:}
+    \begin{align}
+      30 / (60 + 30 + 5 + 22) \cdot 100 \approx 25,6
+    \end{align}
+  \item \textbf{Node 3:}
+    \begin{align}
+      5 / (60 + 30 + 5 + 22) \cdot 100 \approx 4,3
+    \end{align}
+  \item \textbf{Node 4:}
+    \begin{align}
+      22 / (60 + 30 + 5 + 22) \cdot 100 \approx 18,9
+    \end{align}
+\end{itemize}
+Node 3 mit der geringsten Auslastung würde am wenigsten Clients bekommen und Node 1 mit der höchsten Auslastung am meisten. Envoy verteilt die meisten Clients an Nodes mit einer höheren Gewichtung.
+Um die Verteilung der Clients zu reversieren, so das Node 3 mit der geringsten Auslastung die meisten Clients bekommt, muss die durchschnittliche Arbeitslast von der maximal zu erreichenden Arbeitslast abezogen werden. Die maximal erreichbare durchschnittliche Arbeitslast beträgt 100. Die Verteilung neuer Clients würde dann wie folgt aussehen:
+\begin{itemize}
+  \item \textbf{Node 1:}
+    \begin{align}
+      (100 - 60) / ((100 - 60) + (100 - 30) + (100 - 5) + (100 - 22)) \cdot 100 \approx 14,1
+    \end{align}
+  \item \textbf{Node 2:}
+    \begin{align}
+      (100 - 30) / ((100 - 60) + (100 - 30) + (100 - 5) + (100 - 22)) \cdot 100 \approx 24,7
+    \end{align}
+  \item \textbf{Node 3:}
+    \begin{align}
+      (100 - 5) / ((100 - 60) + (100 - 30) + (100 - 5) + (100 - 22)) \cdot 100 \approx 33,6
+    \end{align}
+  \item \textbf{Node 4:}
+    \begin{align}
+      (100 - 22) / ((100 - 60) + (100 - 30) + (100 - 5) + (100 - 22)) \cdot 100 \approx 27,6
+    \end{align}
+\end{itemize}
+
+TODO
+100 - cpu / nodes * 100 ?
+
+\begin{table}[h!]
+\centering
+\renewcommand{\arraystretch}{1.5}
+\begin{tabular}{|l|c|}
+    \hline
+    \textbf{Node} & \textbf{durchschnittliche Auslastung} \\
+    \hline
+    \hline
+    Node 1 & 60 \\
+    \hline
+    Node 2 & 30 \\
+    \hline
+    Node 3 & 5 \\
+    \hline
+    Node 4 & 22 \\
+    \hline
+\end{tabular}
+\caption{Beispiel: 3 Nodes mit durchschnittlicher Auslastung über einen beliebigen Zeitraum}
+\label{table:example-cluster-cpu}
+\end{table}
 
 \subsubsection{Circuit Breaking}
 Die Overload eines HiveMQ Brokers unterbricht die Verbindung zu Clients, die zu viel Last auf dem Broker verursachen.
