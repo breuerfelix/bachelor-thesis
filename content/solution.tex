@@ -222,7 +222,7 @@ Quellcodeauszug \ref{code:dns-resolve-net} zeige die Auflösung aller \ac{ip} Ad
 %\end{table}
 % TODO update the cpu metric to match the correct one
 
-\subsubsection{Weighted CPU Round Robin}
+\subsubsection{Weighted CPU Round Robin} \label{ss:weighted-cpu}
 Die Testszenarien aus Kapitel \ref{ss:test} zeigen, dass es bei \ac{mqtt} viele verschieden Client Verhaltensmuster gibt. Ein Client kann sein Verhalten zur Laufzeit um 180 Grad verändern und der Load Balancer ist nicht mehr in der Lage diesen Client mit einem anderen Node zu verbinden. Der Node muss das neue Verhalten des Clients nun verarbeiten.
 Daher korreliert eine \ac{tcp} Verbindung bei \ac{mqtt} nicht mit der verursachten Arbeitslast auf dem Broker. In Szenario 2 haben 300 Publisher doppelt so viel Last erzeugt wie 3000 Subscriber und 1000 Publisher zusammen.
 Die Anzahl der Verbindungen eines Nodes reicht im Fall \ac{mqtt} nicht aus um eine geeignete Load Balancing Entscheidung zu treffen.
@@ -249,79 +249,97 @@ Quellcodeauszug \ref{code:expfmt} zeigt ein Golang Programm, das periodisch und 
 % TODO Abbildung
 Abbildung \ref{figure:} zeigt, dass der \ac{cpu} Wert eines Nodes innerhalb von Minuten um fünf bis zehn Prozen schwanken kann. Mögliche Ursachen sind zum Beispiel der Java Garbage Collector, eine kurzfristige Traffic Spitze oder ein Client-Takeover.
 Diese kurzfristigen Unterschiede der Auslastung dürfen nicht direkt zu einer Veränderung der Gewichtung des Nodes führen. Es ist möglich, dass die Auslastung eines Nodes in den letzten 10 Minuten im Durchschnitt geringer ist, als bei allen anderen im Cluster, aber zu dem Zeitpunkt, wenn ein neuer Client eine Verbindung mit dem Cluster aufbaut, die Auslastung des Nodes am höchsten ist, weil in diesem Moment ein Client mehrere Nachrichten veröffentlich hat, der dies aber nur halbstündlich tut. Wenn die Control Plane diese Auslastungsspitze sofort in die Gewichtung mit einberechnet, würde der neue Client nicht auf den Node mit der durchschnittlich geringsten Auslastung verbunden werden.
-Um den direkten Einfluss solcher Auslastungsspitzen zu vermeiden, werden Werte über einen bestimmten Zeitraum gesammeln und gemittelt. Der Mittelwert ist somit die durchschnittliche Arbeitslast eines Nodes in Prozent für Dauer \verb|x|.
+Um den direkten Einfluss solcher Auslastungsspitzen zu vermeiden, werden Werte über einen bestimmten Zeitraum gesammelt und gemittelt. Der Mittelwert ist somit die durchschnittliche Arbeitslast eines Nodes in Prozent für Dauer \verb|x|.
+\\
+Als Zeitraum der zu mittelnden Werte wird die Dauer von einer Minute gewählt. Wenn die Abtastfrequenz der \ac{cpu} Werte fünf Sekunden beträgt, müssen die letzten \verb|60 / 5 = 12| Werte aufsummiert und durch die Anzahl der Werte, 12, geteilt werden.
 
-% TODO code that measures median of x values
+% TODO code snippet that measures median of x values
+
 Als finalen Schritt muss nun die durchschnittliche Arbeitslast in eine Gewichtung für Envoy konvertiert werden. Je grö{\ss}er der Wert der Gewichtung im Vergleich zu den Gewichtungen der anderen Nodes ist, je mehr Clients werden mit diesem Node verbunden. In Kapitel \ref{ss:weighted-rr} wurde die Berechnung bereits beschrieben. Demnach ist es nicht möglich die durchschnittliche Arbeitslast direkt als Gewichtung zu benutzen. Es würde ein gegenteiliger Effekt erzielt werden.
-Tabelle \ref{table:example-cluster-cpu} zeigt drei Beispielhafte Nodes mit ihrer durchschnittlichen Auslastung über einen Zeitraum \verb|x|. Wenn die Gewichtung der Nodes gleich der durchschnittlichen Auslastung wäre, dann würden sie jeweils folgenden Prozensatz neuer Clients erhalten:
+Angenommen es gibt vier Nodes mit einer durchschnittlichen Auslastung nach Tabelle \ref{table:example-cluster-cpu}. Die freie Auslastung ergibt sich aus der Differenz von maximaler Auslastung (100) und durchschnittlicher Auslastung. Wenn man die die freie Auslastung als Gewichtung der Nodes wählt, verteilen sich neueh Clients wie folgt auf die Nodes:
 \begin{itemize}
   \item \textbf{Node 1:}
     \begin{align}
-      60 / (60 + 30 + 5 + 22) \cdot 100 \approx 51,3
+      13 / (13 + 70 + 95 + 78) \cdot 100 \approx 5,1 \%
     \end{align}
   \item \textbf{Node 2:}
     \begin{align}
-      30 / (60 + 30 + 5 + 22) \cdot 100 \approx 25,6
+      70 / (13 + 70 + 95 + 78) \cdot 100 \approx 27,3 \%
     \end{align}
   \item \textbf{Node 3:}
     \begin{align}
-      5 / (60 + 30 + 5 + 22) \cdot 100 \approx 4,3
+      95 / (13 + 70 + 95 + 78) \cdot 100 \approx 37,1 \%
     \end{align}
   \item \textbf{Node 4:}
     \begin{align}
-      22 / (60 + 30 + 5 + 22) \cdot 100 \approx 18,9
+      78 / (13 + 70 + 95 + 78) \cdot 100 \approx 30,5 \%
     \end{align}
 \end{itemize}
-Node 3 mit der geringsten Auslastung würde am wenigsten Clients bekommen und Node 1 mit der höchsten Auslastung am meisten. Envoy verteilt die meisten Clients an Nodes mit einer höheren Gewichtung.
-Um die Verteilung der Clients zu reversieren, so das Node 3 mit der geringsten Auslastung die meisten Clients bekommt, muss die durchschnittliche Arbeitslast von der maximal zu erreichenden Arbeitslast abezogen werden. Die maximal erreichbare durchschnittliche Arbeitslast beträgt 100. Die Verteilung neuer Clients würde dann wie folgt aussehen:
-\begin{itemize}
-  \item \textbf{Node 1:}
-    \begin{align}
-      (100 - 60) / ((100 - 60) + (100 - 30) + (100 - 5) + (100 - 22)) \cdot 100 \approx 14,1
-    \end{align}
-  \item \textbf{Node 2:}
-    \begin{align}
-      (100 - 30) / ((100 - 60) + (100 - 30) + (100 - 5) + (100 - 22)) \cdot 100 \approx 24,7
-    \end{align}
-  \item \textbf{Node 3:}
-    \begin{align}
-      (100 - 5) / ((100 - 60) + (100 - 30) + (100 - 5) + (100 - 22)) \cdot 100 \approx 33,6
-    \end{align}
-  \item \textbf{Node 4:}
-    \begin{align}
-      (100 - 22) / ((100 - 60) + (100 - 30) + (100 - 5) + (100 - 22)) \cdot 100 \approx 27,6
-    \end{align}
-\end{itemize}
-
-TODO
-100 - cpu / nodes * 100 ?
+Nodes mit einer höheren Auslastung, zum Beispiel Node 1, erhalten nun weniger neue Clients als Nodes mit einer geringeren Auslastung wie Node 3.
 
 \begin{table}[h!]
 \centering
 \renewcommand{\arraystretch}{1.5}
-\begin{tabular}{|l|c|}
+\begin{tabular}{|l|c|c|}
     \hline
-    \textbf{Node} & \textbf{durchschnittliche Auslastung} \\
+    & \textbf{Ø CPU Auslastung} & \textbf{Ø freie CPU Kapazitäten} \\
     \hline
     \hline
-    Node 1 & 60 \\
+    Node 1 & 87 \% & 13 \% \\
     \hline
-    Node 2 & 30 \\
+    Node 2 & 30 \% & 70 \% \\
     \hline
-    Node 3 & 5 \\
+    Node 3 & 5 \% & 95 \% \\
     \hline
-    Node 4 & 22 \\
+    Node 4 & 22 \% & 78 \% \\
     \hline
 \end{tabular}
-\caption{Beispiel: 3 Nodes mit durchschnittlicher Auslastung über einen beliebigen Zeitraum}
+\caption{CPU Auslastung und Kapazitäten von Nodes eines Clusters über einen beliebigen Zeitraum}
 \label{table:example-cluster-cpu}
 \end{table}
 
-\subsubsection{Circuit Breaking}
-Die Overload eines HiveMQ Brokers unterbricht die Verbindung zu Clients, die zu viel Last auf dem Broker verursachen.
+\subsubsection{Circuit Breaking} \label{ss:circuit-breaking}
+% TODO explain circuit breaking?
+Wie in Kapitel \ref{sb:overload-protection} beschrieben, hat ein HiveMQ Broker mehrere Möglichkeiten sich vor einer Überlastsituation zu schützen. Dabei kann ein Broker im ersten Schritt \ac{tcp} Backpressure auf individuelle Client Verbindungen anwenden um den Paketfluss zu verzögern. Falls dies nicht ausreicht um eine Lastspitze einzudämmen, fängt der Broker an Verbindungen von Clients zu beenden, die ihre Credits aufgebraucht haben. Dadurch werden gezielt Clients vom Broker getrennt, die zu viel Arbeitslast für den Broker verursachen. Durch die Trennung dieser Clients gibt es keine Service Eischränkungen für alle anderen Clients die mit dem Broker verbunden sind. Wenn der Broker Clients, die zu viel Arbeitslast verursachen, nicht abwerfen würde, ist er zu sehr damit beschäftigt die Anfragen dieser Clients zu bearbeiten und die Sericequalität für alle anderen Clients wird eingeschränkt.
+\\
+Wenn sich ein Node eines Clusters in einer Überlastsituation befindet, ist es wichtig, dass der Load Balancer keine neuen Clients mehr mit diesem Node verbindet.
+Der aktuelle Status der Overload Protection kann über die Prometheus Metriken abgefragt werden. Eine Liste aller Prometheus Metriken findet sich in der HiveMQ Dokumentation \cite{MonitoringHiveMQDocumentation}. Tabelle \ref{table:overload-protection-metrics} gibt eine Übersicht der Metriken, die eine aktuelle Überlastung des Brokers widerspiegeln. Metriken, die sich auf Clients beziehen, beinhalten nur die Daten der Clients, die auf dem Node verbunden sind, bei dem die Metriken abgefragt werden.\cite{ClusterOverloadProtection}
+\begin{table}[htbp]
+\centering
+\renewcommand{\arraystretch}{1.5}
+\begin{tabularx}{\textwidth}{|p{5cm}|X|}
+    \hline
+    \textbf{Metrik} & \textbf{Beschreibung} \\
+    \hline
+    \hline
+    \verb|com.hivemq.supervision.| \verb|overload.protection.level| & Aktueller \textit{Overload Protection Level} zwischen 1 und 10 \\
+    \hline
+    \verb|com.hivemq.overload-| \verb|protection.credits.| \verb|per-tick| & Anzahl der Credits, die ein Client alle 200 Millisekunden erhält \\
+    \hline
+    \verb|com.hivemq.overload-| \verb|protection.clients.| \verb|average-credits| & Durchschnittliche Anzahl der Credits aller Clients \\
+    \hline
+    \verb|com.hivemq.overload-| \verb|protection.clients.| \verb|backpressure-active| & Anzahl der Clients, die durch eine Overload Protection \ac{tcp} Backpressure haben \\
+    \hline
+\end{tabularx}
+\caption{HiveMQ Metriken, die eine Auskunft über die Overload Protection des Brokers geben}
+\label{table:overload-protection-metrics}
+\end{table}
+Die Metrik \verb|com.hivemq.supervision.overload.protection.level| aggregiert intern mehrere Metriken zusammen und bestimmt einen allgemeinen Überlast Level des Nodes. Der Wert des Levels liegt zwischen 0 und 10 wobei 10 das höhchste Überlastlevel ist.
+Damit ein Überlastlevel von 10 möglichst nicht erreicht wird, kann der Load Balancer präventiv keine neuen Clients mehr mit einem Node verbinden, der einen bestimmten Schwellenwert als Level überschritten hat.
+\\
+Ein hohes Überlastlevel kann kurzfristig durch Events wie das Beitreten eines neuen Nodes in ein Cluster auftreten. Dabei werden einige Client Queues auf den neuen Node repliziert, was zeitweise die Nodes, auf denen die Queues liegen, stark beansprucht. Daher ist es wichtig, dass der Load Balancer auf solche Events schnell reagiert und keine neuen Clients mehr mit den betroffenen Nodes verbindet.
+Um dies zu gewährleisten, wird eine geringe Abtastfrequenz von 2 Sekunden der Prometheus Metriken gewählt.
+% TODO tests zeigen wie so ein wert aussehen kann
+Eine in Abbildung \ref{figure:} gezeigte Überlastsituation verursacht einen maximalen Overload Protection Level von drei. Die Überlastsituation wurde nur von Client Verbindungen erzeugt. Durch \ac{tcp} Backpressure kann der Broker eine solche Überlastsituation gut verarbeiten ohne die Verbindung der Clients von dem Broker zu unterbrechen. Bei TODO ZEITSTEMPEL ist ein neuer Node in der Cluster beigetreten und hat einen Overload Protection Level von 7 erzeugt. Um in einer solcher Situation keine neuen Clientverbindungen zuzulassen, kann der Schwellenwert für den Überlastschutz auf 5 gesetzt werden.
+\\
+Nodes eines Clusters in Enovy haben einen \textit{Health Status} der angibt, ob diese neue Clients akzeptieren können oder nicht. Der Wert ist entweder \verb|HEALTHY| oder \verb|UNHEALTHY|. Dieser Zustand kann neben der Load Balancing Gewichtung über die Control Plane für jeden Node individuell gesetzt werden.
+%https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/core/v3/health_check.proto#envoy-v3-api-enum-config-core-v3-healthstatus
+\\
+In der Control Plane werden nun asynchron und periodisch alle zwei Sekunden die Prometheus Metriken wie in Kapitel \ref{ss:weighted-cpu} beschrieben von allen Nodes des Clusters abgerufen. Sobald die Metrik \verb|com.hivemq.supervision.overload.protection.level| einen Wert von über fünf erreicht, wird der Health Status des Nodes auf \verb|UNHEALTHY| gesetzt. Der Load Balancer verbindet nun keine neuen Clients mehr mit diesem Node. Sobald der Wert wieder unter fünf sinkt, wird der Status auf \verb|HEALTHY| gesetzt und es können wieder neue Clients mit dem Node verbunden werden.
 
 \subsubsection{Health Check}
-% lbendpoint health status -> can be set via control plane
+In Kapitel \ref{ss:circuit-breaking} wurde beschrieben, dass man über die Control Plane den Health Status der Nodes eines Clusters angeben kann.
+
 
 \subsubsection{Aktualisierung der Konfiguration}
 Um Aktualisierungen an eine Envoy Instanz zu schicken werden versionierte Momentaufnahmen (engl. \textit{Snapshots}) von einem Zustand der Konfiguration erstellt. Wenn die Version des Snapshots auf dem Envoy eine andere Version ist als die Version des aktuellen Snapshots auf der Control Plane, liefert die Control Plane den Snapshot an die Envoy Instanz aus.

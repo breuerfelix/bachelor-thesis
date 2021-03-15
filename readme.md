@@ -1,5 +1,6 @@
 ## wichtige formale fragen
 
+- unterscheidung hivemq node / cluster und envoy node / cluster
 - müssen wörter wie subscriber, publisher, payload, header etc übersetzt werden ?
 - endet ein absatz wenn eine liste anfängt ? also muss ich bevor die liste anfängt den quellenverweis schreiben?
 - wie schreibe ich: mehr infos zu den optionalen feldern gibt es hier: quelle
