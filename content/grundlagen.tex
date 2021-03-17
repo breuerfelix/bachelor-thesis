@@ -238,6 +238,7 @@ Eine Client Identifikationsnummer dient zur Identifikation des aktuellen Zustand
 \label{table:mqtt-connect-packet-variable-header}
 \end{table}
 Der Broker muss eine \verb|CONNECT| Nachricht von einem Client mit einem \verb|CONNACK| Paket beantworten.\cite{mqtt5Specification}
+% TODO länge der eigenschaften kann nicht 0 sein oder ? wegen der clientid
 
 \subsubsection{Last Will Nachricht} \label{s:last-will}
 Ein Client kann bei der Verbindung zu einem Broker einen letzten Willen (engl. \textit{Last Will}) als Nachricht definieren. Diese Nachricht wird auf ein ebenfalls angegebenes Topic veröffentlich sobald die Verbindung zum Client unterbricht und dieser nicht in einer definierten Zeit seine Verbindung zum Broker wieder aufbauen kann. Falls der Client seine Verbindung Protokollkonform beendet, wird die Last Will Nachricht nicht veröffentlicht.

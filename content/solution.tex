@@ -166,61 +166,15 @@ Envoy stellt eine Beispiels Control Plane \cite{DynamicConfigurationControl} ber
 \\
 Die in Kapitel \ref{ss:cluster-discovery} beschriebene HiveMQ Cluster Discovery kann zusammen mit einem gewichtenen Round-robin nicht implementiert werden. Wenn man den einzelnen Envoy Instanzen die Ermittlung der HiveMQ Nodes überlässt, hat man in der Control Plane keine Möglichkeit diesen HiveMQ Nodes individuelle Gewichtungen zu geben. Daher muss die Cluster Discovery in der Control Plane implementiert werden. Dem Envoy werden dann explizit alle HiveMQ Node \ac{ip} Adressen mit deren Gewichtungen und Port vermittelt.
 
-\subsubsection{DNS Cluster Discovery}
+\subsubsection{DNS Cluster Discovery} \label{ss:dns-discovery}
 Die Implementierung der HiveMQ Cluster Discovery in der Control Plane muss sich Konzeptuell der \ac{dns} Cluster Discovery von der HiveMQ Erweiterung anlehnen. Wie schon in Kapitel \ref{ss:cluster-discovery} beschrieben würde sonst die Topolgie des HiveMQ Clusters im Envoy mit der tatsächlichen Topologie divergieren.
-Die Control Plane muss asynchron und periodisch einen gegebenen Domain Namen auflösen und alle hinterlegten \ac{ip} Adressen als Nodes eines HiveMQ Clusters eintragen. Das Interval der periodischen Auflösung sollte sehr gering gehalten werden, zum Beispiel fünf Sekunden, um auf Topologie Änderungen schnell zu reagieren. In der Regel sind in gro{\ss}en Infrastrukturen eigene \ac{dns} Server installiert, die eine hohe Abfragerate verarbeiten können.
+Die Control Plane muss asynchron und periodisch einen gegebenen Domain Namen auflösen und alle hinterlegten \ac{ip} Adressen als Nodes eines HiveMQ Clusters eintragen. Das Interval der periodischen Auflösung sollte sehr gering gehalten werden, zum Beispiel fünf Sekunden, um auf Topologieänderungen schnell zu reagieren. In der Regel sind in gro{\ss}en Infrastrukturen eigene \ac{dns} Server installiert, die eine hohe Abfragerate verarbeiten können.
 Quellcodeauszug \ref{code:dns-resolve-net} zeige die Auflösung aller \ac{ip} Adressen eines Domain Namens in Golang mit der Standard \verb|net| Bibliothek. Da die Funktion \verb|refreshDNS| als Go Routine gestartet wird, kann die \verb|main| Funktion weiterlaufen und muss nicht auf die Terminierung der \verb|refreshDNS| Funktion warten. Die \verb|refreshDNS| Funktion erneuert die \ac{ip} Adressen periodisch in gegebenem Intervall.
 \begin{figure}
     \import{gen/}{dns-resolve-net}
     \caption{\ac{ip} Adressen Auflösung eines Domain Namens in Golang}
     \label{code:dns-resolve-net}
 \end{figure}
-
-%\subsubsection{HiveMQ Metriken}
-%% TODO vielleicht raus
-%Eine Gewichtung der HiveMQ Nodes kann anhand der \ac{cpu} Auslastung der Nodes erstellt werden. Ein \ac{mqtt} Client ist jedoch in der Lage zur Laufzeit eine hohe Last auf dem Node zu erzeugen, indem er plötzlich viel mehr Nachrichten veröffentlich als zuvor. Dies sorgt für einen kurzfristigen Anstieg der \ac{cpu} Auslatung. Im Optimalfall merkt sich ein Broker diese Problemclients und bewertet die eigenen Auslastung höher als die \ac{cpu} Auslastung eigentlich angibt.
-%HiveMQ stellt Metriken bereit und es gilt herauszuarbeiten, ob diese neben der \ac{cpu} Auslastung einen Indikator für die Auslastung des Nodes sind.
-%Ein HiveMQ Broker stellt seine Metriken über folgende Schnittstellen bereit:
-%\begin{itemize}
-  %\item Prometheus
-  %\item InfluxDB
-  %\item Java Management Extension
-%\end{itemize}
-%\cite{MonitoringHiveMQDocumentation}
-%Für Golang gibt es eine Bibliothek, die es ermöglicht Prometheus Metriken zu parsen. Grafana bietet zudem eine Anbindung für Prometheus um Metriken zu Visualisieren.\\
-%Um das Monitoring von HiveMQ via Prometheus zu aktivieren, muss die \textit{Prometheus Monitoring Extension} \cite{HiveMQExtensionPrometheus} installiert werden. Um die Erweiterung zu konfigurieren kann eine Datei Namens \verb|/opt/hivemq/conf/prometheusConfiguration.properties| erstellt werden. Quellcodeauszug \ref{code:hivemq-prometheus-extension} zeigt eine Beispielskonfiguration.
-%\begin{figure}
-    %\import{gen/}{hivemq-prometheus-extension}
-    %\caption{Beispielskonfiguration für die HiveMQ Prometheus Metriken Erweiterung}
-    %\label{code:hivemq-prometheus-extension}
-%\end{figure}
-%Wie in Kapitel \ref{sb:overload-protection} erläutert, hat HiveMQ einen eingebauten Überlastschutz. Der aktuelle Status des Überlastschutzes kann auch über die Metriken abgefragt werden. HiveMQ stellt zudem auch noch Metriken des Host Systems, wie zum Beispiel die aktuelle \ac{cpu} Auslastung, und viele weitere Metriken bereit. Eine Liste aller Metriken findet sich in der HiveMQ Dokumentation \cite{MonitoringHiveMQDocumentation}. Tabelle \ref{table:overload-protection-metrics} gibt eine Übersicht der Metriken, die eine aktuelle Auslastung des Brokers widerspiegeln. Alle Metriken, die sich auf Clients beziehen, beinhalten nur die Daten der Clients, die auf diesem Node verbunden sind. Die Relevanz dieser Metriken für die Erstellung der Gewichtung eines Nodes wird in den Folgekapiteln untersucht.
-%\cite{ClusterOverloadProtection}
-%\begin{table}[htbp]
-%\centering
-%\renewcommand{\arraystretch}{1.5}
-%\begin{tabularx}{\textwidth}{|p{5cm}|X|}
-    %\hline
-    %\textbf{Metrik} & \textbf{Beschreibung} \\
-    %\hline
-    %\hline
-    %\verb|com.hivemq.supervision.| \verb|overload.protection.level| & Aktueller \textit{Overload Protection Level} zwischen 1 und 10 \\
-    %\hline
-    %\verb|com.hivemq.overload-| \verb|protection.credits.| \verb|per-tick| & Anzahl der Credits, die ein Client alle 200 Millisekunden erhält \\
-    %\hline
-    %\verb|com.hivemq.overload-| \verb|protection.clients.| \verb|average-credits| & Durchschnittliche Anzahl der Credits aller Clients \\
-    %\hline
-    %\verb|com.hivemq.overload-| \verb|protection.clients.| \verb|backpressure-active| & Anzahl der Clients, die durch eine Overload Protection \ac{tcp} Backpressure haben \\
-    %\hline
-    %\verb|com.hivemq.overload-| \verb|protection.global.tasks| & Anzahl der ausstehenden Aufgaben \\
-    %\hline
-    %\verb|com.hivemq.system.os.| \verb|global.cpu.total.total| & \ac{cpu} Auslastung \\
-    %\hline
-%\end{tabularx}
-%\caption{HiveMQ Metriken, die eine Auskunft über die Auslastung des Brokers geben}
-%\label{table:overload-protection-metrics}
-%\end{table}
-% TODO update the cpu metric to match the correct one
 
 \subsubsection{Weighted CPU Round Robin} \label{ss:weighted-cpu}
 Die Testszenarien aus Kapitel \ref{ss:test} zeigen, dass es bei \ac{mqtt} viele verschieden Client Verhaltensmuster gibt. Ein Client kann sein Verhalten zur Laufzeit um 180 Grad verändern und der Load Balancer ist nicht mehr in der Lage diesen Client mit einem anderen Node zu verbinden. Der Node muss das neue Verhalten des Clients nun verarbeiten.
@@ -298,6 +252,8 @@ Nodes mit einer höheren Auslastung, zum Beispiel Node 1, erhalten nun weniger n
 \label{table:example-cluster-cpu}
 \end{table}
 
+% TODO test szenarien laufen lassen!
+
 \subsubsection{Circuit Breaking} \label{ss:circuit-breaking}
 % TODO explain circuit breaking?
 Wie in Kapitel \ref{sb:overload-protection} beschrieben, hat ein HiveMQ Broker mehrere Möglichkeiten sich vor einer Überlastsituation zu schützen. Dabei kann ein Broker im ersten Schritt \ac{tcp} Backpressure auf individuelle Client Verbindungen anwenden um den Paketfluss zu verzögern. Falls dies nicht ausreicht um eine Lastspitze einzudämmen, fängt der Broker an Verbindungen von Clients zu beenden, die ihre Credits aufgebraucht haben. Dadurch werden gezielt Clients vom Broker getrennt, die zu viel Arbeitslast für den Broker verursachen. Durch die Trennung dieser Clients gibt es keine Service Eischränkungen für alle anderen Clients die mit dem Broker verbunden sind. Wenn der Broker Clients, die zu viel Arbeitslast verursachen, nicht abwerfen würde, ist er zu sehr damit beschäftigt die Anfragen dieser Clients zu bearbeiten und die Sericequalität für alle anderen Clients wird eingeschränkt.
@@ -356,34 +312,55 @@ Quellcodeauszug \ref{code:sample-mqtt-client} zeigt die Implementierung des Abla
     \caption{Überprüfung der Connect, Publish und Subscribe Funktionalität eines MQTT Brokers in Golang mit der Eclipse MQTT Bibliothek}
     \label{code:sample-mqtt-client}
 \end{figure}
-
-TODO check if node is in cluster
-
+\\
+Sobald die \ac{dns} Cluster Discovery aus Kapitel \ref{ss:dns-discovery} einen neuen Node entdeckt hat, muss überprüft werden, ob der Node bereits dem Cluster beigetreten ist. Bei der \ac{dns} Cluster Discovery besteht die Möglichkeit, dass die Control Plane einen anderen \ac{dns} Server benutzt als die HiveMQ Nodes. Wenn zum Zeitpunkt des Startes des neuen Nodes die \ac{ip} Adresse des Nodes noch nicht in der \ac{dns} Registry aller Nodes eingetragen ist, dann startet dieser Node als eigenständiger Broker und ist nicht Teil des Clusters.
+Alle Clients die mit diesem Broker verbunden werden, können nicht mit den Clients aus dem Cluster kommunizieren. Dies führt zu einem Datenleck, da zum Beispiel Nachrichten, die auf dem Cluster auf dem Topic \verb|sensors| veröffentlicht werden, nicht an Clients weitergeleitet werden, die auf dem einzelnen Broker das Topic \verb|sensors| abonniert haben.
+Der Load Balancer darf erst Clients mit einem neuen Node verbinden, wenn dieser Teil des Clusters ist.
+\\
+Die Prometheus Metrik des HiveMQ Brokers \verb|com.hivemq.cluster.nodes.count| gibt an, wie viele Nodes Teil des HiveMQ Clusters sind. Mit Hilfe dieser Metrik lässt sich also feststellen, ob die Grö{\ss}e des Cluster mit der Anzahl der entdeckten Nodes übereinstimmt. Angenommen es gibt ein HiveMQ Cluster bestehend aus drei Nodes. Nun entdeckt die \ac{dns} Cluster Discovery einen vierten Node und fragt bei allen vier Nodes die Metrik \verb|com.hivemq.cluster.nodes.count| ab. Wenn der Wert der Metrik bei den bisherigen Nodes \verb|3| ist und bei dem neu entdeckten Node \verb|1|, dann ist der neue Node nicht Teil des Clusters und der Load Balancer darf keine Clients mit dem Node verbinden. Wenn die Werte aller Nodes \verb|4| sind, kann der Load Balancer davon ausgehen, das der Node Teil des Clusters ist.
+% TODO golang code ? oder vielleicht auch nicht! einfach in der implementierung zeigen
+\\
+Ein Nachteil dieser Methode ist, dass jeder Node auch Teil eines anderen Clusters sein könnte. Angenommen es gibt vier HiveMQ Cluster bestehend aus je vier Nodes. Ein beliebiger Node eines jeden Clusters wird in die Domain eingetragen. Die Metrik \verb|com.hivemq.cluster.nodes.count| würde nun bei allen Nodes den Wert \verb|4| liefern. Für die Control Plane ist nun jeder Node Teil des selben Clusters, obwohl dies nicht der Fall ist. HiveMQ bietet keine Möglichkeit abzufragen, ob Nodes Teil des selben Clusters sind.
+\\
+Wenn die \ac{dns} Cluster Discovery einen neuen Node entdeckt hat, der noch nicht Teil des Cluster ist, ist davon auszugehen, dass dieser Node noch in der Cluster aufgenommen wird. Der Prozess, bei dem ein neuer Node in ein bestehendes HiveMQ Cluster aufgenommen wird, hei{\ss}t \textit{Cluster Join}. Je nachdem wie viele Client Queues auf dem Cluster angelegt sind, kann der Cluster Join entweder einige Sekunden bis hin zu fünfzehn Minuten dauern. In dieser Zeit muss der Load Balancer diesen Node als \verb|UNHEALTHY| markieren und erst auf \verb|HEALTHY| setzen, wenn der Wert der Cluster Node Metrik bei allen Nodes übereinstimmt und der Anzahl der Nodes entspricht.
 
 \subsubsection{Aktualisierung der Konfiguration}
-Um Aktualisierungen an eine Envoy Instanz zu schicken werden versionierte Momentaufnahmen (engl. \textit{Snapshots}) von einem Zustand der Konfiguration erstellt. Wenn die Version des Snapshots auf dem Envoy eine andere Version ist als die Version des aktuellen Snapshots auf der Control Plane, liefert die Control Plane den Snapshot an die Envoy Instanz aus.
-Für die Entwicklung einer Control Plane bedeutet dies, sobald sich die Konfiguration ändert muss, sich auch die Version ändern, damit die neue Konfiguration an die Envoys ausgeliefert wird. Wenn die Konfiguration einen Zustand annimmt, für den sie in der Vergangenheit schon eine Version gebildet hat, sollte die Control Plane diese Version wiederverwenden. Somit kann man Snapshots mit ihrere Version in einem Cache-Speicher hinterlegen.
+Um Aktualisierungen wie Health Status, Gewichtung oder Anzahl der Nodes an eine Envoy Instanz zu schicken, werden versionierte Momentaufnahmen (engl. \textit{Snapshots}) von einem Zustand der Konfiguration erstellt. Wenn die Version des Snapshots auf dem Envoy eine andere Version ist als die Version des aktuellen Snapshots auf der Control Plane, liefert die Control Plane den aktuellen Snapshot an die Envoy Instanz aus.
+Für die Entwicklung einer Control Plane bedeutet dies, sobald sich die Konfiguration ändert, muss sich auch die Version ändern damit die neue Konfiguration an die Envoys ausgeliefert wird. Wenn die Konfiguration einen Zustand annimmt, für den sie in der Vergangenheit schon eine Version gebildet hat, sollte die Control Plane diese Version wiederverwenden. Somit kann man Snapshots mit ihrere Version in einem Cache-Speicher hinterlegen.
 \\
-Um bei der gleichen Cluster Konfiguration immer die selbe Version zu benutzen kann man die Cluster Konfiguration in eine Hash Funktion geben und bekommt einen String mit fixer Länge als Rückgabewert zurück. Die Hash Funktion garantiert einen immer gleichen Rückgabewert bei gleichem Input.
+Um bei der gleichen Cluster Konfiguration immer die selbe Version zu benutzen kann man die Cluster Konfiguration in eine Hash Funktion geben und bekommt einen String mit fixer Länge als Rückgabewert zurück. Die Hash Funktion garantiert einen immer gleichen Rückgabewert bei gleichem Input. Dementsprechend wird bei gleichbleibender Konfiguration immer die gleiche Version erzeugt.
 % TODO hash beschreiben
 Die Eingabe der Hash Funktion sind alle Informationen bei deren Änderung eine neue Version erstellt werden soll. Dies ist eine Liste aller HiveMQ Nodes mit folgenden Werten:
 \begin{itemize}
   \item \ac{ip} Adresse
   \item Port
   \item Gewichtung
-  \item Status
+  \item Health Status
 \end{itemize}
-Die Reihenfolge, in der die Nodes in der Liste vorkommen, ist von relevanz. Falls alle Nodes die selben Werte haben, sich aber die Reihenfolge der Liste geändert hat, würde die Hash Funktion einen neuen Wert zurückgeben. Daher muss sichergestellt werden, dass die Nodes immer in der gleichen Reihenfolge vorkommen. Um die Liste der Nodes zu sortieren muss überlegt werden welche Werte des Nodes als Vergleich benutzt werden. Dafür müssen Eigenschaften definiert werden, die einen Node einzigartig machen.
-Es können niemals zwei HiveMQ Nodes die selbe \ac{ip} Adresse und den selben Port haben. Beide Werte als String vereint können somit miteinander verglichen werden um bei gleichbleibenden Nodes die selbe Reihenfolge in einer Liste einzuhalten.
-% TODO soll man dafür ein beispiel machen?
+Die Reihenfolge, in der die Nodes in der Liste für die Hash Funktion vorkommen, ist von relevanz. Falls alle Nodes die selben Werte haben, sich aber die Reihenfolge der Liste geändert hat, würde die Hash Funktion einen neuen Wert zurückgeben. Daher muss sichergestellt werden, dass die Nodes immer in der gleichen Reihenfolge vorkommen. Um die Liste der Nodes zu sortieren müssen einzigartige Eigenschaften der Nodes verglichen werden.
+Es können niemals zwei HiveMQ Nodes die selbe \ac{ip} Adresse und den selben Port haben. Beide Werte als String vereint können verglichen werden um bei gleichbleibenden Nodes die selbe Reihenfolge in einer Liste einzuhalten.
 
-\subsection{Sticky Session}
-\subsubsection{Client Identifier}
-\subsubsection{MQTT CONNECT}
+\begin{figure}
+    \import{gen/}{snapshot-versioning}
+    \caption{Generierung einer Snapshot Version basierend von HiveMQ Node Eigenschaften}
+    \label{code:snapshot-versioning}
+\end{figure}
+Die Funktion \verb|generateVersion| aus Quellcodeauszug \ref{code:snapshot-versioning} generiert die Version für einen Snapshot. Es wird eine HiveMQ Node Liste übergeben und ein String zurückgegeben, der als Version des Snapshots dient. Nach der Sortierung der HiveMQ Node Liste nach Identifier, der aus Hostnamen und Port besteht, werden die Werte Identifier (Hostname und Port), Gewichtung und Health Status in eine Hash Funktion gegeben. Das Ergebnis der Hash Funktion ist der Rückgabewert der Funktion \verb|generateVersion|.
 
-\subsubsection{Hash?}
-% clientid hash bestimmt das backend
-%\subsubsection{Envoy WASM Network Filter}
+%\subsection{Sticky Session}
+%% TODO kapitel vielleicht löschen
+%Der HiveMQ Broker speichert temporär Daten von \ac{mqtt} Clients ab. Darunter sind Daten wie zum Beispiel Topic Aliasse oder Nachrichten die nicht zugestellt werden konnten, weil die Verbindung des Clients unterbrochen wurde. Sobald sich ein Client, bei dem die Verbindung unterbrochen wurde, wieder mit dem Broker verbindet, kann der Broker die vorbehaltenen Daten zustellen. Diese Funktion vermindert den Datenverlust bei instabilen Netzwerken.
+%\\
+%Bei einem HiveMQ Cluster werden die Client Daten nur auf dem Node aufbewahrt, mit dem der Client verbunden ist. Wenn die Verbindung eines Clients unterbrochen wird und bei der wiederverbindung mit einem anderen Node als zuvor Verbunden wird, müssen die Client Daten über die interne Cluster Kommunikation von dem alten auf den neuen Node transferiert werden. Je mehr Daten der alte Node vorbehalten musste, desto länger dauert der Transfer der Daten.
+%Im Optimalfall verbindet sich der Client mit dem selben Node wie zuvor wodurch kein Transfer der Daten notwendig ist.
+%Bei dem in Kapitel \ref{ss:weighted-cpu} vorgestellten Weighted Round Robin Load Balancing Algorithmus ist es nicht möglich einen individuellen Client mit einem bestimmten Node zu verbinden. Dieses Verfahren nennt sich \textit{Sticky Session} oder \textit{Session Affinity}. Dabei werden einzigartige Identifier eines Clients im Load Balancer extrahiert, zum Beispiel einen generierten einzigartigen \ac{http} Header, und diese in einer HashMap mit dem Ziel Node gespeichert. Sobald der Client eine erneute Anfrage stellt und der \ac{http} Header vorhanden ist, kann der Load Balancer in der HashMap den alten Node nachschlagen und den Client mit diesem Node verbinden.
+%% TODO cite this
+
+%\subsubsection{Client Identifier}
+%Jeder \ac{mqtt} Client wird durch einen einzigartigen Client Identifier identifiziert. Dieser wird, wie in Kapitel \ref{s:mqtt-connect} beschrieben, in dem \ac{mqtt} \verb|CONNECT| Paket beim Verbindungsaufbau vom Client an den Broker geschickt. Ein Client Identifier darf niemals zweimal vergeben werden. Sobald sich ein Client mit einem Identifier mit dem Broker verbindet der bereits von einem anderen Client genutzt wird, unterbricht der Broker die Verbindung mit dem bereits Verbundenen Client und führt einen Client Takeover durch für den neuen Client durch. Dadurch wird sichergestellt, dass jeder Client Identifier nur einmal vergeben ist.
+%\\
+%\subsubsection{MQTT CONNECT}
+%\subsubsection{Cluster Health}
 
 \begin{comment}
 - This is supposed to be the core of your thesis or project. Describe your work from a con-ceptual viewpoint.
