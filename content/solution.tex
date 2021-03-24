@@ -2,6 +2,8 @@
 %nur das konzept WIE ich das lösen will zb. man kann wie clientid parsen mit einem WASM modul
 %in der nächsten section zeige ich dann den eigentlichen code welcher dies tut
 
+% TODO diagram wo der LB ein teil ist und man alle komponenten sieht
+
 \subsection{Cluster Discovery} \label{ss:cluster-discovery}
 % was ist das ? hivemq extension! what is ttl? health checks? try a connect and disconnect as health check?
 
@@ -62,7 +64,7 @@ Szenario 2 wird in mehrere Phasen untergliedert.
 \begin{itemize}
   \item \textbf{Phase 1:} Formen des Clusters aus zwei Nodes (Node 1 und Node 2) mit jeweils 8 \ac{cpu} Kernen und 8 \ac{gb} \ac{ram}.
   \item \textbf{Phase 2:} Verbinden von 1.000 Subscribern, die zufällig 10 von 1000 Topics abonnieren wobei jedes Topic mindestens einmal abonniert wird.
-  \item \textbf{Phase 3:} Verbinden von 3.000 Publishern. Jeder Publisher veröffentlicht zufällig alle 50 - 1.000 Millisekunden eine Nachricht mit der Payload \verb|Hello World|, einem zufälligen \ac{qos} Level auf ein zufälliges Topic.
+  \item \textbf{Phase 3:} Verbinden von 2.000 Publishern. Jeder Publisher veröffentlicht zufällig alle 500 - 2.000 Millisekunden eine Nachricht mit der Payload \verb|Hello World|, einem zufälligen \ac{qos} Level auf ein zufälliges Topic.
   \item \textbf{Phase 4:} Ein dritter Node (Node 3) mit 8 \ac{cpu} Kernen und 8 \ac{gb} \ac{ram} tritt dem HiveMQ Cluster bei.
   \item \textbf{Phase 5:} Es verbinden sich 300 Publisher. Jeder Publisher veröffentlicht Nachrichten wie in Phase 3 beschrieben, jedoch zufällig alle 15 - 25 Millisekunden.
   \item \textbf{Phase 6:} Es verbinden sich 300 Publisher. Jeder Publisher veröffentlicht Nachrichten wie in Phase 4 beschrieben.
@@ -73,9 +75,34 @@ Alle Szenarien werden mit einem Round Robin und Least Connection Load Balancer A
 Diese Metriken werden periodisch von allen Nodes des Clusters mit Prometheus erfasst und Grafana visualisiert.
 % TODO wie ist die Funktion und wie sind die Settings
 \\
+Um einen Indikator für die Verteilung der Auslastung im Cluster zu erstellen, werden die Beträge der Differenz der \ac{cpu} Auslastung aller Nodes zueinander addiert. Je grö{\ss}er Wert, desto ungleichmä{\ss}er ist die Last verteilt.
+Bei einem Cluster aus drei Nodes mit den \ac{cpu} Auslastungen \verb|50|, \verb|20| und \verb|30| beträgt der berechnete Indikator:
+\begin{align}
+   |50 - 20| + |50 - 30| + |20 - 30| = 60
+\end{align}
+Im Vergleich hat ein Cluster mit den \ac{cpu} Auslastungen \verb|23|, \verb|30| und \verb|18| folgenden Indikator:
+\begin{align}
+   |23 - 30| + |23 - 18| + |30 - 18| = 24
+\end{align}
+Durch diesen Indikator, folgend Lastindikator genannt, kann die Lastverteilung von Clustern der selben Topolgie verglichen werden.
+
 \paragraph{Szenario 1}
-% TODO map phasen mit bild
-Round Robin und Least Connection Load Balancer verhalten sich in diesem Szenario ähnlich. Alle Clients werden gleichmä{\ss}ig auf die Nodes verteilt. Da die Clients ein ähnliches Verhalten aufweisen, ensteht auf jedem Node eine gleiche Belastung. Node 3 hat nur die hälfte der \ac{cpu} Kerne zur Verfügung wie Node 1 und 2 und ist daher nicht in der Lage die Last so schnell abzuarbeiten wie Node 1 oder 2. Somit ensteht ein ungleiches Lastverhalten im Cluster.
+Abbildung \ref{fig:s1-rr} und \ref{fig:s1-lc} zeigen den zeitlichen Verlauf von Testszenario 1 für einen Round Robing und Least Connection Load Balancer.
+Der Round Robin und Least Connection Load Balancer verhalten sich in diesem Szenario ähnlich. Alle Clients werden gleichmä{\ss}ig auf die Nodes verteilt.
+Nachdem alle Clients mit dem Cluster verbunden sind entsteht bei dem Round Robin Load Balancer ein Lastindikator von 40 und bei dem Least Connection \ac{lb} ein Lastindikator von 42.
+Da die Clients ein ähnliches Verhalten aufweisen, ensteht auf jedem Node eine gleiche Belastung. Node 3 hat nur die hälfte der \ac{cpu} Kerne zur Verfügung wie Node 1 und 2 und ist daher nicht in der Lage die Last so schnell abzuarbeiten wie Node 1 oder 2. Somit ensteht ein ungleiches Lastverhalten im Cluster.
+\begin{figure}
+    \centering
+    \includegraphics[scale=0.8]{images/s1_rr.png}
+    \caption{Testszenario 1 - Round Robin Load Balancer}
+    \label{fig:s1-rr}
+\end{figure}
+\begin{figure}
+    \centering
+    \includegraphics[scale=0.8]{images/s1_lc.png}
+    \caption{Testszenario 1 - Least Connection Load Balancer}
+    \label{fig:s1-lc}
+\end{figure}
 
 \paragraph{Szenario 2 - Least Connection}
 % TODO map phasen mit bild
@@ -251,8 +278,14 @@ Nodes mit einer höheren Auslastung, zum Beispiel Node 1, erhalten nun weniger n
 \caption{CPU Auslastung und Kapazitäten von Nodes eines Clusters über einen beliebigen Zeitraum}
 \label{table:example-cluster-cpu}
 \end{table}
-
 % TODO test szenarien laufen lassen!
+
+\begin{figure}
+    \centering
+    \includegraphics[scale=0.8]{images/s1_cpu.png}
+    \caption{Testszenario 1 - Weighted CPU Load Balancer}
+    \label{fig:s1-cpu}
+\end{figure}
 
 \subsubsection{Circuit Breaking} \label{ss:circuit-breaking}
 % TODO explain circuit breaking?
@@ -293,7 +326,7 @@ Nodes eines Clusters in Enovy haben einen \textit{Health Status} der angibt, ob 
 \\
 In der Control Plane werden nun asynchron und periodisch alle zwei Sekunden die Prometheus Metriken wie in Kapitel \ref{ss:weighted-cpu} beschrieben von allen Nodes des Clusters abgerufen. Sobald die Metrik \verb|com.hivemq.supervision.overload.protection.level| einen Wert von über fünf erreicht, wird der Health Status des Nodes auf \verb|UNHEALTHY| gesetzt. Der Load Balancer verbindet nun keine neuen Clients mehr mit diesem Node. Sobald der Wert wieder unter fünf sinkt, wird der Status auf \verb|HEALTHY| gesetzt und es können wieder neue Clients mit dem Node verbunden werden.
 
-\subsubsection{Health Check}
+\subsubsection{Health Check} \ref{ss:health-check}
 In Kapitel \ref{ss:circuit-breaking} wurde beschrieben, dass man über die Control Plane den Health Status der Nodes eines Clusters angeben kann. Der Health Status gibt an, ob der Node neue Client Verbindungen erhalten kann oder nicht.
 \ac{http} Services implementieren für diesen Zweck oft eine \verb|/health| Route die der Load Balancer periodisch abrufen kann. Wenn der \ac{http} Status Code der Antwort 200 beträgt, ist der Service healthy und bereit für neue Verbindungen.
 \\
@@ -347,20 +380,45 @@ Es können niemals zwei HiveMQ Nodes die selbe \ac{ip} Adresse und den selben Po
 \end{figure}
 Die Funktion \verb|generateVersion| aus Quellcodeauszug \ref{code:snapshot-versioning} generiert die Version für einen Snapshot. Es wird eine HiveMQ Node Liste übergeben und ein String zurückgegeben, der als Version des Snapshots dient. Nach der Sortierung der HiveMQ Node Liste nach Identifier, der aus Hostnamen und Port besteht, werden die Werte Identifier (Hostname und Port), Gewichtung und Health Status in eine Hash Funktion gegeben. Das Ergebnis der Hash Funktion ist der Rückgabewert der Funktion \verb|generateVersion|.
 
-%\subsection{Sticky Session}
-%% TODO kapitel vielleicht löschen
-%Der HiveMQ Broker speichert temporär Daten von \ac{mqtt} Clients ab. Darunter sind Daten wie zum Beispiel Topic Aliasse oder Nachrichten die nicht zugestellt werden konnten, weil die Verbindung des Clients unterbrochen wurde. Sobald sich ein Client, bei dem die Verbindung unterbrochen wurde, wieder mit dem Broker verbindet, kann der Broker die vorbehaltenen Daten zustellen. Diese Funktion vermindert den Datenverlust bei instabilen Netzwerken.
-%\\
-%Bei einem HiveMQ Cluster werden die Client Daten nur auf dem Node aufbewahrt, mit dem der Client verbunden ist. Wenn die Verbindung eines Clients unterbrochen wird und bei der wiederverbindung mit einem anderen Node als zuvor Verbunden wird, müssen die Client Daten über die interne Cluster Kommunikation von dem alten auf den neuen Node transferiert werden. Je mehr Daten der alte Node vorbehalten musste, desto länger dauert der Transfer der Daten.
-%Im Optimalfall verbindet sich der Client mit dem selben Node wie zuvor wodurch kein Transfer der Daten notwendig ist.
-%Bei dem in Kapitel \ref{ss:weighted-cpu} vorgestellten Weighted Round Robin Load Balancing Algorithmus ist es nicht möglich einen individuellen Client mit einem bestimmten Node zu verbinden. Dieses Verfahren nennt sich \textit{Sticky Session} oder \textit{Session Affinity}. Dabei werden einzigartige Identifier eines Clients im Load Balancer extrahiert, zum Beispiel einen generierten einzigartigen \ac{http} Header, und diese in einer HashMap mit dem Ziel Node gespeichert. Sobald der Client eine erneute Anfrage stellt und der \ac{http} Header vorhanden ist, kann der Load Balancer in der HashMap den alten Node nachschlagen und den Client mit diesem Node verbinden.
-%% TODO cite this
+\subsection{Sticky Session}
+% TODO kapitel vielleicht löschen
+Der HiveMQ Broker speichert temporär Daten von \ac{mqtt} Clients ab. Darunter sind Daten wie zum Beispiel Topic Aliasse oder Nachrichten die nicht zugestellt werden konnten, weil die Verbindung des Clients unterbrochen wurde. Sobald sich ein Client, bei dem die Verbindung unterbrochen wurde, wieder mit dem Broker verbindet, kann der Broker die vorbehaltenen Daten zustellen. Diese Funktion vermindert den Datenverlust bei instabilen Netzwerken.
+\\
+Bei einem HiveMQ Cluster werden die Client Daten nur auf dem Node aufbewahrt, mit dem der Client verbunden ist. Wenn die Verbindung eines Clients unterbrochen wird und bei der Wiederverbindung mit einem anderen Node als zuvor Verbunden wird, müssen die Client Daten über die interne Cluster Kommunikation von dem alten auf den neuen Node transferiert werden. Je mehr Daten der alte Node vorbehalten musste, desto länger dauert der Transfer der Daten.
+Im Optimalfall verbindet sich der Client mit dem selben Node wie zuvor wodurch kein Transfer der Daten notwendig ist.
+Ein solches Verfahren nennt sich \textit{Sticky Session} oder \textit{Session Affinity}. Dabei werden einzigartige Identifier eines Clients im Load Balancer extrahiert, zum Beispiel einen generierten einzigartigen \ac{http} Header, und diese in einer HashMap mit dem Zielnode gespeichert. Sobald der Client eine erneute Anfrage stellt und der \ac{http} Header vorhanden ist, kann der Load Balancer in der HashMap den alten Node nachschlagen und den Client mit diesem Node verbinden. % TODO cite this
 
-%\subsubsection{Client Identifier}
-%Jeder \ac{mqtt} Client wird durch einen einzigartigen Client Identifier identifiziert. Dieser wird, wie in Kapitel \ref{s:mqtt-connect} beschrieben, in dem \ac{mqtt} \verb|CONNECT| Paket beim Verbindungsaufbau vom Client an den Broker geschickt. Ein Client Identifier darf niemals zweimal vergeben werden. Sobald sich ein Client mit einem Identifier mit dem Broker verbindet der bereits von einem anderen Client genutzt wird, unterbricht der Broker die Verbindung mit dem bereits Verbundenen Client und führt einen Client Takeover durch für den neuen Client durch. Dadurch wird sichergestellt, dass jeder Client Identifier nur einmal vergeben ist.
-%\\
-%\subsubsection{MQTT CONNECT}
-%\subsubsection{Cluster Health}
+\subsubsection{Client Identifier}
+Jeder \ac{mqtt} Client wird durch einen einzigartigen Client Identifier identifiziert. Dieser wird, wie in Kapitel \ref{s:mqtt-connect} beschrieben, in dem \ac{mqtt} \verb|CONNECT| Paket beim Verbindungsaufbau vom Client an den Broker geschickt. Ein Client Identifier darf niemals zweimal vergeben werden. Sobald sich ein Client mit einem Identifier mit dem Broker verbindet der bereits von einem anderen Client genutzt wird, unterbricht der Broker die Verbindung mit dem bereits Verbundenen Client und führt einen Client Takeover durch für den neuen Client durch. Dadurch wird sichergestellt, dass jeder Client Identifier nur einmal vergeben ist.
+\\
+Anstelle eines einzigartigen Cookies bei \ac{http}, kann bei \ac{mqtt} der Client Identifier für die Speicherung in der HashMap genutzt werden. Dieser wird als Schlüssel mit dem Zielnode in der HashMap abgelegt, sodass der Load Balancer einen wiederkehrenden Client immer mit dem selben Node verbinden kann.
+\subsubsection{MQTT CONNECT}
+Bislang wird Envoy für den Smart Load Balancer als ein Layer 4 Load Balancer benutzt. Für Protokolle wie \ac{http} kann Envoy ebenfalls als Layer 7 Load Balancer eingesetzt werden, da die decodierung der \ac{http} Pakete bereits in Envoy implementiert ist. Dadurch können zum Beispiel Load Balancing Entscheidungen basierend der angefragten \ac{http} Route des Clients getroffen werden.
+Das \ac{mqtt} Protokoll ist nicht in Envoy integriert. Aus diesem Grund gibt es keine Möglichkeit in der Envoy Konfiguration ein Load Balancing anhand des Client Identifiers zu treffen, da Envoy die einzelnen \ac{mqtt} Pakete nicht decodiert.
+\\
+Envoy ermöglicht das einbinden von Web Assembly Modulen um diese als Netzwerk Filter zu benutzen. Ein Netzwerk Filter kann zum Beispiel das Decodieren der \ac{mqtt} Pakete sein um diese den nachfolgenden Filtern in der Pipeline zur Verfügung zu stellen. Bislang gibt es \ac{wasm} \acp{sdk} für Rust, C++, AssemblyScript und Golang. \cite{sebastianHowWriteWASM} Beispiele für eine Implementation eines Golang Netzwerk Filters finden sich in Repository \cite{TetratelabsProxywasmgosdk2021}.
+\\
+Das Decodieren der \ac{mqtt} Pakete in Golang wurde bereits von der in Kapitel \ref{ss:health-check} gezeigten Bibliothek von Eclipse implementiert. Der Quellcodeauszug \ref{code:mqtt-connect-decode} zeigt einen Auszug aus der Datei \verb|packets/connect.go| des Repositories und decodiert ein \ac{mqtt} \verb|CONNECT| Paket. Das Error Handling wurde für bessere Lesbarkeit entfernt. Quellcodeauszug \ref{mqtt-connect-struct} zeigt die Struktur eines \verb|CONNECT| Paketes basierend der in Kapiel \ref{s:mqtt-connect} beschriebenen Felder.
+\begin{figure}
+    \import{gen/}{mqtt-connect-struct}
+    \caption{}
+    \label{code:mqtt-connect-struct}
+\end{figure}
+\begin{figure}
+    \import{gen/}{mqtt-connect-decode}
+    \caption{Decodieren eines MQTT CONNECT Paketes in Golang \cite{EclipsePahoMqtt2021}}
+    \label{code:mqtt-connect-decode}
+\end{figure}
+\\
+Bei jeder neuen Client Verbindung muss der Load Balancer das erste Paket des Clients mit der Funktion \verb|Unpack| aus Quellcodeauszug \ref{code:mqtt-connect-decode} decodieren um an den Wert von \verb|ConnectPacket.ClientIdentifier| zu gelangen. In Envoy kann dynamischer State an jede \verb|Envoy::Network::Connection| über eine \verb|map<string, FilterState::Object>| angehangen werden. Auf diesen State kann über alle Filter hinweg zugegriffen werden. Der Golang \ac{mqtt} Decode Filter kann den ClientIdentifier in diese \verb|map| speichern, wodurch weitere \ac{mqtt} spezifische Filter entwickelt werden können.
+Envoy kann zudem Daten über Verbindungen hinweg teilen. In diesen Daten muss eine HashMap angelegt werden, in der alle bisherigen Client Identifier mit ihren Zielnodes gespeichert werden.\cite{SharingDataFilters}
+
+\subsubsection{Cluster Health}
+Bei dem in Kapitel \ref{ss:weighted-cpu} vorgestellten Weighted Round Robin Load Balancing Algorithmus ist es nicht möglich einen individuellen Client mit einem bestimmten Node zu verbinden. Der Load Balancer muss sich entscheiden ob er einen Client basierend dem Weighted Round Robin oder dem Sticky Session Algorithmus mit einem Zielnode verbindet.
+Eine Möglichkeit beide Algorithmen in einem Load Balancer zu verwenden ist, bei einem neuen Client zuerst in der HashMap nachzuschlagen ob dieser Client bereits mit einem Node verbunden wurden. Falls dieser Node noch vorhanden und \verb|HEALTHY| ist, wird der Client erneut mit dem Node verbunden. Andernfalls wird ein neuer Node basierend dem Weighted Round Robin Algorithmus bestimmt.
+Diese Methode harmoniert gut mit dem beschriebenen Circuit Breaking aus Kapitel \ref{ss:circuit-breaking}. Für den Fall, dass ein HiveMQ Node die Verbindung eines Clients unterbricht weil der Node überlastet ist, markiert das Circuit Breaking diesen Node als \verb|UNHEALTHY| und der Load Balancer wird den Client, der versucht sich wieder mit dem Cluster zu verbinden, mit einem anderen Node verbinden anstatt mit dem selben.
+\\
+Durch diese Implementation der Sticky Session werden Clients, die ihre Verbindung verlieren, immer mit dem selben Node wiederverbunden und Clients, deren Verbindung absichtlich beendet wurde, werden einem neuen Node zugewiesen. Clients, die sich zum ersten mal mit dem Cluster verbinden, werden die bisher basierend der freien Last der einzelnen Nodes verteilt.
 
 \begin{comment}
 - This is supposed to be the core of your thesis or project. Describe your work from a con-ceptual viewpoint.
