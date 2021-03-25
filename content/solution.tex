@@ -63,7 +63,7 @@ Um eine geeignete Gewichtung der Nodes zu bestimmen müssen Test Szenarien entwo
 Szenario 2 wird in mehrere Phasen untergliedert.
 \begin{itemize}
   \item \textbf{Phase 1:} Formen des Clusters aus zwei Nodes (Node 1 und Node 2) mit jeweils 8 \ac{cpu} Kernen und 8 \ac{gb} \ac{ram}.
-  \item \textbf{Phase 2:} Verbinden von 1.000 Subscribern, die zufällig 10 von 1000 Topics abonnieren wobei jedes Topic mindestens einmal abonniert wird.
+  \item \textbf{Phase 2:} Verbinden von 3.000 Subscribern, die zufällig 10 von 1000 Topics abonnieren wobei jedes Topic mindestens einmal abonniert wird.
   \item \textbf{Phase 3:} Verbinden von 2.000 Publishern. Jeder Publisher veröffentlicht zufällig alle 500 - 2.000 Millisekunden eine Nachricht mit der Payload \verb|Hello World|, einem zufälligen \ac{qos} Level auf ein zufälliges Topic.
   \item \textbf{Phase 4:} Ein dritter Node (Node 3) mit 8 \ac{cpu} Kernen und 8 \ac{gb} \ac{ram} tritt dem HiveMQ Cluster bei.
   \item \textbf{Phase 5:} Es verbinden sich 300 Publisher. Jeder Publisher veröffentlicht Nachrichten wie in Phase 3 beschrieben, jedoch zufällig alle 15 - 25 Millisekunden.
@@ -87,7 +87,7 @@ Im Vergleich hat ein Cluster mit den \ac{cpu} Auslastungen \verb|23|, \verb|30| 
 Durch diesen Indikator, folgend Lastindikator genannt, kann die Lastverteilung von Clustern der selben Topolgie verglichen werden.
 
 \paragraph{Szenario 1}
-Abbildung \ref{fig:s1-rr} und \ref{fig:s1-lc} zeigen den zeitlichen Verlauf von Testszenario 1 für einen Round Robing und Least Connection Load Balancer.
+Abbildung \ref{fig:s1-rr} und \ref{fig:s1-lc} zeigen den zeitlichen Verlauf von Testszenario 1 für einen Round Robin und Least Connection Load Balancer.
 Der Round Robin und Least Connection Load Balancer verhalten sich in diesem Szenario ähnlich. Alle Clients werden gleichmä{\ss}ig auf die Nodes verteilt.
 Nachdem alle Clients mit dem Cluster verbunden sind entsteht bei dem Round Robin Load Balancer ein Lastindikator von 40 und bei dem Least Connection \ac{lb} ein Lastindikator von 42.
 Da die Clients ein ähnliches Verhalten aufweisen, ensteht auf jedem Node eine gleiche Belastung. Node 3 hat nur die hälfte der \ac{cpu} Kerne zur Verfügung wie Node 1 und 2 und ist daher nicht in der Lage die Last so schnell abzuarbeiten wie Node 1 oder 2. Somit ensteht ein ungleiches Lastverhalten im Cluster.
@@ -105,21 +105,49 @@ Da die Clients ein ähnliches Verhalten aufweisen, ensteht auf jedem Node eine g
 \end{figure}
 
 \paragraph{Szenario 2 - Least Connection}
-% TODO map phasen mit bild
-Nach Phase 5 ist die Last auf dem Cluster ungleich verteilt. Node 3 ist doppelt so sehr ausgelastet wie Node 1 und Node 2. Dieses Ungleichgewicht wird durch Phase 6 verstärkt. Auf Node 1 und Node 2 sind jeweils 2000 Clients verbunden auf Node 3 hingegen nur 300 Clients. Der Least Connection Load Balancer verteilt nun alle Clients aus Phase 6 auch auf Node 3. Trotz der nun noch höheren Auslastung auf Node 3 würden die nächsten 1600 Clients ebenfalls mit Node 3 verbunden werden.
+Abbildung \ref{fig:s2-lc} zeigt den zeitlichen Verlauf von Testszenario 2 bei einen Least Connection \ac{lb}.
+Nach Abschluss von Phase 6 bei 14:45 hat dieses Szenario einen Lastindikator von 50.
+Die Last auf dem Cluster ungleich verteilt da Node 3 doppelt so sehr ausgelastet wie Node 1 und Node 2. Dieses Ungleichgewicht wird durch Phase 6 verstärkt. Auf Node 1 und Node 2 sind jeweils 3500 Clients verbunden auf Node 3 hingegen nur 300 Clients. Der Least Connection Load Balancer verteilt nun alle Clients aus Phase 6 auch auf Node 3. Trotz der nun noch höheren Auslastung auf Node 3 würden die nächsten 2900 Clients ebenfalls mit Node 3 verbunden werden.
+\begin{figure}
+    \centering
+    \includegraphics[scale=0.8]{images/s2_lc.png}
+    \caption{Testszenario 2 - Least Connection Load Balancer}
+    \label{fig:s2-lc}
+\end{figure}
 
 \paragraph{Szenario 2 - Round Robin}
-% TODO map phasen mit bild
+Abbildung \ref{fig:s2-rr} zeigt den zeitlichen Verlauf von Testszenario 2 bei einen Round Robin \ac{lb}.
+Nach Abschluss von Phase 6 bei 10:20 hat dieses Szenario einen Lastindikator von 16.
 Nach Phase 5 und 6 ist die Last auf dem Cluster im wesentlichen gleichmä{\ss}ig verteilt. Node 1 und 2 sind um den Betrag der Clients aus Phase 2 und 3 stärker belastet. Diese sind jedoch leichtgewichtige Clients und erzeugen demnach nicht viel Last auf den Nodes.
-Der Round Robin Algorithmus verteilt alle Clients gleichmä{\ss}ig auf dem Cluster. Daher werden nach dem beitreten von Node 3 in Phase 4 nicht alle neuen Clients auf den neuen verteilt wie bei dem Least Connection Algorithmus.
+Der Round Robin Algorithmus verteilt alle Clients gleichmä{\ss}ig auf dem Cluster. Daher werden nach dem beitreten von Node 3 in Phase 4 nicht alle neuen Clients auf den neuen Node verteilt wie bei dem Least Connection Algorithmus.
+\begin{figure}
+    \centering
+    \includegraphics[scale=0.8]{images/s2_rr.png}
+    \caption{Testszenario 2 - Round Robin Load Balancer}
+    \label{fig:s2-rr}
+\end{figure}
 
 \paragraph{Szenario 3 - Least Connection}
-% TODO map phasen mit bild
-Nach Phase 6 ist die Last im Cluster im wesentlichen gleichmä{\ss}ig verteilt. Die ersten 600 der 3000 Clients aus Phase 6 werden zwar mit Node 3 verbunden wodurch die ungleiche Lastverteilung nach dem beitreten des dritten Nodes in Phase 5 teilweise ausgeglichen wird. Die weiteren 2400 Clients werden danach auf alle drei Nodes verteilt. Da alle 3000 ein ähnliches Lastverhalten besitzen, wird diese Last auf dem Cluster gleichmä{\ss}ig verteilt.
+Abbildung \ref{fig:s3-lc} zeigt den zeitlichen Verlauf von Testszenario 3 bei einem Least Connection \ac{lb}.
+Nach Abschluss von Phase 6 bei 11:18 hat dieses Szenario einen Lastindikator von 24.
+Node 1 und 2 sind mehr belastet als Node 3, da alle Clients aus Phase 3 und 4 mit diesen beiden Nodes verbunden sind. Alle Clients aus Phase 6 sind mit Node 3 verbunden jedoch verursachen diese nicht so viel Arbeitslast wie die Clients aus Phase 3 und 4.
+\begin{figure}
+    \centering
+    \includegraphics[scale=0.8]{images/s3_lc.png}
+    \caption{Testszenario 3 - Least Connection Load Balancer}
+    \label{fig:s3-lc}
+\end{figure}
 
 \paragraph{Szenario 3 - Round Robin}
-% TODO map phasen mit bild
-Nach Phase 6 sind Node 1 und 2 jeweils doppelt so sehr ausgelastet wie Node 3. Die Last auf dem Cluster ist somit ungleich verteilt. Die Clients aus Phase 3 und 4 werden nur auf Node 1 und 2 verteilt, da der dritte Node noch nicht dem Cluster beigetreten ist. Die leichtgewichtigen Clients aus Phase 6 werden durch den Round Robing Algorithmus auf alle Nodes verteilt, obwohl Node 3 gar nicht ausgelastet ist. Im Idealfall würde der Load Balancer alle 3000 Clients aus Phase 6 auf Node 3 verteilen.
+Abbildung \ref{fig:s3-rr} zeigt den zeitlichen Verlauf von Testszenario 3 bei einen Round Robin \ac{lb}.
+Nach Abschluss von Phase 6 bei 10:57 hat dieses Szenario einen Lastindikator von 40.
+Nach Phase 6 sind Node 1 und 2 jeweils dreifach so sehr ausgelastet wie Node 3. Die Last auf dem Cluster ist somit ungleich verteilt. Die Clients aus Phase 3 und 4 werden nur auf Node 1 und 2 verteilt, da der dritte Node noch nicht dem Cluster beigetreten ist. Die leichtgewichtigen Clients aus Phase 6 werden durch den Round Robin Algorithmus auf alle Nodes verteilt, obwohl Node 3 gar nicht ausgelastet ist. Im Idealfall würde der Load Balancer alle 3000 Clients aus Phase 6 auf Node 3 verteilen.
+\begin{figure}
+    \centering
+    \includegraphics[scale=0.8]{images/s3_rr.png}
+    \caption{Testszenario 3 - Round Robin Load Balancer}
+    \label{fig:s3-rr}
+\end{figure}
 \\
 TODO Fazit ??
 
@@ -257,7 +285,7 @@ Angenommen es gibt vier Nodes mit einer durchschnittlichen Auslastung nach Tabel
     \end{align}
 \end{itemize}
 Nodes mit einer höheren Auslastung, zum Beispiel Node 1, erhalten nun weniger neue Clients als Nodes mit einer geringeren Auslastung wie Node 3.
-
+\\
 \begin{table}[h!]
 \centering
 \renewcommand{\arraystretch}{1.5}
@@ -278,14 +306,46 @@ Nodes mit einer höheren Auslastung, zum Beispiel Node 1, erhalten nun weniger n
 \caption{CPU Auslastung und Kapazitäten von Nodes eines Clusters über einen beliebigen Zeitraum}
 \label{table:example-cluster-cpu}
 \end{table}
-% TODO test szenarien laufen lassen!
-
+Um einen Weighted \ac{cpu} Round Robin Load Balancer zu validieren, wurden die Testszenarien aus Kapitel \ref{ss:test} ebenfallsausgeführt. Tabelle \ref{table:test-output} zeigt die Lastindikator der einzelnen Testszenarien verglichen mit einem Round Robin und Least Connection \ac{lb}. Abbildungen \ref{fig:s1-cpu}, \ref{fig:s2-cpu} und \ref{fig:s3-cpu} zeigen die zeitlichen Verläufe des Weighted \ac{cpu} Load Balancer bei den Testszenarien 1, 2 und 3.
+Insgesamt hat der Weighted Round Robin \ac{lb} besser abgeschnitten als der Least Connection \ac{lb} und genauso gut wie der Round Robin \ac{lb}.
 \begin{figure}
     \centering
     \includegraphics[scale=0.8]{images/s1_cpu.png}
     \caption{Testszenario 1 - Weighted CPU Load Balancer}
     \label{fig:s1-cpu}
 \end{figure}
+\begin{figure}
+    \centering
+    \includegraphics[scale=0.8]{images/s2_cpu.png}
+    \caption{Testszenario 2 - Weighted CPU Load Balancer}
+    \label{fig:s2-cpu}
+\end{figure}
+\begin{figure}
+    \centering
+    \includegraphics[scale=0.8]{images/s3_cpu.png}
+    \caption{Testszenario 3 - Weighted CPU Load Balancer}
+    \label{fig:s3-cpu}
+\end{figure}
+
+\begin{table}[h!]
+\centering
+\renewcommand{\arraystretch}{1.5}
+\begin{tabular}{|l|c|c|c|}
+    \hline
+    & Round Robin & Least Connection & Weighted CPU \\
+    \hline
+    Testszenario 1 & 40 & 42 & 40 \\
+    \hline
+    Testszenario 2 & 16 & 50 & 12 \\
+    \hline
+    Testszenario 3 & 40 & 24 & 44 \\
+    \hline
+    Gesamt & 96 & 116 & 96 \\
+    \hline
+\end{tabular}
+\caption{Lastindikatorentabelle der Testszenarien aus Kapitel \ref{ss:test}}
+\label{table:test-output}
+\end{table}
 
 \subsubsection{Circuit Breaking} \label{ss:circuit-breaking}
 % TODO explain circuit breaking?
@@ -318,9 +378,14 @@ Damit ein Überlastlevel von 10 möglichst nicht erreicht wird, kann der Load Ba
 \\
 Ein hohes Überlastlevel kann kurzfristig durch Events wie das Beitreten eines neuen Nodes in ein Cluster auftreten. Dabei werden einige Client Queues auf den neuen Node repliziert, was zeitweise die Nodes, auf denen die Queues liegen, stark beansprucht. Daher ist es wichtig, dass der Load Balancer auf solche Events schnell reagiert und keine neuen Clients mehr mit den betroffenen Nodes verbindet.
 Um dies zu gewährleisten, wird eine geringe Abtastfrequenz von 2 Sekunden der Prometheus Metriken gewählt.
-% TODO tests zeigen wie so ein wert aussehen kann
-Eine in Abbildung \ref{figure:} gezeigte Überlastsituation verursacht einen maximalen Overload Protection Level von drei. Die Überlastsituation wurde nur von Client Verbindungen erzeugt. Durch \ac{tcp} Backpressure kann der Broker eine solche Überlastsituation gut verarbeiten ohne die Verbindung der Clients von dem Broker zu unterbrechen. Bei TODO ZEITSTEMPEL ist ein neuer Node in der Cluster beigetreten und hat einen Overload Protection Level von 7 erzeugt. Um in einer solcher Situation keine neuen Clientverbindungen zuzulassen, kann der Schwellenwert für den Überlastschutz auf 5 gesetzt werden.
+Eine in Abbildung \ref{fig:overload-protection} gezeigte Überlastsituation verursacht einen maximalen Overload Protection Level von 1,5. Die Überlastsituation wurde nur von Client Verbindungen erzeugt. Durch \ac{tcp} Backpressure kann der Broker eine solche Überlastsituation gut verarbeiten ohne die Verbindung der Clients von dem Broker zu unterbrechen. Wenn ein neuer Node in das Cluster aufgenommen wird können Überlastwerte von bis zu 10 erreicht werden. Um nur in einer extremen Situation keine neuen Clientverbindungen zuzulassen, kann der Schwellenwert für den Überlastschutz auf 4 gesetzt werden.
 \\
+\begin{figure}
+    \centering
+    \includegraphics[scale=0.8]{images/overload-protection.png}
+    \caption{HiveMQ Cluster das Client TCP Backpressure anwendet}
+    \label{fig:overload-protection}
+\end{figure}
 Nodes eines Clusters in Enovy haben einen \textit{Health Status} der angibt, ob diese neue Clients akzeptieren können oder nicht. Der Wert ist entweder \verb|HEALTHY| oder \verb|UNHEALTHY|. Dieser Zustand kann neben der Load Balancing Gewichtung über die Control Plane für jeden Node individuell gesetzt werden.
 %https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/core/v3/health_check.proto#envoy-v3-api-enum-config-core-v3-healthstatus
 \\
