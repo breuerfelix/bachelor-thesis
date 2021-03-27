@@ -1,4 +1,4 @@
-\section{Lösungskonzept}
+\section{Lösungskonzept} \label{s:solution}
 %nur das konzept WIE ich das lösen will zb. man kann wie clientid parsen mit einem WASM modul
 %in der nächsten section zeige ich dann den eigentlichen code welcher dies tut
 
@@ -93,15 +93,15 @@ Nachdem alle Clients mit dem Cluster verbunden sind entsteht bei dem Round Robin
 Da die Clients ein ähnliches Verhalten aufweisen, ensteht auf jedem Node eine gleiche Belastung. Node 3 hat nur die hälfte der \ac{cpu} Kerne zur Verfügung wie Node 1 und 2 und ist daher nicht in der Lage die Last so schnell abzuarbeiten wie Node 1 oder 2. Somit ensteht ein ungleiches Lastverhalten im Cluster.
 \begin{figure}
     \centering
-    \includegraphics[scale=0.8]{images/s1_rr.png}
-    \caption{Testszenario 1 - Round Robin Load Balancer}
-    \label{fig:s1-rr}
-\end{figure}
-\begin{figure}
-    \centering
     \includegraphics[scale=0.8]{images/s1_lc.png}
     \caption{Testszenario 1 - Least Connection Load Balancer}
     \label{fig:s1-lc}
+\end{figure}
+\begin{figure}
+    \centering
+    \includegraphics[scale=0.8]{images/s1_rr.png}
+    \caption{Testszenario 1 - Round Robin Load Balancer}
+    \label{fig:s1-rr}
 \end{figure}
 
 \paragraph{Szenario 2 - Least Connection}
