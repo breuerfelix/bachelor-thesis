@@ -12,45 +12,51 @@ TODO Erklärung zu den einzelnen kapiteln und was sich darin befindet (in den gr
 
 \subsection{MQTT} \label{s:mqtt}
 %TODO langlebiege connection
-\acf{mqtt} wurde ursprünglich von Doktor Andy Stanford-Clark und Arlen Nipper im Jahr 1999 entworfen um Gas- und Ölpiplines zu überwachen. Diese lagen oftmals an entlegenen Orten, wie zum Beispiel auf Übersee, und konnten nicht mit Radiowellen oder einem Kabel zum Festland erreicht werden. Zu dieser Zeit war die einzige Option um Sensordaten auf einen Server zu übertragen eine auf Datendurchsatz abgerechnete Satellitenkommunikation. Bei mehreren tausend Sensoren wurde somit ein Protokoll benötigt, das die Daten zuverlässig mit minimaler Bandbreite an die Server auf dem Festland übermitteln kann.
+\acf{mqtt} wurde ursprünglich von Doktor Andy Stanford-Clark und Arlen Nipper im Jahr 1999 entworfen um Gas- und Ölpiplines zu überwachen. Diese lagen oftmals an entlegenen Orten, wie zum Beispiel auf Übersee, und konnten nicht mit Radiowellen oder einem Kabel zum Festland erreicht werden. Zu dieser Zeit war die einzige Option, um Sensordaten auf einen Server zu übertragen, eine auf Datendurchsatz abgerechnete Satellitenkommunikation. Bei mehreren tausend Sensoren wurde somit ein Protokoll benötigt, das die Daten zuverlässig mit minimaler Bandbreite an die Server auf dem Festland übermitteln kann.
 \ac{mqtt} wurde im Jahr 2013 von der \ac{oasis} als Open Source standatisiert und wird heutzutage von vielen gro{\ss}en \ac{iot} Platformen unterstützt.
 %TODO welche ??
 \cite{WhatMQTTDefinition}\\
-Es gibt derzeit zwei Versionen der MQTT Spezifikation: \verb|3.1.1| und \verb|5|. Alle Referenzen, falls nicht explizit gekennzeichnet, beziehen sich auf die aktuelle Version \verb|5| des Protokolls.\\
-\ac{mqtt} ist ein Layer 7 \textit{Publish and Subscribe} Protkoll, das auf \acs{tcp} / \acs{ip} aufsetzt. Anders als das Request / Response Paradigma bei \acs{http} ist \ac{mqtt} Event gesteuert und erlaubt Nachrichten direkt an einen bestimmten Client zu schicken. Somit muss nicht periodisch nach neuen Nachrichten gefragt werden. Zusammen mit einem fixen Paket-Header von nur zwei Byte sorgen diese Eigeschaften für einen geringen Datendurchsatz.\cite{WhatMQTTDefinition}
+Es gibt derzeit zwei Versionen der MQTT Spezifikation: 3.1.1 und 5. Alle Referenzen, falls nicht explizit gekennzeichnet, beziehen sich auf die aktuelle Version 5 des Protokolls.\\
+\ac{mqtt} ist ein OSI-Layer 7 \textit{Publish and Subscribe} Protkoll, das auf \acs{tcp} / \acs{ip} aufsetzt. Anders als das Request / Response Paradigma bei \acs{http} ist \ac{mqtt} Event gesteuert und erlaubt Nachrichten von einem Server direkt an einen bestimmten Client zu schicken. Somit muss nicht periodisch nach neuen Nachrichten gefragt werden. Zusammen mit einem fixen Paket-Header von nur zwei Byte sorgen diese Eigeschaften für einen geringen Datendurchsatz.\cite{WhatMQTTDefinition}
 
 \subsubsection{Publish and Subscribe} \label{s:publish-subscribe}
 %TODO erwähnen das es sich um filter handelt
-\ac{mqtt} nutzt das \textit{Publish and Subscribe} Kommunikationsschema, das eine Struktur bietet um Nachrichten zwischen Herausgeber und Abonnent auszutauschen. In diesem Schema gibt es zwei unterschiedliche Systeme:
+\ac{mqtt} nutzt das \textit{Publish and Subscribe} Kommunikationsschema, das eine Struktur bietet um Nachrichten zwischen Publisher und Subscriber auszutauschen. In diesem Schema gibt es zwei unterschiedliche Systeme:
 \begin{itemize}
     \item Clients
     \item Broker
 \end{itemize}
-Clients sind alle Teilnehmer dieses Systems, die Nachricht empfangen oder veröffentlichen wollen. Diese setzten auf einen Broker als Mittelsmann um die Nachrichten erfolgreich zu vermitteln.\cite{teamGettingStartedMQTT} Jede Nachricht wird durch den Herausgeber in bestimmte Klassen kategorisiert. Der Herausgeber wei{\ss}t nicht ob, oder wer, an dieser Nachricht interessiert ist und schickt die klassifizierte Nachricht an den Broker. Clients, die an bestimmten Nachrichten interessiert sind, müssen bei dem Broker ein Abonnement erstellen und dabei die gewünschte Kategorie angeben. Somit kann der Broker eingehende kategorisierte Nachrichten an die entsprechenden Clients weiterleiten. Der Broker kann Nachrichten zudem auch aufbewahren, sodass Clients, die zu einem späteren Zeitpunkt auf ein Thema abonnieren, ebenfalls die vergangenen Nachrichten erhalten. Durch dieses System entsteht eine Entkopplung der einzelnen Clients auf mehreren Ebenen.\cite{EverythingYouNeed}
+Clients sind alle Teilnehmer dieses Systems, die Nachricht empfangen oder veröffentlichen wollen. Um Nachrichten erfolgreich zu vermitteln, wird ein Broker als Mittelsmann verwendet.\cite{teamGettingStartedMQTT}
+Jede Nachricht wird durch den Publisher in bestimmte Klassen kategorisiert. Der Publisher wei{\ss} nicht ob, oder wer, an dieser Nachricht interessiert ist und schickt die klassifizierte Nachricht an den Broker.
+Clients, die an bestimmten Nachrichten interessiert sind, müssen bei dem Broker eine Subscription erstellen und dabei die gewünschte Kategorie angeben.
+Somit kann der Broker eingehende kategorisierte Nachrichten an die entsprechenden Clients, auch Subscriber genannt, weiterleiten.
+Der Broker kann Nachrichten auch aufbewahren, sodass Clients, die zu einem späteren Zeitpunkt eine Kategorie abonnieren, ebenfalls die vergangenen Nachrichten erhalten.
+\cite{EverythingYouNeed}
+Durch dieses System entsteht eine Entkopplung der einzelnen Clients auf mehreren Ebenen.
 \begin{itemize}
-    \item \textbf{Räumliche Entkopplung:} Herausgeber und Abonnent der Nachricht müssen sich nicht kennen.
-    \item \textbf{Zeitliche Entkopplung:} Herausgeber und Abonnent müssen nicht zur selben Zeit aktiv sein.
-    \item \textbf{Synchronisierungs Entkopplung:} Herausgeber und Abonnent müssen ihre Operationen beim publizieren und konsumieren nicht unterbrechen.
-%TODO warum?:
+    \item \textbf{Räumliche Entkopplung:} Publisher und Subscriber der Nachricht müssen sich nicht kennen.
+    \item \textbf{Zeitliche Entkopplung:} Publisher und Subscriber müssen nicht zur selben Zeit aktiv sein.
+    \item \textbf{Synchronisierungs Entkopplung:} Publisher und Subscriber müssen ihre Operationen beim publizieren und konsumieren nicht unterbrechen.
 \end{itemize}
 \cite{teamPublishSubscribeMQTT}
-In verteilten System, wo einzelne Komponenten oftmals sehr unterschiedlich sind, spielt ein solches Konzept eine gro{\ss}e Rolle, da es eine einheitliche Abstraktion der Kommunikationsebene bietet.\cite{domingusDistributedSystemsIntroduction2020}
+In verteilten Systemen bietet ein solches Konzept eine einheitliche Abstraktion der Kommunikationsebene.
+\cite{domingusDistributedSystemsIntroduction2020}
 % TODO mehr zu distributed systems
-% TODO bild publisher - subscriber topic
-% TODO bild von sensoren / broker / downstream clients
 \begin{figure}
     \centering
-    %\includegraphics[scale=0.5]{images/integration-app.png}
-    \caption{Publish and Subscribe Architektur basirend auf Themen}
+    \includegraphics[scale=0.5]{images/publish_subscribe.png}
+    \caption{Publish and Subscribe Architektur}
     \label{fig:publish-subscribe}
 \end{figure}
-Im Kontext \ac{mqtt} werden Nachrichten in eine hieraschich aufgebaute Themenstruktur klassifiziert. Themen werden mit einem Schrägstrich (\verb|/|) getrennt und sehen zum Beispiel wie folgt aus: \verb|sensors/temperature/celcius|. Abbildung \ref{fig:publish-subscribe} zeigt einen Client, der auf das Thema \verb|bla| Nachrichten veröffentlicht. Diese wird an zwei weitere Clients durch den Broker weitergeleitet, da diese das Thema \verb|bla| abonniert haben. Themen müssen auf einem Broker nicht explizit angelegt werden. Sobald ein Client auf einem Thema publiziert oder es abonniert, wird dieses automatisch angelegt.\cite{WhatMQTTDefinition}\\
-Beim abonnieren eines Themas kann entweder ein spezifisches Thema oder eine Kombination aus Thema und Wildcard verwendet werden. Bei einer Wildcard werden zwischen den folgenden zwei unterschieden:\cite{mqtt5Specification}
+Im Kontext \ac{mqtt} werden Nachrichten in ein hieraschich aufgebaute Topics klassifiziert.
+\textit{Topic levels} werden mit einem Schrägstrich (\verb|/|) getrennt und Formen ein Topic. Ein Beispiel für ein Topic mit drei Topic levels ist: \verb|sensors/temperature/celcius|.
+Abbildung \ref{fig:publish-subscribe} zeigt einen Client, der auf das Thema \verb|temperature| Nachrichten veröffentlicht. Diese wird an zwei weitere Clients, die das Topic \verb|temperature| abonniert haben, durch den Broker weitergeleitet. Topics müssen auf einem Broker nicht explizit angelegt werden. Sobald ein Client auf einem Topic publiziert oder es abonniert, wird dieses automatisch angelegt.\cite{WhatMQTTDefinition}\\
+Beim abonnieren eines Topics können die Topic levels Wildcards enthalten. Bei Wildcards werden zwischen den folgenden zwei unterschieden:\cite{mqtt5Specification}
 \begin{itemize}
-    \item Multi-level '\verb|#|': Schlie{\ss}t das Vorgänger- und alle nachfolgenden Themen mit ein.
-    \item Single-level '\verb|+|': Schlie{\ss}t alle Themen auf einer einzigen Ebene mit ein.
+    \item Multi-level '\verb|#|': Schlie{\ss}t das Vorgänger- und alle nachfolgenden Topics mit ein.
+    \item Single-level '\verb|+|': Schlie{\ss}t alle Topics auf einer einzigen Ebene mit ein.
 \end{itemize}
-Bei der folgenden Themenstruktur
+Bei der folgenden Topic-Struktur
 \begin{itemize}
     \item \verb|sensors|
     \item \verb|sensors/temperature|
@@ -60,27 +66,28 @@ Bei der folgenden Themenstruktur
     \item \verb|sensors/fuel/tank1|
     \item \verb|sensors/fuel/tank2|
 \end{itemize}
-schlie{\ss}t ein Abonnement auf \verb|sensors/#| alle Themen mit ein. Bei einem Abonnement auf \verb|sensors/+| sind hingegen nur diese Themen mit eingeschlossen:
+schlie{\ss}t eine Subscription auf \verb|sensors/#| alle Topics mit ein. Bei einem Abonnement auf \verb|sensors/+| sind hingegen nur diese Topics mit eingeschlossen:
 \begin{itemize}
     \item \verb|sensors/temperature|
     \item \verb|sensors/fuel|
 \end{itemize}
 
 \subsubsection{Quality of Service} \label{s:qos}
-Je zuverlässiger eine Nachricht übermittelt werden soll, desto mehr Datendurchsatz verursacht diese Nachricht im gesamten System. Wenn ein Client wissen will, ob seine Nachricht im Broker eingetroffen ist, muss der Broker dem Client eine entsprechende Rückmeldung geben. Andernfalls kann der Client seine Nachricht an den Broker schicken ohne eine Rückmeldung zu erwarten. Dies ist vergleichsweise im \ac{http} nicht möglicht. Dort muss auf jede Nachricht geantwortet werden.\\
-Bei \ac{mqtt} wird die Zuverlässigkeit der Übermittlung einer Nachricht mit einem \textit{\acf{qos}} Level festgelegt. Eine Nachricht publizierte Nachricht muss einen der drei \ac{qos} Level haben:
+Je zuverlässiger eine Nachricht übermittelt werden soll, desto mehr Kommunikationsaufwand verursacht diese Nachricht im gesamten System.
+Wenn ein Client wissen will, ob seine Nachricht im Broker eingetroffen ist, muss der Broker dem Client eine entsprechende Rückmeldung liefern. Andernfalls kann der Client seine Nachricht an den Broker schicken ohne eine Rückmeldung zu erwarten. Dies ist vergleichsweise im \ac{http} nicht möglicht. Dort muss auf jede Nachricht geantwortet werden.\\
+Bei \ac{mqtt} wird die Zuverlässigkeit der Übermittlung einer Nachricht mit einem \textit{\acf{qos}} Level festgelegt. Eine publizierte Nachricht muss einen der drei \ac{qos} Level haben:
 \begin{itemize}
     \item \ac{qos} 0: Maximal eine Zustellung der Nachricht.
     \item \ac{qos} 1: Mindestens eine Zustellung der Nachricht.
     \item \ac{qos} 2: Genau eine Zustellung der Nachricht.
 \end{itemize}
-Bei \ac{qos} Level 1 und 2 werden Handshakes zur Verifizierung der Paketübermittelung eingesetzt.\cite{mqtt5Specification}
+Bei \ac{qos} Level 1 und 2 werden Handshakes zur Verifizierung der Nachrichtenübermittelung eingesetzt.\cite{mqtt5Specification}
 
 \subsubsection{Retained Message} \label{s:retained-messages}
 In \ac{mqtt} kann pro Topic die letzte veröffentlichte Nachricht aufbewahrt werden.
 Dazu muss im \verb|PUBLISH| Paket die \verb|RETAIN| Kennzeichnung gesetzt werden.
 In diesem Fall speichert der Broker die Nachricht mit dem dazugehörigen Topic und \ac{qos} Level ab.
-Falls bereits eine Aufbewahrte Nachricht (engl. \textit(Retained Message)) auf diesem Topic vorhanden ist, wird sie überschrieben.
+Falls bereits eine Aufbewahrte Nachricht (engl. \textit{Retained Message}) auf diesem Topic vorhanden ist, wird sie überschrieben.
 Jeder Client, der ein Topic abonniert das eine Retained Message besitzt, bekommt diese Nachricht direkt nach dem abonnieren zugeschickt.
 Dies trifft auch zu, falls das Topic mit der Retained Message durch einen Wildcard Filter abonniert wurde.
 \cite{teamRetainedMessagesMQTT}
