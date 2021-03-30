@@ -9,43 +9,83 @@ import (
 	"github.com/eclipse/paho.mqtt.golang"
 )
 
-// TODO test this
-// TODO timeout
-func checkHealth(node string) {
+func checkHealth(host string, port int) (ret bool) {
+	// return false if error happens
+	defer func() {
+		if r := recover(); r != nil {
+			ret = false
+		}
+	}()
+
 	topic := "healthcheck"
+	client_id := "control-plane-healthcheck"
+	timeout := 10 * time.Second
+
+	start := time.Now().Unix()
+	var remainingTime = func() time.Duration {
+		elapsed := time.Now().Unix() - start
+		return timeout - time.Duration(elapsed)
+	}
+
+	queue := make(chan string)
+	error := false
 
 	var f mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
-		fmt.Printf("TOPIC: %s\n", msg.Topic())
-		fmt.Printf("MSG: %s\n", msg.Payload())
-		// TODO write in queue
+		if msg.Topic() != topic {
+			error = true
+			return
+		}
+
+		queue <- string(msg.Payload())
 	}
 
-	opts := mqtt.NewClientOptions().AddBroker(node).SetClientID("healthcheck")
-	opts.SetKeepAlive(2 * time.Second)
+	opts := mqtt.NewClientOptions().
+		AddBroker(fmt.Sprintf("tcp://%v:%v", host, port)).
+		SetClientID(client_id)
+
 	opts.SetDefaultPublishHandler(f)
-	opts.SetPingTimeout(1 * time.Second)
+	opts.SetKeepAlive(timeout)
+	opts.SetPingTimeout(timeout)
 
 	c := mqtt.NewClient(opts)
-	if token := c.Connect(); token.Wait() && token.Error() != nil {
-		panic(token.Error())
+	if token := c.Connect(); token.WaitTimeout(remainingTime()) &&
+		token.Error() != nil {
+		fmt.Println("Error connect:", token.Error())
+		return false
 	}
 
-	if token := c.Subscribe(topic, 0, nil); token.Wait() && token.Error() != nil {
-		fmt.Println(token.Error())
-		os.Exit(1)
+	defer c.Disconnect(0)
+
+	if token := c.Subscribe(topic, 2, nil); token.WaitTimeout(remainingTime()) &&
+		token.Error() != nil {
+		fmt.Println("Error subscribe:", token.Error())
+		return false
 	}
 
-	text := fmt.Sprintf("hello from health checker")
-	token := c.Publish(topic, 0, false, text)
-	token.Wait()
+	defer c.Unsubscribe(topic)
 
-	// TODO maybe get messages synchronized?
-	// TODO read from queue
-
-	if token := c.Unsubscribe(topic); token.Wait() && token.Error() != nil {
-		fmt.Println(token.Error())
-		os.Exit(1)
+	text := fmt.Sprintf("hello from control plane")
+	if token := c.Publish(topic, 2, false, text); token.WaitTimeout(remainingTime()) &&
+		token.Error() != nil {
+		fmt.Println("Error publish:", token.Error())
+		return false
 	}
 
-	c.Disconnect(250)
+	timeout_channel := make(chan bool, 1)
+
+	go func() {
+		time.Sleep(remainingTime())
+		timeout_channel <- true
+	}()
+
+	select {
+	case message := <-queue:
+		if error {
+			return false
+		}
+
+		return message == text
+	case <-timeout_channel:
+		return false
+	}
 }

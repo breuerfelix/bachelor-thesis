@@ -13,6 +13,7 @@ if __name__ == '__main__':
     for file in filenames:
         if file == MINTED: continue
 
+        # example command
         # pygmentize -O full -f tex -o gen/hallo.tex snippets/hallo.rs
         outFile = GENERATED + path.splitext(file)[0] + '.tex'
-        system(f'pygmentize -O verboptions={OPTIONS} -f tex -o {outFile} {SNIPPETS}{file}')
+        system(f'pygmentize -O linenos=True -O verboptions={OPTIONS} -f tex -o {outFile} {SNIPPETS}{file}')

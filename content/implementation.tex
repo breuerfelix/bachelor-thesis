@@ -1,8 +1,9 @@
 \section{Architektur und Implementation}
 In Kapitel \ref{s:solution} wurden einige Konzepte und deren Implementation für einen \textit{Smart Load Balancer} für \ac{mqtt} beschrieben. In diesem Kapitel wird gezeigt, wie man viele dieser einzelnen Konzepte in einen Envoy Load Balancer integriert und verwendet.
+Im Rahmen der Thesis wurde die \ac{dns} Cluster Discovery \ref{ss:dns-discovery}, das weighted \ac{cpu} Round Robin \ref{ss:weighted-cpu}, das Circuit Breaking \ref{ss:circuit-breaking} und das \ac{mqtt} Health Checking \ref{ss:health-check} aus Kapitel \ref{s:solution} in einer Envoy Control Plane implementiert.
 
 % TODO figure con der architecture
-\subsection{Envoy Control Plane}
+\subsection{Envoy Control Plane} \label{si:control-plane}
 Die Envoy Control Plane ist das Herzstück des Smart Load Balancers. Die einzelnen Envoy Instanzen erhalten alle nötigen Informationen dynamisch von der Control Plane und kriegen statisch nur die Information wie die Control Plane zu erreichen ist provisioniert.
 Die Konfigurationen werden mit gRPC zwischen Envoy und Control Plane ausgetauscht. Daher muss die Control Plane einen gRPC Server implementieren, der von allen Envoys erreichbar ist.
 Als Quellcodebasis für die Control Plane wurde ein minimales Beispiel aus dem offiziellen Github Repository \cite{EnvoyproxyGocontrolplane} verwendet. Dieses erzeugt eine Envoy Konfiguration die einen \ac{http} Endpunkt definiert. Da die offizielle Referenzimplementation einer Control Plane in Golang programmiert ist, wurde die Control Plane des Smart Load Balancers, nachfolgend Control Plane genannt, ebenfalls in Golang implementiert.
@@ -36,9 +37,40 @@ Die Funktion \verb|GenerateSnapshot| aus dem Resources Namespace kriegt eine Lis
 \paragraph{Metrics}
 Die Metriken Komponente ruft bei Aufruf der \verb|InitMetrics| Funktion die aktuellen Metriken aller HiveMQ Nodes ab und startet zwei Go Routinen. Durch den initialen Abruf der Metriken werden alle Variablen initialisiert. Eine der beiden Go Routinen ist für das periodische Abrufen aller Metriken zuständig. Diese werden in der HiveMQ Struktur gespeichert. Die andere Go Routine verarbeitet periodisch die abgerufenen Metriken und berechnet die aktuelle Gewichtung und den Health Status. Diese Jobs wurden in zwei Go Routinen aufgeteilt um öfter die Metriken abzurufen als diese zu verarbeiten. Dies führt zu einer höheren Auflösung beim verarbeiten der Daten ohne alle zwei Sekunden die Envoy Konfiguration zu aktualisieren.
 
+\paragraph{Main}
+Die Main Komponente ist der Eintiegspunkt der Control Plane. Bei Aufruf wird zunächst eine Cluster Struktur erstellt, eine gegebene Domain aufgelöst und für alle \ac{ip} Adressen eine HiveMQ Struktur erstellt.
+Anschlie{\ss}end werden zwei Go Routinen gestartet. Die erste löst periodisch den Domain Namen des Clusters auf um Topologieänderungen am Cluster umzusetzen. Die zweite Go Routine prüft periodisch die \ac{mqtt} Funktionalität eines jeden HiveMQ Nodes durch die Methode \verb|CheckHealth| der HiveMQ Struktur.
+
 \subsubsection{DNS Cluster Discovery}
+Die \ac{dns} Cluster Discovery aus Kapitel \ref{ss:dns-discovery} ist in der Main Komponente implementiert. Quellcodeauszug \ref{code:discover-cluster} zeigt die Funktion \verb|discoverCluster|, die in der Main Funktion als Go Routine asynchron aufgerufen wird.
+In Zeile 4 wird eine neue Liste erstellt, das in Zeile 25 in die Variable \verb|cluster.Nodes| gespeichert wird. Wie in Kapitel \ref{si:control-plane} erwähnt wird somit immer eine neue Liste erstellt anstatt die vorhandene zu editieren.
+Falls ein HiveMQ Node bereits existiert wird die Referenz der HiveMQ Struktur in Zeile 10 in die neue Liste übernommen.
+Zeile 21 setzt vorraus, dass alle HiveMQ Nodes unter dem Standard Port 1883 erreichbar sind.
+\begin{figure}
+    \import{gen/}{discover-cluster}
+    \caption{Go Routine die periodisch eine Domain auflöst und HiveMQ Strukturen erstellt}
+    \label{code:discover-cluster}
+\end{figure}
+
 \subsubsection{Weighted Round Robin}
-\subsubsection{Health Check}
+Der Weighted Round Robin Algorithmus basierend auf der \ac{cpu} Auslastung der einzelnen HiveMQ Nodes aus Kapitel \ref{ss:weighted-cpu} ist in der Metrics Komponente implementiert.
+\begin{figure}
+    \import{gen/}{weighted-cpu}
+    \caption{Algorithmus um die Gewichtung der HiveMQ Nodes basierend der CPU Auslastung zu bestimmen}
+    \label{code:weighted-cpu}
+\end{figure}
+
+\subsubsection{Health Check} \label{si:health-check}
+Der \ac{mqtt} Health Check aus Kapitel \ref{ss:health-check} ist in der Main und HiveMQ Komponente implementiert. In der HiveMQ Komponente wird die Funktion \verb|chechHealth| aus Quellcodeauszug \ref{code:sample-mqtt-client} eingefügt. Diese wird periodisch für jeden HiveMQ Node in einer Go Routine der Main Komponente ausgeführt. Wenn die \verb|checkHealth| Methode \verb|false| zurückgibt, ist der HiveMQ Node nicht mehr in der Lage neue Client Verbindungen zu erhalten und sein Health Status wird auf \verb|UNHEALTHY| gesetzt. Es wird au{\ss}erdem sofort ein neuer Snapshot in den Cache geschrieben, damit so wenig Clients wie möglich mit einen \verb|UNHEALTHY| HiveMQ Node verbunden werden. Der \ac{mqtt} Health Status wird au{\ss}erdem in die Variable \verb|MqttHealthy| der HiveMQ Struktur gespeichert damit diese von anderen Komponenten verarbeitet werden kann. Für den Fall, dass mehrere Faktoren den Health Status eines Nodes bestimmen, müssen alle Faktoren den Status \verb|HEALTHY| aufweisen damit ein Node derart gekennzeichnet wird.
+
+\subsubsection{Circuit Breaking}
+Das Circuit Breaking aus Kapitel \ref{ss:circuit-breaking} ist in der Metrics Komponente implementiert. Quellcodeauszug \ref{code:circuit-breaking} zeigt den Algorithmus um den Health Status aller Nodes basierend der Metrik \verb|OverloadProtection| zu bestimmen. In Zeile 10 wird auf den zuletzt bekannten Wert der Metrik zugegriffen und in Zeile 12 wird die Varible \verb|OverloadProtectionHealthy| der HiveMQ Struktur auf \verb|true| gesetzt, falls der Wert der Metrik kleiner oder gleich 5 ist.
+Sobald der Overload Protection Wert überschritten wurde oder der \ac{mqtt} Health Check aus Kapitel \ref{si:health-check} fehlgeschlagen ist, darf der HiveMQ Node nicht mehr als \verb|HEALTHY| gekennzeichnet werden. Zeile 18 - 22 setzen den Health Status erst auf \verb|HEALTHY| sobald beide Bedingungen erfüllt sind.
+\begin{figure}
+    \import{gen/}{circuit-breaking}
+    \caption{Algorithmus der den Health Status eines HiveMQ Nodes basierend der Overload Protection Metrik bestimmt}
+    \label{code:circuit-breaking}
+\end{figure}
 
 \subsection{Deployment}
 \subsubsection{HiveMQ}
