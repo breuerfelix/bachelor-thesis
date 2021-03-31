@@ -5,7 +5,6 @@ allgemein:
 - story telling / roter faden!
 - das wort verteilte systeme reinnehmen
 - beispiele nicht so konkret machen -> konzeptueller
-- topic: was ist ein topic und wie nennt man die unterpfade?
 
 anwendungsfeld:
 - MQTT als service-2-service event bus findet man aber auch hier und da. Ist aber seltener. Wie gesagt, da nutzen die meisten RabbitMQ (AMQP) oder neuerdings Kafka.
@@ -26,12 +25,7 @@ cluster discovery:
 - splitbrain is nicht mein problem, das wird durch mqtt health check gelöst, muss der hivemq lösen
 
 formulierungen:
-- ist kein 'bestimmter' client
 - clients sind nicht mit anderen clients nicht synchronisiert
-- anstatt datendurchsatz kommunikationsaufwand bei qos
-
-mqtt:
-- anstatt layer osi-layer schreiben
 
 hivemq:
 - hivemq ist aktuell relevant, geil 3.3 sparkplug, industrial, iot zahlen, eine seite

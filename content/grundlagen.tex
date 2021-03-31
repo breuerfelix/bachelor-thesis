@@ -87,7 +87,7 @@ Bei \ac{qos} Level 1 und 2 werden Handshakes zur Verifizierung der Nachrichtenü
 In \ac{mqtt} kann pro Topic die letzte veröffentlichte Nachricht aufbewahrt werden.
 Dazu muss im \verb|PUBLISH| Paket die \verb|RETAIN| Kennzeichnung gesetzt werden.
 In diesem Fall speichert der Broker die Nachricht mit dem dazugehörigen Topic und \ac{qos} Level ab.
-Falls bereits eine Aufbewahrte Nachricht (engl. \textit{Retained Message}) auf diesem Topic vorhanden ist, wird sie überschrieben.
+Falls bereits eine aufbewahrte Nachricht (engl. \textit{Retained Message}) auf diesem Topic vorhanden ist, wird sie überschrieben.
 Jeder Client, der ein Topic abonniert das eine Retained Message besitzt, bekommt diese Nachricht direkt nach dem abonnieren zugeschickt.
 Dies trifft auch zu, falls das Topic mit der Retained Message durch einen Wildcard Filter abonniert wurde.
 \cite{teamRetainedMessagesMQTT}
@@ -97,20 +97,20 @@ Falls ein Topic eine Retained Message (folglich \textit{M1} genannt) besitzt und
 %TODO zeichnung!
 \cite{mqtt5Specification}
 \\
-Retained Messages helfen neuen Subscribern direkt einen Wert zu kriegen nachdem sie ein Topic abonniert haben. Eine Retained Messaged wird auch \textit{last known good value} genannt.
+Durch Retained Messages können neue Subscriber direkt einen Wert erhalten nachdem sie ein Topic abonniert haben. Eine Retained Messaged wird auch \textit{last known good value} genannt.
 \cite{teamRetainedMessagesMQTT}
 Als Beispiel dient ein Temperatursensor, der alle zehn Minuten seine Temperatur auf das Topic \verb|sensors/temperature| veröffentlicht. Um den aktuellen Temperaturwert abzufragen gibt es ein Konsolenprogramm, das bei der Ausführung eine Verbindung zu dem Broker herstellt, das Topic \verb|sensors/temperature| abonniert, den ersten erhaltenen Wert auf der Konsole ausgibt, das Topic deabonniert und die Verbindung wieder schlie{\ss}t. Wenn das Programm eine Minute nachdem der Temperatursensor seine Nachricht veröffentlicht hat ausgeführt wird, muss der Benutzer neun Minuten warten bis er die aktuelle Temperatur angezeigt bekommt. Wenn der Temperatursensor seine Nachrichten hingegen als Retained Message veröffentlicht, bekommt das Konsolenprogramm nach dem abonnieren den letzten Temperaturwert und kann diesen anzeigen.
 
 \subsubsection{Paket Struktur} \label{s:packet-structure}
-\ac{mqtt} hat die Absicht ein leichtgewichtiges Protokoll zu sein. Tabelle \ref{table:mqtt-packet-structure} zeigt den Aufbau eines jeden \ac{mqtt} Paketes. Die fixe Kopfzeile ist zwei Byte gro{\ss} und muss in jedem Paket vorhanden sein. Basierend auf der Art des Paketes, das in der fixen Kopfzeile angegeben wird, sind zusätzlich eine variable Kopfzeile und weitere Daten möglich.\cite{mqtt5Specification}
+\ac{mqtt} hat die Absicht ein leichtgewichtiges Protokoll zu sein. Tabelle \ref{table:mqtt-packet-structure} zeigt den Aufbau eines jeden \ac{mqtt} Paketes. Der fixe Header ist zwei Byte gro{\ss} und muss in jedem Paket vorhanden sein. Basierend auf der Art des Paketes, das in dem fixen Header angegeben wird, sind zusätzlich ein variabler Header und weitere Daten möglich.\cite{mqtt5Specification}
 \begin{table}[h!]
 \centering
 \renewcommand{\arraystretch}{1.5}
 \begin{tabular}{|c|}
     \hline
-    Fixe Kopfzeile, muss in jedem \ac{mqtt} Paket vorhanden sein \\
+    Fixer Header, muss in jedem \ac{mqtt} Paket vorhanden sein \\
     \hline
-    Variable Kopfzeile, optional \\
+    Variabler Header, optional \\
     \hline
     Daten des Pakets, optional \\
     \hline
@@ -118,7 +118,7 @@ Als Beispiel dient ein Temperatursensor, der alle zehn Minuten seine Temperatur 
 \caption{Struktur eines \ac{mqtt} Paketes}
 \label{table:mqtt-packet-structure}
 \end{table}
-Tabelle \ref{table:fixed-header} zeigt den detaillierten Aufbau der fixen Kopfzeile. Im ersten Byte werden Bit sieben bis vier für die spezifische Art des Paketes verwendet. Tabelle \ref{table:mqtt-packet-types} enhält eine Liste mit allen möglichen Pakettypen und deren Wert. Byte zwei gibt die restliche Paketlänge enkodiert als \textit{Variable Byte Integer} an. Die Restliche Paketlänge setzt sich aus ... zusammen. Ein \textit{Variable Byte Integer} ist ... . Die maximale Paketgrö{\ss}e beträgt ... .\cite{mqtt5Specification}
+Tabelle \ref{table:fixed-header} zeigt den detaillierten Aufbau des fixen Headers. Im ersten Byte werden Bit sieben bis vier für die spezifische Art des Paketes verwendet. Tabelle \ref{table:mqtt-packet-types} enhält eine Liste mit allen möglichen Pakettypen und deren Wert. Byte zwei gibt die restliche Paketlänge enkodiert als \textit{Variable Byte Integer} an. Die Restliche Paketlänge setzt sich aus ... zusammen. Ein \textit{Variable Byte Integer} ist ... . Die maximale Paketgrö{\ss}e beträgt ... .\cite{mqtt5Specification}
 % TODO was ist ein variable byte integer
 % TODO wie setzt sich die restliche paketlänge zusammen
 \begin{table}[h!]
@@ -184,24 +184,23 @@ Tabelle \ref{table:fixed-header} zeigt den detaillierten Aufbau der fixen Kopfze
 \end{table}
 
 \subsubsection{MQTT CONNECT} \label{s:mqtt-connect}
-Nachdem eine Netzwerkverbindung zwischen einen Client und einem Broker aufgebaut wurde, muss das erste Paket eines Clients ein \verb|CONNECT| Paket sein. Tabelle \ref{table:mqtt-connect-packet-variable-header} zeigt den Aufbau und Inhalt einer Beispielhaften variablen Kopfzeile eines \verb|CONNECT| Paketes. Die ersten sechs Byte geben den Namen es Protokolls als UTF-8 encodierten String an. Dieser wird sich in zukünftigen Versionen nicht ändern und dient als Identifikationsmerkmal des \ac{mqtt} Protokolls für Server, die mehrere Protokolle implementiert haben. Byte sieben gibt die verwendete \ac{mqtt} Version des Clients an. In Byte acht kann der Client Kennzeichnungen für die Präsenz der optionalen Daten setzen. Die Länge der Eigenschaften wird mit Byte elf bestimmt. In den Eigenschaften kann der Client zum Beispiel eine maximale Paketgrö{\ss}e oder Themen Aliasse setzen.\cite{mqtt5Specification}\\
-Nach der variablen Kopfzeile folgen die Daten (Payload) des \verb|CONNECT| Paketes. Diese sind eine oder mehrere Felder mit ihrer Länge als Präfix. Byte acht der variablen Kopfzeile bestimmt das Vorkommen der Felder, die - falls vorhanden - eine strikte Reihenfolge einhalten müssen.
+Nachdem eine Netzwerkverbindung zwischen einen Client und einem Broker aufgebaut wurde, muss das erste Paket eines Clients ein \verb|CONNECT| Paket sein. Tabelle \ref{table:mqtt-connect-packet-variable-header} zeigt den Aufbau und Inhalt eines Beispielhaften variablen Headers eines \verb|CONNECT| Paketes. Die ersten sechs Byte geben den Namen es Protokolls als UTF-8 encodierten String an. Dieser wird sich in zukünftigen Versionen nicht ändern und dient als Identifikationsmerkmal des \ac{mqtt} Protokolls für Server, die mehrere Protokolle implementiert haben. Byte sieben gibt die verwendete \ac{mqtt} Version des Clients an. In Byte acht kann der Client Kennzeichnungen für die Präsenz der optionalen Daten setzen. Die Länge der Eigenschaften wird mit Byte elf bestimmt. In den Eigenschaften kann der Client zum Beispiel eine maximale Paketgrö{\ss}e oder Themen Aliasse setzen.\cite{mqtt5Specification}\\
+Nach dem variablen Header folgen die Daten (engl. \textit{Payload}) des \verb|CONNECT| Paketes. Diese sind eine oder mehrere Felder mit ihrer Länge als Präfix. Byte acht des variablen Headers bestimmt das Vorkommen der Felder, die - falls vorhanden - eine strikte Reihenfolge einhalten müssen.
 \begin{enumerate}
-    \item Client Idenfikationsnummer
+    \item Client Kennung
     \item \textit{Will} Eigenschaften
     \item \textit{Will} Thema
-    \item \textit{Will} Daten (Payload)
+    \item \textit{Will} Payload
     \item Benutzername
     \item Passwort
 \end{enumerate}
-Die Client Identifikationsnummer ist als einziges Feld nicht optional. Sie muss ein UTF-8 enkodierter String aus folgenden Zeichen sein:
+Die Client Kennung ist als einziges Feld nicht optional. Sie muss ein UTF-8 enkodierter String aus folgenden Zeichen sein:
 \begin{itemize}
     \item 0-9
     \item a-z
     \item A-Z
 \end{itemize}
-Eine Client Identifikationsnummer dient zur Identifikation des aktuellen Zustands des Clients und muss daher einzigartig vergeben sein. Ist bereits ein Client mit der gleich Identifikationsnummer an dem Broker verbunden, wird die Verbindung des existierenden Clients getrennt und es findet ein \textit{Client takeover} statt (siehe \ref{s:client-takeover}).\cite{mqtt5Specification}
-%TODO auch die anderen optionalen daten erklären?
+Eine Client Kennung dient zur Identifikation des aktuellen Zustands des Clients und muss daher einzigartig vergeben sein. Ist bereits ein Client mit der gleichen Kennung an dem Broker verbunden, wird die Verbindung des existierenden Clients getrennt und es findet ein \textit{Client takeover} statt (siehe \ref{s:client-takeover}).\cite{mqtt5Specification}
 \begin{table}[h!]
 \centering
 \renewcommand{\arraystretch}{1.5}
@@ -248,7 +247,7 @@ Der Broker muss eine \verb|CONNECT| Nachricht von einem Client mit einem \verb|C
 \subsubsection{Last Will Nachricht} \label{s:last-will}
 Ein Client kann bei der Verbindung zu einem Broker einen letzten Willen (engl. \textit{Last Will}) als Nachricht definieren. Diese Nachricht wird auf ein ebenfalls angegebenes Topic veröffentlich sobald die Verbindung zum Client unterbricht und dieser nicht in einer definierten Zeit seine Verbindung zum Broker wieder aufbauen kann. Falls der Client seine Verbindung Protokollkonform beendet, wird die Last Will Nachricht nicht veröffentlicht.
 \cite{soniSURVEYMQTTPROTOCOL}\\
-Die Last Will Nachricht kann in Sicherheitsrelevanten Applikationen eingesetzt werden. Als Beispiel dient ein Bewegungssensor der eine Eingangtür überwachen soll. Falls dieser Sensor vor einem Einbruch mutwillig zerstört wird, verliert dieser die Verbindung zum Broker und seine Last Will Nachricht wird veröffentlicht. Somit kann ein System auch auf ungeplante Events reagieren.
+Die Last Will Nachricht kann in sicherheitsrelevanten Applikationen eingesetzt werden. Als Beispiel dient ein Bewegungssensor der eine Eingangtür überwachen soll. Falls dieser Sensor vor einem Einbruch mutwillig zerstört wird, verliert dieser die Verbindung zum Broker und seine Last Will Nachricht wird veröffentlicht. Somit kann ein System auch auf ungeplante Events reagieren.
 
 \subsubsection{Shared Subscriptions} \label{s:shared-subsriptions}
 In \ac{mqtt} Version 5 wurden \textit{Shared Subscriptions} eingeführt, die es Clients erlauben ein Abonnement untereinander zu teilen. Diese Clients werden in eine \textit{Shared Subscription Group} zusammengefasst. Bei einem normalen Abonnement erhält jeder Client, der das gleiche Thema abonniert hat, eine Kopie der Nachricht. Bei einer \textit{Shared Subscription} erhält immer nur ein Client der \textit{Shared Subscription Group} die Nachricht in abwechselnder Reihenfolge. Dieser Mechanismus wird auch als \textit{Client Load Balancing} bezeichnet, da die Last eines Themas auf mehrere Abonnenten verteilt wird.\cite{raschbichlerMQTTHowNew}
@@ -264,10 +263,19 @@ Ein konkretes Beispiel für das abonnieren einer Shared Subscription ist: \verb|
 \newpage
 
 \subsection{HiveMQ Broker} \label{s:hivemq-broker}
-%TODO write that chapter
-Der HiveMQ Broker ist ein Java basierter \ac{mqtt} Broker, der sich auf das Anwendungsfall \acl{iot} spezialisiert.
-Er unterstützt alle Versionen des \ac{mqtt} Protokolls und ist Clusterfähig.
-HiveMQ Broker ist erweiterbar mit Extensions.
+Der HiveMQ Broker ist das Produkt der in 2012 gegründeten Firma HiveMQ \ac{gmbh}. Mit über 130 internationalen Kunden und einem Sitz in Landshut, Deutschland, erleichtert HiveMQ durch ihren Broker die Kommunikation von Geräten und Services untereinander.
+\\
+%https://www.hivemq.com/company/
+Der HiveMQ Broker ist ein Java basierter \ac{mqtt} Broker, der sich auf das Anwendungsfeld \acl{iot} spezialisiert. Der Broker unterstützt \ac{mqtt} Version 3 und 5 und ist somit Eclipse Sparkplug kompatibel.
+Eclipse Sparkplug ist eine Open Source Spezifikation die ein Framework für \ac{mqtt} Anwendungen bietet indem sie Definitionen für \ac{mqtt} Topics und \ac{mqtt} Payload Strukturen definiert.
+Die Kompatibilität des HiveMQ Brokers mit Sparkplug und die Clusterfähigkeit (siehe Kapitel \ref{s:hivemq-cluster}) ermöglichen den Einsatz des Brokers in Internet of Things Projekten mit mehreren Millionen Clients.
+%https://www.hivemq.com/blog/mqtt-sparkplug-essentials-part-1-introduction/
+\\
+Neben dem Anwendungsfeld \ac{iot} kann der HiveMQ Broker auch für \textit{Service to Service} Kommunikation im Backend eigesetzt werden.
+Alternativen für eine Event gesteuerte Kommunikation zwischen Services bieten Open Source Broker wie Apache Kafka, RabbitMQ oder ZeroMQ.
+\\
+Bis 2019 war der Quellcode des HiveMQ Brokers nicht frei zugänglich. Im April 2019 wurde eine \textit{Community Edition} des HiveMQ Brokers unter der Apache 2.0 Lizenz auf GitHub veröffentlicht. Für die Enterprise Edition, mit Features wie Clustering und Control Center, ist eine HiveMQ Lizenz nötig und lediglich kostenlos für bis zu 25 Clients.
+% TODO noch mehr schreiben
 
 \subsubsection{HiveMQ Cluster} \label{s:hivemq-cluster}
 Ein Merkmal des HiveMQ Broker ist die Möglichkeit ein Broker Cluster zu bilden.
@@ -275,8 +283,7 @@ Ein Broker Cluster (folgend Cluster genannt) ist ein verteiltes System in welche
 Ein Cluster bildet für Clients eine einzige logische Einheit.
 Dies bedeutet, für einen Client macht es keinen Unterschied ob er zu einem einzigen HiveMQ Broker oder zu einem Cluster verbunden ist.
 \cite{HiveMQClusterHiveMQ}
-Durch das clustern der HiveMQ Broker ensteht eine horizontale Skalierung. Wie in Kapitel \ref{s:domain} anwendungsdomäne bereits erläutert, kann der Anwendungsfall \ac{iot} zu mehreren Millionen Clients führen wobei eine vertikale Skalierung an ihre Grenzen sto{\ss}en kann.
-%TODO erkären warum an die grenzen sto{\ss}en?
+Durch das clustern der HiveMQ Broker ensteht eine horizontale Skalierung. Wie in Kapitel \ref{s:domain} anwendungsdomäne bereits erläutert, kann der Anwendungsfall \ac{iot} zu mehreren Millionen Clients führen, wobei eine vertikale Skalierung an ihre Grenzen sto{\ss}en kann.
 \begin{itemize}
     \item \textbf{Vertikale Skalierung:} Fügt mehr Rechen- oder Speichereinheiten zu einem Server hinzu.
     \item \textbf{Horizontale Skalierung:} Fügt mehrere Server zu einer logischen Recheneinheit hinzu. Dabei kann die Arbeitslast auf die einzelnen Server verteilt werden.
@@ -298,7 +305,6 @@ Die Cluster Discovery beschreibt den Mechanismus wie sich individuelle Nodes geg
     \item \textbf{multicast:} Nodes finden dynamisch andere Nodes, die die selbe multicast Adresse und Port benutzen.
     \item \textbf{broadcast:} Nodes finden dynamisch andere Nodes im selben Subnetzwerk indem sie die Broadcast \ac{ip} Adresse benutzen.
     \item \textbf{extension:} Es kann eine HiveMQ Erweiterung benutzt werden um andere Nodes zu entdecken.
-    \item \textbf{dns extension:} Nodes finden dynamisch andere Nodes über einen \textit{round-robin} \acs{dns} A record.
 \end{itemize}
 HiveMQ ist in der Lage die Clustergrö{\ss}e zur Laufzeit dynamisch anzupassen. Diesen Mechanismus muss der gewählte Cluster Discovery Modus jedoch unterstützten.
 \cite{HiveMQClusterHiveMQ}
@@ -312,14 +318,13 @@ Jeder Node eines Clusters berechnet durchgehend einen individuellen \textit{Over
     \item verbundenen Clients
     \item Queued Messages
 \end{itemize}
-% TODO explain queued messages
-Das drosseln von Clients basiert auf einem Credit System. Jeder Client erhält nach dem Aufbau einer Verbindung ein Guthaben von 50,000 Credits. Um auf einem Topic Nachrichten zu veröffentlichen muss ein Client mit seinen Credits bezahlen. Diese werden alle 200 Millisekunden um einen bestimmten Wert regeniert bis das maximale Guthaben von 50,000 erreicht wurde. Dieser Wert richtet sich nach dem derzeitigen Overload Protection Level des Nodes, auf dem der Client verbunden ist.
-% TODO ist es wirklich der Node ? oder ist es der Node auf dem das Topic liegt?
+Das Drosseln von Clients basiert auf einem Credit System. Jeder Client erhält nach dem Aufbau einer Verbindung ein Guthaben von 50,000 Credits. Um auf einem Topic Nachrichten zu veröffentlichen muss ein Client mit seinen Credits bezahlen. Diese werden alle 200 Millisekunden um einen bestimmten Wert regeniert bis das maximale Guthaben von 50,000 erreicht wurde. Dieser Wert richtet sich nach dem derzeitigen Overload Protection Level des Nodes, auf dem der Client verbunden ist.
 Hat ein Client alle seine Credits verbraucht, wird \ac{tcp} Backpressure auf dem Socket des Clients angewandt und dieser kann keine Nachrichten mehr veröffentlichen.
 Ist der Zeitraum, in dem \ac{tcp} Backpressure für einen Client angewandt wird, länger als der konfigurierte Keep-Alive Wert, wird die Verbindung des Clients unterbrochen.
 Neben \ac{mqtt} Clients kann auch eine Topologieänderung des Clusters zu einer Erhöhung des Overload Protection Levels führen.
 \cite{ClusterOverloadProtection}
 
+% TODO wirklich schreien ?
 \subsubsubsection{Client Queue}
 \subsubsubsection{Replication}
 
@@ -327,7 +332,7 @@ Neben \ac{mqtt} Clients kann auch eine Topologieänderung des Clusters zu einer 
 Um Nachrichten von einem \ac{mqtt} Broker zu erhalten, muss sich ein Client zu diesem verbinden und eine Subscription auf ein Topic erstellen.
 Jedes mal wenn die Verbindung zum Client unterbrochen wird, müssen die Verbindung und alle Subscriptions neu aufgebaut werden.
 Für einen Client mit limitierten Ressourcen ist dies eine Belastung.
-Um diese Belastung zu reduzieren kann der Client beim Aufbau der Verbindung eine persistente Session anfordern, indem dieser Bit eins von Byte acht des variablen Header der \verb|CONNECT| Nachricht (siehe Tabelle \ref{table:mqtt-connect-packet-variable-header}) auf null setzt.
+Um diese Belastung zu reduzieren kann der Client beim Aufbau der Verbindung eine persistente Session anfordern, indem das entsprechende Bit eins von Byte acht des variablen Headers der \verb|CONNECT| Nachricht (siehe Tabelle \ref{table:mqtt-connect-packet-variable-header}) auf null setzt.
 Ist dieses Bit hingegen auf eins gesetzt, werden alle Nachrichten und Informationen von vorherigen Sessions gelöscht.
 Eine persistente Session speichert folgende Daten auf dem Broker:
 \begin{itemize}
@@ -343,7 +348,7 @@ Neben dem Broker muss ein Client auch Informationen bei einer persistenten Sessi
     \item Alle \ac{qos} Level eins oder zwei Nachrichten, die noch nicht vom Broker bestätigt wurden.
     \item Alle \ac{qos} Level zwei Nachrichten, die der Client vom Broker erhalten hat und noch nicht vollständig bestätigt wurden.
 \end{itemize}
-Sobald ein Client die Verbindung zu einem Broker verliert und eine persistente Session aktiv ist, versucht der Broker die Daten des Clients solange wie möglich zu persistieren bis dieser sich erneut verbindet. Falls der Broker während der Zeit, die der Client nicht verbunden ist, keinen verfügbaren Arbeitsspeicher mehr hat, besteht die Möglichkeit, dass die persistente Session vom Broker gelöscht wird.
+Sobald ein Client die Verbindung zu einem Broker verliert und eine persistente Session aktiv ist, versucht der Broker die Daten des Clients solange wie möglich zu persistieren bis dieser sich erneut verbindet. Falls der Broker während der Zeit, die der Client nicht verbunden ist, keinen verfügbaren Ressourcen mehr hat, besteht die Möglichkeit, dass die persistente Session vom Broker gelöscht wird.
 \cite{teamPersistentSessionQueuing}
 
 \subsubsubsection{Client Takeover} \label{s:client-takeover}
@@ -356,12 +361,22 @@ Der Broker beendet die existierende Verbindung und assoziiert die persistente Se
 
 \subsection{Load Balancing} \label{s:load-balancing}
 %TODO Beispiel Web-Applikation
+Ein \acl{lb} verteilt Last (engl. \textit{Load Balancing}) auf Server-Infrastrukturen und kommt oft in verteilten System zum Einsatz. Dabei wird er den Servern vorgeschaltet und verteilt einkommende Last basierend von Load balancing Algorithmen an die entsprechenden Server.
+Je nach Algorithmus sorgt der \ac{lb} dadurch für ein gleimäßges verteilen der Last auf das gesamte System. Es ist ebenfalls möglich ausgefallene Server zu detektieren und die Last auf verbleibende Server umzuleiten.
+Load balancing kann Software- und Hardwareseitig betrieben werden. Als Hardware \ac{lb} wird oftmals ein OSI-Layer 4 oder 7 Switch verwendet. Dabei müssen alle Server, die Last erhalten sollen, direkt an den Hardware \ac{lb} angeschlossen werden.
+% https://www.cloud-mag.com/was-ist-ein-load-balancer/
+Software load balancing braucht, anders als Hardware load balancing, keine dedizierte Hardware und kann in jedem Server, virtuelle Maschine oder Container eingesetzt werden.
+%https://www.vmware.com/topics/glossary/content/software-load-balancing
+
+% TODO
+%https://www.citrix.com/solutions/app-delivery-and-security/load-balancing/what-is-load-balancing.html
 Um Applikationen auf einem Server bereitzustellen muss man einen geeigneten Server suchen. In diesem Prozess testet man die Applikation wie viel \acs{cpu}, \acs{ram} und Speicherplatz diese in einer Produktivumgebung benötigt. Wenn nun mehr Leute als erwartet die Applikation benutzen braucht diese mehr Recheneinheiten um die neue Arbeitslast abzuarbeiten. Eine Möglichkeit ist, den Server herunterzufahren, ihm mehr \acs{cpu} und \acs{ram} zu geben und ihn wieder zu starten. Dieser Prozess wird auch vertikale Skalierung genannt und hat Grenzen.\cite{bourkeServerLoadBalancing2001}
 Als Beispiel für diese Grenze ist der Rechenleistungsstärkste Server, den man zurzeit bei Amazon AWS mieten kann, mit 96 virtuellen \acs{cpu} Kernen und 375 Gigabyte \acs{ram}.\cite{EC2OnDemandInstance}
 Es gibt mehrere Gründe wann eine vertikale Skalierung an ihre Grenzen stö{\ss}t:
 \begin{itemize}
     \item Der Server ist nicht mehr erweiterbar an \acs{cpu}, \acs{ram} oder Speicherplatz.
     \item Ein neustarten des Servers um eine vertikale Skalierung durchzuführen ist nicht möglich.
+    \item Es muss eine Hochverfügbarkeit erzielt werden.
 \end{itemize}
 \cite{bourkeServerLoadBalancing2001}
 Die alternative zu einer vertikalen Skalierung ist die horizontale Skalierung. Bei einer horizontalen Skalierung werden nicht die Kapazitäten des Servers erhöht, sondern es werden weitere Server bereitgestellt.
