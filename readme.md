@@ -1,4 +1,29 @@
-feedback
+feedback neu:
+- gesamtsystem
+- problembeschreibung - was ist smart in den header ? - missing features
+- was fehlt den normalen load balancern ?
+- consistent hashing
+- industrial iot -> iiot
+- anwendungsfeld -> internet of things
+
+- szenario andeuten -> was will ich damit machen?
+- bild zum algorithmus
+- grafiken überarbeiten
+- panel -> repeat option
+- slow start -> ramp up
+- hivemq kann das implementieren
+- ist ein operatives ding -> kann metriken berücksichtigen
+- plantuml
+- regelung träge
+
+- cluster discovery
+- splitbrain
+- nicht so komplex wie das problem entstehen kann
+- broker muss die discovery machen -> nicht der lb
+
+fazit:
+- es gibt ganz viele verschiedene konfigurationen
+- personal note -> eigene meinung
 
 allgemein:
 - was beschreibt das problem ?

@@ -360,54 +360,69 @@ Der Broker beendet die existierende Verbindung und assoziiert die persistente Se
 %TODO where to quote?
 
 \subsection{Load Balancing} \label{s:load-balancing}
-%TODO Beispiel Web-Applikation
-Ein \acl{lb} verteilt Last (engl. \textit{Load Balancing}) auf Server-Infrastrukturen und kommt oft in verteilten System zum Einsatz. Dabei wird er den Servern vorgeschaltet und verteilt einkommende Last basierend von Load balancing Algorithmen an die entsprechenden Server.
-Je nach Algorithmus sorgt der \ac{lb} dadurch für ein gleimäßges verteilen der Last auf das gesamte System. Es ist ebenfalls möglich ausgefallene Server zu detektieren und die Last auf verbleibende Server umzuleiten.
-Load balancing kann Software- und Hardwareseitig betrieben werden. Als Hardware \ac{lb} wird oftmals ein OSI-Layer 4 oder 7 Switch verwendet. Dabei müssen alle Server, die Last erhalten sollen, direkt an den Hardware \ac{lb} angeschlossen werden.
-% https://www.cloud-mag.com/was-ist-ein-load-balancer/
-Software load balancing braucht, anders als Hardware load balancing, keine dedizierte Hardware und kann in jedem Server, virtuelle Maschine oder Container eingesetzt werden.
-%https://www.vmware.com/topics/glossary/content/software-load-balancing
-
-% TODO
-%https://www.citrix.com/solutions/app-delivery-and-security/load-balancing/what-is-load-balancing.html
-Um Applikationen auf einem Server bereitzustellen muss man einen geeigneten Server suchen. In diesem Prozess testet man die Applikation wie viel \acs{cpu}, \acs{ram} und Speicherplatz diese in einer Produktivumgebung benötigt. Wenn nun mehr Leute als erwartet die Applikation benutzen braucht diese mehr Recheneinheiten um die neue Arbeitslast abzuarbeiten. Eine Möglichkeit ist, den Server herunterzufahren, ihm mehr \acs{cpu} und \acs{ram} zu geben und ihn wieder zu starten. Dieser Prozess wird auch vertikale Skalierung genannt und hat Grenzen.\cite{bourkeServerLoadBalancing2001}
-Als Beispiel für diese Grenze ist der Rechenleistungsstärkste Server, den man zurzeit bei Amazon AWS mieten kann, mit 96 virtuellen \acs{cpu} Kernen und 375 Gigabyte \acs{ram}.\cite{EC2OnDemandInstance}
-Es gibt mehrere Gründe wann eine vertikale Skalierung an ihre Grenzen stö{\ss}t:
+Load balancing wurde um 1990 als Unterstützung für horizontale Skalierung eingeführt, um Traffic auf Server-Infrastrukturen zu verteilen. Dadurch sollte eine erhöhte Verfügbarkeit der Services für Endnutzer erzielt werden.
+\cite{LoadBalancing101}
+Bei einer horizontalen Skalierung werden nicht die Ressourcen eines einzelnen Servers erweitert, wie bei der vertikalen Skalierung, sondern weitere Server bereitgestellt. Es gibt mehrere Gründe wann eine vertikale Skalierung an ihre Grenzen stö{\ss}t:
 \begin{itemize}
     \item Der Server ist nicht mehr erweiterbar an \acs{cpu}, \acs{ram} oder Speicherplatz.
     \item Ein neustarten des Servers um eine vertikale Skalierung durchzuführen ist nicht möglich.
     \item Es muss eine Hochverfügbarkeit erzielt werden.
 \end{itemize}
 \cite{bourkeServerLoadBalancing2001}
-Die alternative zu einer vertikalen Skalierung ist die horizontale Skalierung. Bei einer horizontalen Skalierung werden nicht die Kapazitäten des Servers erhöht, sondern es werden weitere Server bereitgestellt.
-Wird Beispielweise ein \acs{http} Web-Server, der auf jeden Request ein \verb|"Hello World"| zurückgibt, auf einem Server bereitgestellt, der zwei \ac{cpu} Kerne und zwei Gigabyte \ac{ram} hat, sieht eine Skalierung wie folgt aus:
-\begin{itemize}
-    \item \textbf{Vertikale Skalierung:} Es werden vier \ac{cpu} Kerne und vier Gigabyte \ac{ram} zu dem Server hinzugefügt.
-    \item \textbf{Horizontale Skalierung:} Es wird ein weiterer unabhängiger Server mit der Web-Applikation bereitgestellt, der die Requests bearbeiten kann.
-\end{itemize}
-Nicht jede Applikation ist für eine horizontale Applikation geeignet. Würde der Web-Server einen internen Zähler an den Benutzer zurückgeben, wie viele Requests der Server bereits abgearbeitet hat, müsste die Applikation diesen Zähler mit allen anderen Servern die an der horizontalen Skalierung teilnehmen teilen.
-Ein weiteres Problem ist die Bereitstellung der horizontalen Server. Der Endnutzer der Web-Applikation muss die \ac{ip} Adressen aller Server kennen um auf diese zuzugreifen.
-% TODO cite horizontale und vertikale skalierung
-% TODO verschiedenen LB Algorithmen
-% least connection
-% round robin
+Ein \acl{lb} wird dabei den einzelnen Servern vorgeschaltet um einkommenden Traffic basierend diverser load balancing Algorithmen an die entsprechenden Server zu verteilen.
+Je nach Algorithmus sorgt der \ac{lb} dadurch für ein gleimä{\ss}ges verteilen der Last auf das gesamte System. Es ist ebenfalls möglich ausgefallene Server zu detektieren und die Last auf verbleibende Server umzuleiten.
+Load balancing kann Software- und Hardwareseitig betrieben werden. Als Hardware \ac{lb} wird oftmals ein OSI-Layer 4 oder 7 Switch verwendet. Dabei müssen alle Server, die Last erhalten sollen, direkt an den Hardware \ac{lb} angeschlossen werden.
+\cite{WasIstLoad2016}
+Software load balancing braucht, anders als Hardware load balancing, keine dedizierte Hardware und kann in jedem Server, Container oder jeder virtuellen Maschine eingesetzt werden.
+\cite{SoftwareLoadBalancing}
+Dabei kann jegliche Funktionalität eines \acp{hlb} vollständig ersetzt und erweitert werden. Software load balancing bietet mehr flexibilität gegenüber Hardware load balancing auf Kosten von Performance.
+\cite{WhatLoadBalancer}
+\\
+Load balancing kann zwischen Layer vier bis sieben des \ac{osi}-Modells stattfinden.
+\cite{WhatLoadBalancer}
+Das \ac{osi}-Modell standardisiert die Kommunikation zwischen verschiedenen Computer Systemen in sieben Layern.
+\begin{enumerate}
+    \item Bitübertragungsschicht (engl. \textit{Physical Layer})
+    \item Sicherrungsschicht (engl. \textit{Datalink Layer})
+    \item Vermittlungsschicht (engl. \textit{Network Layer})
+    \item Transportschicht (engl. \textit{Transport Layer})
+    \item Sitzungsschicht (engl. \textit{Session Layer})
+    \item Darstellungsschicht (engl. \textit{Presentation Layer})
+    \item Anwendungsschicht (engl. \textit{Application Layer})
+\end{enumerate}
+\cite{WhatOSIModel}
+\paragraph{Layer 4 Load Balancing}
+Der \ac{lb} lenkt den Traffic basierend von Infromationen des Network und Transport Layers. Darunter befinden sich \ac{tcp} und \ac{udp} Ports der Pakete sowieso Empfänger und Absender \ac{ip} Adressen. Layer vier \ac{lb} inspizieren für die Weiterleitung nicht die Daten des Paketes.
+\cite{WhatLoadBalancer}
+
+\paragraph{Layer 7 Load Balancing}
+Ein Layer sieben \ac{lb} inspiziert die Daten des gesendeten Paketes. Dafür muss der \ac{lb} in der Lage sein das verwendetet Protokoll zu parsen. Es können komplexere Weiterleitungregeln als bei einen Layer vier \ac{lb} implementiert werden. Bei \ac{http} können beispielsweise Weiterleitungsentscheidungen basierend des \ac{http} Headers oder des \ac{http} Pfades getroffen werden.
+\cite{WhatLoadBalancer}
+\\
+In verteilten System, beispielsweise ein HiveMQ Cluster, bieten \ac{lb} eine transparente Abstraktion für Clients. Der Client verbindet sich mit einem \ac{lb} und wird an einen HiveMQ Node weitergeleitet ohne die Server-Infrakstruktur des HiveMQ Clusters zu kennen. Für den Client macht es den Anschein, als würde der \ac{lb} eine einziger HiveMQ Broker sein, der seinen Service anbietet.
 
 \subsubsection{Load Balancing Algorithmen}
-% TODO vielleicht keine ganzen kapitel
+Der \acl{lb} bestimmt anhand eines load balancing Algorightmus an welchen Server eine neue Anfrage verteilt wird.
+Welcher Algorightmus eignesetzt wird hängt stark von der Situation ab, in der der \ac{lb} verwendet wird.
+Das Protokoll, die Server-Infrakstruktur oder das Verhalten der Clients sind wichtige Faktoren für die Auswahl des Algorightmus.
+\\
+Folgend werden die weit verbreitesten load balancing Algorithmen erläutert.
 
-\subsubsubsection{DNS Round Robin} \label{s:dns-round-robin}
-% TODO link hivemq dns extension with this chapter
-Um die \ac{ip} Adressen aller Teilnehmer einer horzontalen Skalierung einem Endnutzer mitzuteilen wurde das \ac{dns} A Eintrag Round Robin Load Balancing entwickelt. Bei einen \ac{dns} A Eintrag muss eine \ac{ip}v4 Adresse hinterlegt werden. Bei einem \ac{dns} Round Robin können mehrere \ac{ip}v4 Adressen bei einer Domain hinterlegt werden, sodass ein Endnutzer nur den Domainnamen kennen muss und alle Teilnehmer einer horizontalen Skalierung erreichen kann.
+\paragraph{Round Robin}
+Alle Server werden in eine Liste eigetragen. Der Round robin Algorightmus leitet Traffic immer an den ersten Server in der Liste und verschiebt diesen Server danach an das Ende der Liste.
+Dieser Algorightmus teilt alle Anfragen gleichmäßig auf die Server auf und findet oft Anwendung wenn alle Server die gleichen Ressourcen zur verfügung haben.
+\cite{WhatLoadBalancer}
 
-Literatur zu der Limitierung von \ac{dns} A Round Robin findet sich im Buch Server Load Balancing von Tony Bourke.\cite{bourkeServerLoadBalancing2001}
+\paragraph{Least Connection}
+Der least connection Algorightmus hält alle aktiven Client Verbindungen pro Server nach und verteilt neue Anfragen immer an den Server, der die wenigsten aktiven Verbindungen hat.
+\cite{WhatLoadBalancer}
 
-\subsubsubsection{Round Robin}
-\subsubsubsection{Weighted Round Robin}
-\subsubsubsection{Least Connection}
+\paragraph{Consistent Hashing}
+Der \ac{lb} bestimmt den Server anhand eines Hash-Wertes von diversen Daten des eintreffenden Paketes vom Client.
+Mögliche Daten sind Quell-, Ziel \ac{ip} Adresse, Port oder Domain Name. Durch diesen Algorightmus werden wiederkehrende Clients mit den selben Hash-Werten immer mit dem selben Server verbunden.
+\cite{WhatLoadBalancer}
 
-\subsubsection{Server Load Balancing}
-Ein Load Balancer ist ein Gerät, das Traffic auf verschiedene Maschinen verteilt. Dies hat den Effekt, das mehrere Maschinen als Eine erscheinen.
-\cite{bourkeServerLoadBalancing2001}
+% TODO bessere quellen
 
 \subsubsection{Envoy} \label{s:envoy}
 Envoy ist ein Layer drei/vier Netzwerk Proxy und ist für gro{\ss}e moderne Service orientierte Architekturen entworfen worden. Um dies zu erreichen stellt Envoy folgende abstrakte Features bereit:
