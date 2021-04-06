@@ -1,3 +1,6 @@
+TODO:
+- zahlen 0 - 12 ausgeschrieben, runde zahlen auch ausschreiben
+
 feedback neu:
 - gesamtsystem
 - problembeschreibung - was ist smart in den header ? - missing features
