@@ -139,74 +139,12 @@ future work:
 
 \pagenumbering{Roman}
 
+\import{content/}{abstract}
+\newpage
+
 \tableofcontents\newpage
 
 \pagenumbering{arabic}
-
-\begin{comment}
-\section{Einleitung}
-\subsection{Motivation}
-\subsection{Unternehmen}
-\subsection{Zielsetzung}
-\subsection{Aufbau der Arbeit}
-\section{Anwendungsfeld Internet of Things}
-\section{Technische Grundlangen}
-\subsection{MQTT}
-\subsubsection{Publish and Subscribe}
-\subsubsection{Quality of Service}
-\subsubsection{Retained Message}
-\subsubsection{Paket Struktur}
-\subsubsection{MQTT CONNECT}
-\subsubsection{Last Will Message}
-\subsubsection{Shared Subscriptions}
-\subsection{HiveMQ Broker}
-\subsubsection{HiveMQ Cluster}
-\subsubsubsection{Overload Protection}
-\subsubsubsection{Client Queue}
-\subsubsubsection{Replication}
-\subsubsection{Persistente Session}
-\subsubsubsection{Client Takeover}
-\subsection{Load Balancing}
-\subsubsection{OSI Modell}
-\subsubsection{Load Balancing Algorithmen}
-\subsubsubsection{Round Robin}
-\subsubsubsection{Least Connection}
-\subsubsubsection{Maglev}
-\subsubsubsection{Ring Hash}
-\subsubsubsection{Random}
-\subsubsection{Envoy}
-\subsubsubsection{Hot Restart}
-\subsubsubsection{Data-Plane API}
-\section{Problembeschreibung}
-\subsection{Cluster Discovery}
-\subsection{Langlebige TCP Verbindungen}
-\subsection{Persistente Client Sessions}
-\subsection{Circuit Breaking}
-\subsection{Ungleiche Lastverteilung}
-\section{Lösungskonzept}
-\subsection{Cluster Discovery}
-\subsection{Lastverteilung}
-\subsubsection{Test Szenarien}
-\subsubsection{Weighted Round Robin}
-\subsubsection{Control Plane}
-\subsubsection{DNS Cluster Discovery}
-\subsubsection{Weighted CPU Round Robin}
-\subsubsection{Circuit Breaking}
-\subsubsection{Health Check}
-\subsubsection{Aktualisierung der Konfiguration}
-\subsection{Sticky Session}
-\subsubsection{Client Identifier}
-\subsubsection{MQTT CONNECT}
-\subsubsection{Cluster Health}
-\section{Architektur und Implementation}
-\subsection{Envoy Control Plane}
-\subsubsection{DNS Cluster Discovery}
-\subsubsection{Weighted Round Robin}
-\subsubsection{Health Check}
-\subsubsection{Circuit Breaking}
-\subsection{Deployment}
-\section{Ausblick}
-\end{comment}
 
 \input{content/index}
 

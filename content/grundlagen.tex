@@ -1,23 +1,21 @@
 \section{Technische Grundlagen} \label{s:basics}
-%- Technologische Grundlagen - Grundlagen /
 \begin{comment}
 TODO:
 - im folgenden bezieht sich Client auf MQTT Client
-- publishen / subscriben wird zu veröffentlichen / abonnieren
-- herausgeber / abonnent wird zu publisher / subscriber
-- Thema in Topic umändern
-
-TODO Erklärung zu den einzelnen kapiteln und was sich darin befindet (in den grundlagen)
 \end{comment}
 
-\subsection{MQTT} \label{s:mqtt}
+Das folgende Kapitel erläutert die erforderlichen technologischen Grundlagen für das tiefere Verständnis des Themas der Thesis.
+Das \acs{mqtt} Protokoll wird in Abschnitt \ref{s:mqtt} beschrieben.
+Abschnitt \ref{s:hivemq-broker} handelt von dem HiveMQ Broker und geht insbesondere auf die Cluster Mechanik des Brokers ein.
+Abschlie{\ss}end wird die Funktionalität eines Load Balancers am Beispiel von Envoy in Abschnitt \ref{s:load-balancing} gezeigt.
+
+\subsection{Message Queuing Telemetry Transport} \label{s:mqtt}
 %TODO langlebiege connection
-\acf{mqtt} wurde ursprünglich von Doktor Andy Stanford-Clark und Arlen Nipper im Jahr 1999 entworfen um Gas- und Ölpiplines zu überwachen. Diese lagen oftmals an entlegenen Orten, wie zum Beispiel auf Übersee, und konnten nicht mit Radiowellen oder einem Kabel zum Festland erreicht werden. Zu dieser Zeit war die einzige Option, um Sensordaten auf einen Server zu übertragen, eine auf Datendurchsatz abgerechnete Satellitenkommunikation. Bei mehreren tausend Sensoren wurde somit ein Protokoll benötigt, das die Daten zuverlässig mit minimaler Bandbreite an die Server auf dem Festland übermitteln kann.
-\ac{mqtt} wurde im Jahr 2013 von der \ac{oasis} als Open Source standatisiert und wird heutzutage von vielen gro{\ss}en \ac{iot} Platformen unterstützt.
-%TODO welche ??
+\acf{mqtt} wurde ursprünglich von Doktor Andy Stanford-Clark und Arlen Nipper im Jahr 1999 entworfen, um Gas- und Ölpiplines zu überwachen. Diese lagen oftmals an entlegenen Orten, wie zum Beispiel auf Übersee, und konnten nicht mit Radiowellen oder einem Kabel zum Festland erreicht werden. Zu dieser Zeit war die einzige Option, um Sensordaten auf einen Server zu übertragen, eine auf Datendurchsatz abgerechnete Satellitenkommunikation. Bei mehreren tausend Sensoren wurde somit ein Protokoll benötigt, das die Daten zuverlässig mit minimaler Bandbreite an die Server auf dem Festland übermitteln kann.
+\ac{mqtt} wurde im Jahr 2013 von der \ac{oasis} als Open Source standatisiert und wird heutzutage von vielen gro{\ss}en \ac{iot} Platformen wie AWS IoT und Sparkplug unterstützt.
 \cite{WhatMQTTDefinition}\\
 Es gibt derzeit zwei Versionen der MQTT Spezifikation: 3.1.1 und 5. Alle Referenzen, falls nicht explizit gekennzeichnet, beziehen sich auf die aktuelle Version 5 des Protokolls.\\
-\ac{mqtt} ist ein OSI-Layer 7 \textit{Publish and Subscribe} Protkoll, das auf \acs{tcp} / \acs{ip} aufsetzt. Anders als das Request / Response Paradigma bei \acs{http} ist \ac{mqtt} Event gesteuert und erlaubt Nachrichten von einem Server direkt an einen bestimmten Client zu schicken. Somit muss nicht periodisch nach neuen Nachrichten gefragt werden. Zusammen mit einem fixen Paket-Header von nur zwei Byte sorgen diese Eigeschaften für einen geringen Datendurchsatz.\cite{WhatMQTTDefinition}
+\ac{mqtt} ist ein OSI-Layer 7 \textit{Publish and Subscribe} Protkoll, das auf \acs{tcp} / \acs{ip} aufsetzt. Anders als das Request / Response Paradigma bei \acs{http} ist \ac{mqtt} Event gesteuert und erlaubt Servern eine Nachricht direkt an einen bestimmten Client zu schicken. Somit muss nicht periodisch nach neuen Nachrichten gefragt werden. Zusammen mit einem fixen Paket-Header von nur zwei Byte sorgen diese Eigeschaften für einen geringen Datendurchsatz.\cite{WhatMQTTDefinition}
 
 \subsubsection{Publish and Subscribe} \label{s:publish-subscribe}
 %TODO erwähnen das es sich um filter handelt
@@ -26,7 +24,7 @@ Es gibt derzeit zwei Versionen der MQTT Spezifikation: 3.1.1 und 5. Alle Referen
     \item Clients
     \item Broker
 \end{itemize}
-Clients sind alle Teilnehmer dieses Systems, die Nachricht empfangen oder veröffentlichen wollen. Um Nachrichten erfolgreich zu vermitteln, wird ein Broker als Mittelsmann verwendet.\cite{teamGettingStartedMQTT}
+Clients sind alle Teilnehmer dieses Systems, die Nachrichten empfangen oder veröffentlichen wollen. Um Nachrichten erfolgreich zu vermitteln, wird ein Broker als Mittelsmann verwendet.\cite{teamGettingStartedMQTT}
 Jede Nachricht wird durch den Publisher in bestimmte Klassen kategorisiert. Der Publisher wei{\ss} nicht ob, oder wer, an dieser Nachricht interessiert ist und schickt die klassifizierte Nachricht an den Broker.
 Clients, die an bestimmten Nachrichten interessiert sind, müssen bei dem Broker eine Subscription erstellen und dabei die gewünschte Kategorie angeben.
 Somit kann der Broker eingehende kategorisierte Nachrichten an die entsprechenden Clients, auch Subscriber genannt, weiterleiten.
@@ -48,8 +46,9 @@ In verteilten Systemen bietet ein solches Konzept eine einheitliche Abstraktion 
     \caption{Publish and Subscribe Architektur}
     \label{fig:publish-subscribe}
 \end{figure}
-Im Kontext \ac{mqtt} werden Nachrichten in ein hieraschich aufgebaute Topics klassifiziert.
-\textit{Topic levels} werden mit einem Schrägstrich (\verb|/|) getrennt und Formen ein Topic. Ein Beispiel für ein Topic mit drei Topic levels ist: \verb|sensors/temperature/celcius|.
+\\
+Im Kontext \ac{mqtt} werden Nachrichten in ein hieraschich aufgebautes Topic klassifiziert.
+Ein oder mehrere \textit{Topic levels} werden mit einem Schrägstrich (\verb|/|) getrennt und Formen ein Topic. Ein Beispiel für ein Topic mit drei Topic levels ist: \verb|sensors/temperature/celcius|.
 Abbildung \ref{fig:publish-subscribe} zeigt einen Client, der auf das Thema \verb|temperature| Nachrichten veröffentlicht. Diese wird an zwei weitere Clients, die das Topic \verb|temperature| abonniert haben, durch den Broker weitergeleitet. Topics müssen auf einem Broker nicht explizit angelegt werden. Sobald ein Client auf einem Topic publiziert oder es abonniert, wird dieses automatisch angelegt.\cite{WhatMQTTDefinition}\\
 Beim abonnieren eines Topics können die Topic levels Wildcards enthalten. Bei Wildcards werden zwischen den folgenden zwei unterschieden:\cite{mqtt5Specification}
 \begin{itemize}
@@ -91,15 +90,16 @@ Falls bereits eine aufbewahrte Nachricht (engl. \textit{Retained Message}) auf d
 Jeder Client, der ein Topic abonniert das eine Retained Message besitzt, bekommt diese Nachricht direkt nach dem abonnieren zugeschickt.
 Dies trifft auch zu, falls das Topic mit der Retained Message durch einen Wildcard Filter abonniert wurde.
 \cite{teamRetainedMessagesMQTT}
-Um eine Retained Message zu löschen muss eine neue Nachricht auf dem Topic veröffentlicht werden mit der \verb|RETAIN| Kennzeichnung und einem leeren Payload. Der Broker löscht die aktuelle Retained Message und neue Subscriber werden erst Nachrichten von diesem Topic erhalten, sobald eine neue Nachricht dort veröffentlich wird.
-% TODO zeitliche zeichnung mit mehreren clients und subscribe events
+\\
+Um eine Retained Message zu löschen, muss eine neue Nachricht mit der \verb|RETAIN| Kennzeichnung und einem leeren Payload auf dem Topic veröffentlicht werden. Der Broker löscht die aktuelle Retained Message und neue Subscriber werden erst Nachrichten von diesem Topic erhalten, sobald eine neue Nachricht dort veröffentlich wird.
 Falls ein Topic eine Retained Message (folglich \textit{M1} genannt) besitzt und eine neue Nachricht ohne \verb|RETAIN| Kennzeichnung auf diesem Topic veröffentlicht wird, überschreibt diese nicht die aktuelle Retained Message. Neue Subscriber erhalten weiterhin die Nachricht \textit{M1}.
-%TODO zeichnung!
 \cite{mqtt5Specification}
 \\
-Durch Retained Messages können neue Subscriber direkt einen Wert erhalten nachdem sie ein Topic abonniert haben. Eine Retained Messaged wird auch \textit{last known good value} genannt.
+Durch Retained Messages können neue Subscriber direkt einen Wert erhalten, nachdem sie ein Topic abonniert haben, um diesen zu verarbeiten. Daher wird eine Retained Messaged auch \textit{last known good value} genannt.
 \cite{teamRetainedMessagesMQTT}
+\begin{comment}
 Als Beispiel dient ein Temperatursensor, der alle zehn Minuten seine Temperatur auf das Topic \verb|sensors/temperature| veröffentlicht. Um den aktuellen Temperaturwert abzufragen gibt es ein Konsolenprogramm, das bei der Ausführung eine Verbindung zu dem Broker herstellt, das Topic \verb|sensors/temperature| abonniert, den ersten erhaltenen Wert auf der Konsole ausgibt, das Topic deabonniert und die Verbindung wieder schlie{\ss}t. Wenn das Programm eine Minute nachdem der Temperatursensor seine Nachricht veröffentlicht hat ausgeführt wird, muss der Benutzer neun Minuten warten bis er die aktuelle Temperatur angezeigt bekommt. Wenn der Temperatursensor seine Nachrichten hingegen als Retained Message veröffentlicht, bekommt das Konsolenprogramm nach dem abonnieren den letzten Temperaturwert und kann diesen anzeigen.
+\end{comment}
 
 \subsubsection{Paket Struktur} \label{s:packet-structure}
 \ac{mqtt} hat die Absicht ein leichtgewichtiges Protokoll zu sein. Tabelle \ref{table:mqtt-packet-structure} zeigt den Aufbau eines jeden \ac{mqtt} Paketes. Der fixe Header ist zwei Byte gro{\ss} und muss in jedem Paket vorhanden sein. Basierend auf der Art des Paketes, das in dem fixen Header angegeben wird, sind zusätzlich ein variabler Header und weitere Daten möglich.\cite{mqtt5Specification}
@@ -118,9 +118,9 @@ Als Beispiel dient ein Temperatursensor, der alle zehn Minuten seine Temperatur 
 \caption{Struktur eines \ac{mqtt} Paketes}
 \label{table:mqtt-packet-structure}
 \end{table}
-Tabelle \ref{table:fixed-header} zeigt den detaillierten Aufbau des fixen Headers. Im ersten Byte werden Bit sieben bis vier für die spezifische Art des Paketes verwendet. Tabelle \ref{table:mqtt-packet-types} enhält eine Liste mit allen möglichen Pakettypen und deren Wert. Byte zwei gibt die restliche Paketlänge enkodiert als \textit{Variable Byte Integer} an. Die Restliche Paketlänge setzt sich aus ... zusammen. Ein \textit{Variable Byte Integer} ist ... . Die maximale Paketgrö{\ss}e beträgt ... .\cite{mqtt5Specification}
-% TODO was ist ein variable byte integer
-% TODO wie setzt sich die restliche paketlänge zusammen
+Tabelle \ref{table:fixed-header} zeigt den detaillierten Aufbau des fixen Headers. Im ersten Byte werden Bit sieben bis vier für die spezifische Art des Paketes verwendet. Tabelle \ref{table:mqtt-packet-types} enhält eine Liste mit allen möglichen Pakettypen und deren Wert. Byte zwei gibt die restliche Paketlänge enkodiert als \textit{Variable Byte Integer} an.
+\cite{mqtt5Specification}
+Die Enkodierung eines \textit{Variable Byte Integer} wird in Abschnitt 1.5.5 der \ac{mqtt} 5 Spezifikation \cite{mqtt5Specification} detailliert erklärt.
 \begin{table}[h!]
 \centering
 \renewcommand{\arraystretch}{1.5}
@@ -403,14 +403,14 @@ In verteilten System, beispielsweise ein HiveMQ Cluster, bieten \ac{lb} eine tra
 
 \subsubsection{Load Balancing Algorithmen}
 Der \acl{lb} bestimmt anhand eines load balancing Algorightmus an welchen Server eine neue Anfrage verteilt wird.
-Welcher Algorightmus eignesetzt wird hängt stark von der Situation ab, in der der \ac{lb} verwendet wird.
+Welcher Algorightmus eignesetzt wird hängt von der Situation ab, in der der \ac{lb} verwendet wird.
 Das Protokoll, die Server-Infrakstruktur oder das Verhalten der Clients sind wichtige Faktoren für die Auswahl des Algorightmus.
 \\
 Folgend werden die weit verbreitesten load balancing Algorithmen erläutert.
 
 \paragraph{Round Robin}
 Alle Server werden in eine Liste eigetragen. Der Round robin Algorightmus leitet Traffic immer an den ersten Server in der Liste und verschiebt diesen Server danach an das Ende der Liste.
-Dieser Algorightmus teilt alle Anfragen gleichmäßig auf die Server auf und findet oft Anwendung wenn alle Server die gleichen Ressourcen zur verfügung haben.
+Dieser Algorightmus teilt alle Anfragen gleichmä{\ss}ig auf die Server auf und findet oft Anwendung wenn alle Server die gleichen Ressourcen zur verfügung haben.
 \cite{WhatLoadBalancer}
 
 \paragraph{Least Connection}
@@ -425,19 +425,17 @@ Mögliche Daten sind Quell-, Ziel \ac{ip} Adresse, Port oder Domain Name. Durch 
 % TODO bessere quellen
 
 \subsubsection{Envoy} \label{s:envoy}
-Envoy ist ein Layer drei/vier Netzwerk Proxy und ist für gro{\ss}e moderne Service orientierte Architekturen entworfen worden. Um dies zu erreichen stellt Envoy folgende abstrakte Features bereit:
+% TODO envoy architectur video!
+Envoy ist ein \ac{osi}-Layer 7 Proxy und für gro{\ss}e moderne Service orientierte Architekturen von Lyft entwickelt worden.
+Im September 2017 wurde Envoy an die \textit{Cloud Native Computing Foundation} gestiftet, die Cloud Projekte wie Kubernetes, Prometheus, containerd und Jaeger verwaltet.
+Der Envoy Quellcode wird öffentlich auf GitHub verwaltet und hat stand April 2021 bereits 670 Kontributoren und 16.500 Sterne auf GitHub gesammelt. \cite{EnvoyproxyEnvoy2021}
+\\
+Der in C++ programmierte und hoch performante \ac{lb} Envoy stellt folgende abstrakte Features bereit:
 \begin{itemize}
-    \item \textbf{Layer 3/4 Filter:} Envoy erlaubt das dazuschalten von \acs{tcp} oder \acs{udp} Filtern in die Netzwerk Pipeline.
-    \item \textbf{\acs{http} Layer 7 Filter:} \acs{http} Filter können über einen HTTP Connection Manager hinzugefügt werden. Filter wie \textit{buffering}, \textit{routing} und \textit{rate-limiting} sind bereits in Envoy integriert.
-    \item \textbf{Dynamische Konfiguration:} Envoy kann dynamisch über eine \textit{Data-Plane API} provisioniert werden.
-    \item \textbf{:}
-    \item \textbf{:}
-    \item \textbf{:}
+    \item \textbf{\acs{osi}-Layer 3/4 Filter:} Envoy erlaubt das dazuschalten von \acs{tcp} oder \acs{udp} Filtern in die Netzwerk Pipeline. Filter wie zum Beispiel für MongoDB, Redis, \ac{tls} Authentifizierung wurden bereits in Envoy implementiert. Benutzerdefinierte Filter können direkt in C++ implementiert und eingebunden oder als \ac{wasm} Modul integriert werden.
+    \item \textbf{\acs{http} \ac{osi}-Layer 7 Filter:} Aufgrund der Popularität von \ac{http} wurden diverse \ac{osi}-Layer 7 \ac{http} Filter in Envoy implementiert. Filter wie \textit{buffering}, \textit{routing} und \textit{rate-limiting} sind bereits in Envoy integriert und können über einen \ac{http} Connection Manager konfiguriert werden.
+    \item \textbf{Dynamische Konfiguration:} Envoy kann dynamisch über eine \textit{Data-Plane API} provisioniert werden. Dabei können Daten wie Cluster, \ac{http} Routen, Listener Sockets oder \ac{tls} Zertifikate dynamisch von einer externen Quelle bereitgestellt werden.
+    \item \textbf{Observeability:} Envoy verfolgt das Ziel transparete Netzwerke zu erschaffen. Um dies zu erreichen werden umfangreiche Statistiken bereitgestellt, die zum Beispiel mit \textit{statsd} aggregiert werden können.
 \end{itemize}
 \cite{WhatEnvoyEnvoy}
-
-% TODO explain filter + pipeline modell
-% TODO explain control plane / dynamic provisioning
-
-\subsubsubsection{Hot Restart}
-\subsubsubsection{Data-Plane API}
+Envoy wird unteranderem bei Slack \cite{MigratingMillionsConcurrent2021} als \acl{lb} für Websockets eingesetzt. Zudem findet Envoy Anwendung in \textit{service-meshes} als Edge Proxy bei Istio \cite{Istio} und Google Traffic Director \cite{TrafficDirectorGoogle}.
