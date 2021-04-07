@@ -281,6 +281,7 @@ Ein Merkmal des HiveMQ Brokers ist die Möglichkeit ein Broker Cluster zu bilden
 Ein Broker Cluster (folgend Cluster genannt) ist ein verteiltes System, in welchem sich mehrere HiveMQ Broker zusammenschlie{\ss}en.
 Ein Cluster bildet für Clients eine einzige logische Einheit.
 Dies bedeutet, für einen Client macht es keinen Unterschied ob er zu einem einzigen HiveMQ Broker oder zu einem Cluster verbunden ist.
+Alle Nodes eines Cluster tauschen über eine dedizierte Verbindung, auch Cluster Transport genannt, Informationen über Clients und eintreffende Nachrichten aus. Dadurch macht es ebenfalls keinen Unterschied zu welchem HiveMQ Node eines Clusters sich die Clients verbinden.
 \cite{HiveMQClusterHiveMQ}
 \\
 Durch das zusammenschlie{\ss}en der HiveMQ Broker ensteht eine horizontale Skalierung. Wie in Kapitel \ref{s:domain} bereits erläutert, kann der Anwendungsfall \ac{iot} zu mehreren Millionen Clients führen, wobei eine vertikale Skalierung an ihre Grenzen sto{\ss}en kann.
@@ -398,7 +399,7 @@ Ein Layer sieben \ac{lb} inspiziert die Daten des gesendeten Paketes. Dafür mus
 \\
 In verteilten System, beispielsweise ein HiveMQ Cluster, bieten \ac{lb} eine transparente Abstraktion für Clients. Der Client verbindet sich mit einem \ac{lb} und wird an einen HiveMQ Node weitergeleitet ohne die Server-Infrakstruktur des HiveMQ Clusters zu kennen. Für den Client macht es den Anschein, als würde der \ac{lb} eine einziger HiveMQ Broker sein, der seinen Service anbietet.
 
-\subsubsection{Load Balancing Algorithmen}
+\subsubsection{Load Balancing Algorithmen} \label{sb:lb-algo}
 Der \acl{lb} bestimmt anhand eines load balancing Algorightmus an welchen Server eine neue Anfrage verteilt wird.
 Welcher Algorightmus eignesetzt wird hängt von der Situation ab, in der der \ac{lb} verwendet wird.
 Das Protokoll, die Server-Infrakstruktur oder das Verhalten der Clients sind wichtige Faktoren für die Auswahl des Algorightmus.
@@ -419,8 +420,6 @@ Der \ac{lb} bestimmt den Server anhand eines Hash-Wertes von diversen Daten des 
 Mögliche Daten sind Quell-, Ziel \ac{ip} Adresse, Port oder Domain Name. Durch diesen Algorightmus werden wiederkehrende Clients mit den selben Hash-Werten immer mit dem selben Server verbunden.
 \cite{WhatLoadBalancer}
 
-% TODO bessere quellen
-
 \subsubsection{Envoy} \label{s:envoy}
 % TODO envoy architectur video!
 Envoy ist ein \ac{osi}-Layer sieben Proxy und für gro{\ss}e moderne Service orientierte Architekturen von Lyft entwickelt worden.
@@ -436,3 +435,4 @@ Der in C++ programmierte und hoch performante \ac{lb} Envoy stellt folgende abst
 \end{itemize}
 \cite{WhatEnvoyEnvoy}
 Envoy wird unteranderem bei Slack \cite{MigratingMillionsConcurrent2021} als \acl{lb} für Websockets eingesetzt. Zudem findet Envoy Anwendung in \textit{service-meshes} als Edge Proxy bei Istio \cite{Istio} und Google Traffic Director \cite{TrafficDirectorGoogle}.
+\newpage

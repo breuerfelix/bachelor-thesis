@@ -1,59 +1,57 @@
 \section{Problembeschreibung}
-Der HiveMQ Broker ist, wie in Kapitel \ref{s:hivemq-cluster} beschrieben, clusterfähig und in der Lage zur Laufzeit die grö{\ss}e des Clusters anzupassen.
-Um das HiveMQ Cluster für \ac{mqtt} Clients zu einem virtuellen Broker mit einer einzigen \ac{ip} Adresse oder Domain zu abstrahieren, wird ein Load Balancer benötigt. Dieser kann die Last transparent zum Client auf alle Nodes des Clusters verteilen.
-In diesem Kapitel werden Anforderung für einen Load Balancer definiert um \ac{mqtt} Traffic klug zu allen Nodes eines HiveMQ Clusters zu verteilen.
+Die clusterfähigkeit des HiveMQ Brokers ermöglicht Millionen \ac{iot} Geräten die Kommunikation untereinander über einen zentralen und ausfallsicheren HiveMQ Cluster.
+Um ein HiveMQ Cluster für \ac{mqtt} Clients zu einem virtuellen Broker mit einer einzigen \ac{ip} Adresse oder Domain zu abstrahieren, wird, wie in Kapitel \ref{s:load-balancing} beschrieben, ein \acl{lb} benötigt.
+In diesem Kapitel werden Anforderung für einen \acl{lb} definiert, um \ac{mqtt} Traffic klug an alle Nodes eines HiveMQ Clusters transparent zum Client zu verteilen.
 
 \subsection{Cluster Discovery} \label{sp:cluster-discovery}
-Ein HiveMQ Cluster ist, wie in Kapitel \ref{s:hivemq-cluster} beschrieben, in der Lage zur Laufzeit die grö{\ss}e des Clusters anzupassen. Der Load Balancer muss daher ebenfalls in der Lage sein neue HiveMQ Nodes zur Laufzeit zu entdecken und neue Clients mit den neuen Nodes zu verbinden. Falls sich die Anzahl der Nodes verringert, darf der Load Balancer keine neuen Verbindungen mehr mit den alten Nodes aufbauen. Dies würde zu Fehlermeldungen bei den Clients führen.
-Eine statische Konfigurierung der Nodes ist somit nicht möglich.
+Ein HiveMQ Cluster ist, wie in Kapitel \ref{s:hivemq-cluster} beschrieben, in der Lage, zur Laufzeit die grö{\ss}e des Clusters anzupassen. Der Load Balancer muss daher ebenfalls in der Lage sein, neue HiveMQ Nodes zur Laufzeit zu entdecken und neue Clients mit den neuen Nodes zu verbinden. Falls sich die Anzahl der Nodes verringert, darf der Load Balancer keine neuen Verbindungen mehr mit den alten Nodes aufbauen. Dies würde zu Fehlermeldungen bei den Clients führen.
+Eine statische Konfiguration der HiveMQ Nodes ist somit nicht möglich.
 
 \subsection{Langlebige TCP Verbindungen}
-In Kapitel \ref{s:mqtt} wurde erläutert, dass \ac{mqtt} langlebiege \ac{tcp} Verbindungen benutzt um den Datendurchsatz gering zu halten. Dadurch kann der Broker Nachrichten zum Client schicken, ohne das dieser periodisch nach neuen Nachrichten fragen muss.
-Dies führt bei einem Update des Load Balancers zu Problemen. Bei \ac{http} kann ein zweiter Load Balancer mit der neuen Version gestartet und als \ac{dns} A Eintrag für die Domain eingetragen werden. Da \ac{http} dem Request / Response Schema folgt sind die Verbindungen kurzlebiger als die von \ac{mqtt}. Folgender Artikel zeigt, wie nach einer Stunde alle \ac{http} Verbindungen zu einem alten Load Balancer abgebaut waren.
-%TODO cite this!
-Um einen \ac{lb} im Kontext von \ac{mqtt} zu updaten, muss dieser neugestartet werden ohne die aktiven Verbindungen zu terminieren.
+TODO Abschnitt vielleicht streichen
+\\
+In Kapitel \ref{s:mqtt} wurde erläutert, dass \ac{mqtt} langlebige \ac{tcp} Verbindungen benutzt um den Datendurchsatz gering zu halten. Dadurch kann der Broker Nachrichten zum Client schicken, ohne das dieser periodisch nach neuen Nachrichten fragen muss.
+Der Load Balancer muss aktive Client Verbindungen solange aufrecht halten, bis Clients diese terminieren.
+Aktualisierungen des Load Balancers oder dessen Konfiguration dürfen nicht zu einer Unterbrechung der aktiven Verbindungen führen.
 
 \subsection{Persistente Client Sessions}
-Wie in Kapitel \ref{s:persistent-session} beschrieben können Clients eine persistente Session bei einem Broker anfordern. Dabei werden Nachrichten und Session relevante Daten im Arbeitsspeicher gespeichert für den Fall, dass die Verbindung zum Client unterbrochen wird. Sobald der Client seine Verbindung wieder aufbaut, findet ein Client Takeover (\ref{s:client-takeover}) statt.
+Wie in Kapitel \ref{s:persistent-session} beschrieben können Clients eine persistente Session bei einem Broker anfordern. Dabei werden Nachrichten und Session relevante Daten gespeichert für den Fall, dass die Verbindung zum Client unterbrochen wird. Sobald der Client seine Verbindung wieder aufbaut, findet ein Client Takeover (\ref{s:client-takeover}) statt.
 Dieser Prozess findet bei einem Broker im Arbeitsspeicher statt.
 Dort muss zu den existierenden persistierten Daten der dazugehörige \ac{tcp} Socket ausgetauscht werden.
-Wenn der Broker jedoch aus einem Cluster besteht, und sich der neue Client auf einem anderen Node als der alte Client verbindet, ist ein Client Takeover komplizierter.
+Wenn der Broker jedoch aus einem Cluster besteht, und sich der neue Client auf einem anderen Node als der alte Client verbindet, ist ein Client Takeover komplexer.
 In diesem Szenario muss der Node, auf dem der alte Client verbunden war, alle persistierten Daten an den neuen Node übermitteln.
 Wenn der alte Client über einen längeren Zeitraum nicht verbunden war, können sich viele Daten anhäufen.
-Persistierte Daten müssen über den Cluster Transport auf den neuen Node transferiert werden. Im Optimallfall wird der neue Client auf dem selben Node verbunden, auf dem er vorher ebenfalls verbunden war, um internen Cluster Traffic zu vermeiden. Durch das verschieben der Daten auf einen anderen Node entstehen zudem Latenzen in der Kommunikation mit dem neuen Client. Die Verbindung kann erst bestätigt werden, wenn alle Daten auf den neuen Node migriert wurden.
-\\
+Im Optimallfall wird der neue Client mit dem selben Node verbunden, mit dem er zuvor verbunden war, um internen Cluster Traffic zu vermeiden. Durch das Verschieben der Daten auf einen anderen Node entstehen zudem Latenzen in der Kommunikation mit dem neuen Client. Die Verbindung kann erst bestätigt werden, wenn alle Daten auf den neuen Node migriert wurden.
+\begin{comment}
 Um einen Client immer zum selben Node zu verbinden werden bei anderen Protokollen wie \ac{http} zum Beispiel Cookies verwendet. Die Cookies werden von dem Load Balancer ausgelesen und enthalten Informationen zu welchem Node der Client als letztes verbunden war. Das \ac{mqtt} Protokoll unterstützt keinen Mechanismus, der wie \ac{http} Cookies funktioniert.
-Eine weitere Option einen Client immer zum selben Node zu verbinden ist \verb|MAGLEV|. Dabei werden Layer vier Informationen des Clients ausgelesen wie zum Beispiel die \ac{ip} Adresse und gehasht. Anhand des Hashes wird anschlie{\ss}end der Node bestimmt, zu welchem der Client verbunden wird. Solange sich keine der gehashten Informationen ändert, wird der Client immer an den selben Node weitergeleitet. Da \ac{mqtt} auf Layer vier aufsetzt, kann \verb|MAGLEV| verwendet werden.
-Je nach Anwendungsfall verbinden sich \ac{mqtt} Clients auch über das Mobilfunknetz. Als Beispiel dienen Lastkraftwagen(LKW), die innerhalb Europas unterwegs sind. Durch den ständigen Standortwechsel wird zwangsweise ebenfalls der Mobilfunkmast gewechselt. Es wird nicht garantiert, dass der LKW immer die selbe \ac{ip} behält. \verb|MAGLEV| würde somit bei einem Verbindungsabbruch den Client an einen neuen Node weiterleiten.
+Eine weitere Option einen Client immer zum selben Node zu verbinden ist consistent hashing, wie in Kapitel \ref{sb:lb-algo} beschrieben. Dabei werden Layer vier Informationen des Clients ausgelesen, wie zum Beispiel die \ac{ip} Adresse, und gehasht. Anhand des Hashes wird anschlie{\ss}end der Node bestimmt, zu welchem der Client verbunden wird. Solange sich keine der gehashten Informationen ändert, wird der Client immer an den selben Node weitergeleitet.
+Je nach Anwendungsfall verbinden sich \ac{mqtt} Clients auch über das Mobilfunknetz. Durch den ständigen Standortwechsel wird zwangsweise ebenfalls der Mobilfunkmast gewechselt. Es wird nicht garantiert, dass der LKW immer die selbe \ac{ip} behält. \verb|MAGLEV| würde somit bei einem Verbindungsabbruch den Client an einen neuen Node weiterleiten.
 % TODO cite maglev paper
 % TODO beispiel für changing ip address in mobile data
+\end{comment}
 
 \subsection{Circuit Breaking}
 In Kapitel \ref{sb:overload-protection} wurde die Overload Protection eines HiveMQ Brokers erläutert. Dies ermöglicht dem Broker die Verbindung individueller Clients, die viel Arbeitslast auf dem Broker erzeugen, zu unterbrechen. Falls der \ac{mqtt} Client sich \ac{mqtt} Konform verhält, versucht dieser die Verbindung automatisch wiederherzustellen.
-In diesem Fall darf der Load Balancer den Client nicht wieder mit dem selben Node verbinden, da dieser Node mit dem Client erneut überlastet sein wird. Es muss der Node mit der geringsten Auslastung gewählt werden.
+In diesem Fall darf der Load Balancer den Client nicht wieder mit dem selben Node verbinden, da dieser Node mit dem Client erneut überlastet sein wird. Es muss ein Node mit einer geringeren Auslastung für diesen Client gefunden werden.
 \\
 Das Overload Protection Level gibt an, ob sich der HiveMQ Node in einer Überlast befindet. Der Load Balancer sollte den Node im Fall einer Überlast unterstützen indem er keine neuen Clients mehr mit diesem Node verbindet.
 
 \subsection{Ungleiche Lastverteilung} \label{sp:load}
 Es gibt viele verschiedene \ac{mqtt} Clients im Anwedungsfeld \ac{iot}. Manche sind zum Beispiel Temperatursensoren, die alle zehn Minuten einen Integer Wert auf ein Topic veröffentlichen, andere sind Drehzahlsensoren, die alle 500 Millisekunden die aktuelle Drehzahl eines Motors zur Geschwindigkeitsermittlung veröffentlichen.
-Die Drehzahlsensoren verursachen durch die erhöhte Frequenz der Nachrichten mehr Traffic und Arbeitslast auf einem Broker.
-Bei \textit{Round-robin} und \textit{least connection} Load Balacing Algorithmen führt dieses Verhalten zu einer ungleichen Lastverteilung im Cluster. Dies wird durch folgendes vereinfachtes Beispiel deutlich:
-Es gibt neun Temperatursensoren, einen Drehzahlsensor und ein HiveMQ Cluster bestehend aus zwei Nodes. Ein Drehzahlsensor benötigt zehn \ac{cpu} Einheiten und ein Temperatursensor benötigt zwei \ac{cpu} Einheiten. Bei dem Round-robin sowie least connection Load Balancing Algorithmus würden fünf Temperatursensor auf Node1 und vier Temperatursensoren plus ein Drehzahlsensor auf Node2 verbunden sein. Die Gesamtlast auf Node1 beträgt zehn \ac{cpu} Einheiten und auf Node2 achtzehn \ac{cpu} Einheiten. Dieses System hat eine ungleiche Lastverteilung.\\
-Dieses Szenario würde bei \ac{http} zu keiner ungleichen Lastverteilung führen. Der Load Balancer kann für jede Nachricht die an das Cluster geschickt wird eine erneute Entscheidung treffen, an welchen Node diese geschickt werden soll. Somit können die Nachrichten des Drehzahlsensors auf beide Nodes aufgeteilt werden und müssen nicht nur von einem Node verarbeitet werden.\\
-% TODO vielleicht Grafik?
-Bei \ac{mqtt} kann man die Load Balancing Entscheidung nicht auf Nachrichten Basis treffen, wie bei \ac{http}, sondern nur auf Client Ebene. Sobald die \ac{tcp} Verbindung einmal aufgebaut ist, werden alle Nachrichten an den selben Node weitergeleitet.\\
-% TODO ich will sagen bei http ist es auf nachrichten ebene
+Die Drehzahlsensoren verursachen durch die erhöhte Frequenz der Nachrichten mehr Traffic und Arbeitslast auf einem Broker als die Temperatursensoren.
+\\
+Da \ac{mqtt} ein Verbindungsorientiertes Protokoll ist, kann die load balancing Entscheidung nicht auf Paket- sondern nur auf Verbindungsebene getroffen werden. Sobald eine Client Verbindung aufgebaut ist, werden alle Nachrichten des Clients immer an den selben Node weitergeleitet.
+Aus diesem Grund kann bei einem \textit{round-robin} oder \textit{least connection} load balancing Algorithmus das zuvor beschriebene Verhalten zu einer ungleichen Lastverteilung im Cluster führen.
+\\
 Ein \ac{lb} für \ac{mqtt} muss in der Lage sein, die eingehenden Verbindungen basierend der derzeitigen Arbeitslast der einzelnen Nodes zu gewichten.
-
-% TODO erklären warum least connection nicht ausreicht
-% warum least connection bei http geht aber nicht bei mqtt
-%https://blog.envoyproxy.io/examining-load-balancing-algorithms-with-envoy-1be643ea121c
 
 \begin{comment}
 \ac{mqtt} Clients haben keine Grenze an Topics die sie abonnieren können. Mit einer Wildcard Subscription ist es sogar möglich, alle Topics die auf einem Broker existieren mit einer Subscription zu abonnieren: \verb|#|. Ein Client, der eine solche Subscription hat, verursacht mehr Traffic und Arbeitslast auf einem Broker als ein Client, der alle zehn Minuten einen Integer Wert auf dem Topic \verb|sensors/temperature| veröffentlicht.
 Wie in Kapitel \ref{s:domain} erläutert sind im Anwendungsfeld \ac{iot} die beschriebenen Clients keine seltenheit.
 % TODO muss ich das begründen?
 \end{comment}
+
+\newpage
 
 \begin{comment}
 - Describe insufficiencies your project or thesis aims at. Example: "The automated parts of the claim handling process are susceptible to changes. Each change requires lots of man-ual steps in order to deploy these changes into production."

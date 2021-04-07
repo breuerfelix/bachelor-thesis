@@ -483,6 +483,7 @@ Eine Möglichkeit beide Algorithmen in einem Load Balancer zu verwenden ist, bei
 Diese Methode harmoniert gut mit dem beschriebenen Circuit Breaking aus Kapitel \ref{ss:circuit-breaking}. Für den Fall, dass ein HiveMQ Node die Verbindung eines Clients unterbricht weil der Node überlastet ist, markiert das Circuit Breaking diesen Node als \verb|UNHEALTHY| und der Load Balancer wird den Client, der versucht sich wieder mit dem Cluster zu verbinden, mit einem anderen Node verbinden anstatt mit dem selben.
 \\
 Durch diese Implementation der Sticky Session werden Clients, die ihre Verbindung verlieren, immer mit dem selben Node wiederverbunden und Clients, deren Verbindung absichtlich beendet wurde, werden einem neuen Node zugewiesen. Clients, die sich zum ersten mal mit dem Cluster verbinden, werden die bisher basierend der freien Last der einzelnen Nodes verteilt.
+\newpage
 
 \begin{comment}
 - This is supposed to be the core of your thesis or project. Describe your work from a con-ceptual viewpoint.
