@@ -10,7 +10,6 @@ Abschnitt \ref{s:hivemq-broker} handelt von dem HiveMQ Broker und geht insbesond
 Abschlie{\ss}end wird die Funktionalität eines Load Balancers am Beispiel von Envoy in Abschnitt \ref{s:load-balancing} gezeigt.
 
 \subsection{Message Queuing Telemetry Transport} \label{s:mqtt}
-%TODO langlebiege connection
 \acf{mqtt} wurde ursprünglich von Doktor Andy Stanford-Clark und Arlen Nipper im Jahr 1999 entworfen, um Gas- und Ölpiplines zu überwachen. Diese lagen oftmals an entlegenen Orten, wie zum Beispiel auf Übersee, und konnten nicht mit Radiowellen oder einem Kabel zum Festland erreicht werden. Zu dieser Zeit war die einzige Option, um Sensordaten auf einen Server zu übertragen, eine auf Datendurchsatz abgerechnete Satellitenkommunikation. Bei mehreren tausend Sensoren wurde somit ein Protokoll benötigt, das die Daten zuverlässig mit minimaler Bandbreite an die Server auf dem Festland übermitteln kann.
 \ac{mqtt} wurde im Jahr 2013 von der \ac{oasis} als Open Source standatisiert und wird heutzutage von vielen gro{\ss}en \ac{iot} Platformen wie AWS IoT und Sparkplug unterstützt.
 \cite{WhatMQTTDefinition}\\
@@ -18,7 +17,6 @@ Es gibt derzeit zwei Versionen der MQTT Spezifikation: 3.1.1 und 5. Alle Referen
 \ac{mqtt} ist ein OSI-Layer 7 \textit{Publish and Subscribe} Protkoll, das auf \acs{tcp} / \acs{ip} aufsetzt. Anders als das Request / Response Paradigma bei \acs{http} ist \ac{mqtt} Event gesteuert und erlaubt Servern eine Nachricht direkt an einen bestimmten Client zu schicken. Somit muss nicht periodisch nach neuen Nachrichten gefragt werden. Zusammen mit einem fixen Paket-Header von nur zwei Byte sorgen diese Eigeschaften für einen geringen Datendurchsatz.\cite{WhatMQTTDefinition}
 
 \subsubsection{Publish and Subscribe} \label{s:publish-subscribe}
-%TODO erwähnen das es sich um filter handelt
 \ac{mqtt} nutzt das \textit{Publish and Subscribe} Kommunikationsschema, das eine Struktur bietet um Nachrichten zwischen Publisher und Subscriber auszutauschen. In diesem Schema gibt es zwei unterschiedliche Systeme:
 \begin{itemize}
     \item Clients
@@ -26,8 +24,8 @@ Es gibt derzeit zwei Versionen der MQTT Spezifikation: 3.1.1 und 5. Alle Referen
 \end{itemize}
 Clients sind alle Teilnehmer dieses Systems, die Nachrichten empfangen oder veröffentlichen wollen. Um Nachrichten erfolgreich zu vermitteln, wird ein Broker als Mittelsmann verwendet.\cite{teamGettingStartedMQTT}
 Jede Nachricht wird durch den Publisher in bestimmte Klassen kategorisiert. Der Publisher wei{\ss} nicht ob, oder wer, an dieser Nachricht interessiert ist und schickt die klassifizierte Nachricht an den Broker.
-Clients, die an bestimmten Nachrichten interessiert sind, müssen bei dem Broker eine Subscription erstellen und dabei die gewünschte Kategorie angeben.
-Somit kann der Broker eingehende kategorisierte Nachrichten an die entsprechenden Clients, auch Subscriber genannt, weiterleiten.
+Clients, die an bestimmten Nachrichten interessiert sind, müssen bei dem Broker eine Subscription erstellen und dabei eine Kategorie angeben.
+Somit kann der Broker eingehende kategorisierte Nachrichten an die entsprechenden Clients, auch Subscriber genannt, weiterleiten. Die Kategorie funktioniert wie ein Filter auf alle Nachrichten.
 Der Broker kann Nachrichten auch aufbewahren, sodass Clients, die zu einem späteren Zeitpunkt eine Kategorie abonnieren, ebenfalls die vergangenen Nachrichten erhalten.
 \cite{EverythingYouNeed}
 Durch dieses System entsteht eine Entkopplung der einzelnen Clients auf mehreren Ebenen.
@@ -39,7 +37,6 @@ Durch dieses System entsteht eine Entkopplung der einzelnen Clients auf mehreren
 \cite{teamPublishSubscribeMQTT}
 In verteilten Systemen bietet ein solches Konzept eine einheitliche Abstraktion der Kommunikationsebene.
 \cite{domingusDistributedSystemsIntroduction2020}
-% TODO mehr zu distributed systems
 \begin{figure}
     \centering
     \includegraphics[scale=0.5]{images/publish_subscribe.png}
@@ -184,7 +181,9 @@ Die Enkodierung eines \textit{Variable Byte Integer} wird in Abschnitt 1.5.5 der
 \end{table}
 
 \subsubsection{MQTT CONNECT} \label{s:mqtt-connect}
-Nachdem eine Netzwerkverbindung zwischen einen Client und einem Broker aufgebaut wurde, muss das erste Paket eines Clients ein \verb|CONNECT| Paket sein. Tabelle \ref{table:mqtt-connect-packet-variable-header} zeigt den Aufbau und Inhalt eines Beispielhaften variablen Headers eines \verb|CONNECT| Paketes. Die ersten sechs Byte geben den Namen es Protokolls als UTF-8 encodierten String an. Dieser wird sich in zukünftigen Versionen nicht ändern und dient als Identifikationsmerkmal des \ac{mqtt} Protokolls für Server, die mehrere Protokolle implementiert haben. Byte sieben gibt die verwendete \ac{mqtt} Version des Clients an. In Byte acht kann der Client Kennzeichnungen für die Präsenz der optionalen Daten setzen. Die Länge der Eigenschaften wird mit Byte elf bestimmt. In den Eigenschaften kann der Client zum Beispiel eine maximale Paketgrö{\ss}e oder Themen Aliasse setzen.\cite{mqtt5Specification}\\
+Nachdem eine Netzwerkverbindung zwischen einem Client und einem Broker aufgebaut wurde, muss das erste Paket des Clients ein \verb|CONNECT| Paket sein.
+Tabelle \ref{table:mqtt-connect-packet-variable-header} zeigt den Aufbau und Inhalt eines Beispielhaften variablen Headers eines \verb|CONNECT| Paketes.
+Die ersten sechs Byte geben den Namen des Protokolls als UTF-8 enkodierten String an. Dieser wird sich in zukünftigen Versionen nicht ändern und dient als Identifikationsmerkmal des \ac{mqtt} Protokolls für Server, die mehrere Protokolle implementiert haben. Byte sieben gibt die verwendete \ac{mqtt} Version des Clients an. In Byte acht kann der Client Kennzeichnungen für die Präsenz der optionalen Daten setzen. Die Länge der Eigenschaften wird mit Byte elf bestimmt. In den Eigenschaften kann der Client zum Beispiel eine maximale Paketgrö{\ss}e oder Themen Aliasse setzen.\cite{mqtt5Specification}\\
 Nach dem variablen Header folgen die Daten (engl. \textit{Payload}) des \verb|CONNECT| Paketes. Diese sind eine oder mehrere Felder mit ihrer Länge als Präfix. Byte acht des variablen Headers bestimmt das Vorkommen der Felder, die - falls vorhanden - eine strikte Reihenfolge einhalten müssen.
 \begin{enumerate}
     \item Client Kennung
@@ -245,52 +244,52 @@ Der Broker muss eine \verb|CONNECT| Nachricht von einem Client mit einem \verb|C
 % TODO länge der eigenschaften kann nicht 0 sein oder ? wegen der clientid
 
 \subsubsection{Last Will Nachricht} \label{s:last-will}
-Ein Client kann bei der Verbindung zu einem Broker einen letzten Willen (engl. \textit{Last Will}) als Nachricht definieren. Diese Nachricht wird auf ein ebenfalls angegebenes Topic veröffentlich sobald die Verbindung zum Client unterbricht und dieser nicht in einer definierten Zeit seine Verbindung zum Broker wieder aufbauen kann. Falls der Client seine Verbindung Protokollkonform beendet, wird die Last Will Nachricht nicht veröffentlicht.
+Ein Client kann bei der Verbindung zu einem Broker einen letzten Willen (engl. \textit{Last Will}) als Nachricht definieren. Diese Nachricht wird auf ein ebenfalls angegebenes Topic veröffentlich sobald die Verbindung zum Client unterbricht und dieser nicht in einer definierten Zeit seine Verbindung zum Broker wiederaufbauen kann. Falls der Client seine Verbindung Protokollkonform beendet, wird die Last Will Nachricht nicht veröffentlicht.
 \cite{soniSURVEYMQTTPROTOCOL}\\
-Die Last Will Nachricht kann in sicherheitsrelevanten Applikationen eingesetzt werden. Als Beispiel dient ein Bewegungssensor der eine Eingangtür überwachen soll. Falls dieser Sensor vor einem Einbruch mutwillig zerstört wird, verliert dieser die Verbindung zum Broker und seine Last Will Nachricht wird veröffentlicht. Somit kann ein System auch auf ungeplante Events reagieren.
+Die Last Will Nachricht kann in sicherheitsrelevanten Applikationen eingesetzt werden, um auf ungeplante Ausfälle von Clients zu reagieren.
 
 \subsubsection{Shared Subscriptions} \label{s:shared-subsriptions}
-In \ac{mqtt} Version 5 wurden \textit{Shared Subscriptions} eingeführt, die es Clients erlauben ein Abonnement untereinander zu teilen. Diese Clients werden in eine \textit{Shared Subscription Group} zusammengefasst. Bei einem normalen Abonnement erhält jeder Client, der das gleiche Thema abonniert hat, eine Kopie der Nachricht. Bei einer \textit{Shared Subscription} erhält immer nur ein Client der \textit{Shared Subscription Group} die Nachricht in abwechselnder Reihenfolge. Dieser Mechanismus wird auch als \textit{Client Load Balancing} bezeichnet, da die Last eines Themas auf mehrere Abonnenten verteilt wird.\cite{raschbichlerMQTTHowNew}
-Shared Subscriptions verwenden Standard \ac{mqtt} Mechanismen. Jeder Client kann Teil einer Shared Subscription Group werden, indem er diese Topic Struktur einhält: \verb|$share/GROUPID/TOPIC|.
+In \ac{mqtt} Version 5 wurden \textit{Shared Subscriptions} eingeführt, die es Clients erlauben eine Subscription untereinander zu teilen. Diese Clients werden in eine \textit{Shared Subscription Group} zusammengefasst. Bei einer normalen Subscription erhält jeder Client, der das gleiche Topic abonniert hat, eine Kopie der Nachricht. Bei einer \textit{Shared Subscription} erhält immer nur ein Client der \textit{Shared Subscription Group} die Nachricht in abwechselnder Reihenfolge. Dieser Mechanismus wird auch als \textit{Client load balancing} bezeichnet, da die Last eines Topics auf mehrere Subscriber verteilt wird.\cite{raschbichlerMQTTHowNew}
+Shared Subscriptions verwenden Standard \ac{mqtt} Mechanismen. Jeder Client kann Teil einer Shared Subscription Group werden, indem er folgende Topic Struktur einhält: \verb|$share/GROUPID/TOPIC|.
 \begin{itemize}
-    \item \verb|$share|: Statische Shared Subscription Identifikation.
-    \item \verb|GROUPID|: Identifikation einer Shared Subscription Group. Darf \verb|/|, \verb|#| und \verb|+| nicht enthalten.
-    \item \verb|TOPIC|: Das zu abonnierende Topic.
+    \item \verb|$share|: Statische shared Subscription Kennung
+    \item \verb|GROUPID|: Identifikation einer Shared Subscription Group. Darf \verb|/|, \verb|#| und \verb|+| nicht enthalten
+    \item \verb|TOPIC|: Das zu abonnierende Topic
 \end{itemize}
-Ein konkretes Beispiel für das abonnieren einer Shared Subscription ist: \verb|$share/group1/sensors/temperature|.
-% TODO bild einer shared subscription group
+Ein konkretes Beispiel für das abonnieren einer Shared Subscription ist:
+\newline
+\verb|$share/group1/sensors/temperature|
 
 \newpage
 
 \subsection{HiveMQ Broker} \label{s:hivemq-broker}
-Der HiveMQ Broker ist das Produkt der in 2012 gegründeten Firma HiveMQ \ac{gmbh}. Mit über 130 internationalen Kunden und einem Sitz in Landshut, Deutschland, erleichtert HiveMQ durch ihren Broker die Kommunikation von Geräten und Services untereinander.
+Der HiveMQ Broker ist das Produkt der in 2012 gegründeten Firma HiveMQ \acs{gmbh}. Mit über 130 internationalen Kunden und einem Sitz in Landshut, Deutschland, erleichtert HiveMQ durch ihren \ac{mqtt} Broker die Kommunikation von Geräten und Services untereinander.
+\cite{HiveMQCompanya}
 \\
-%https://www.hivemq.com/company/
 Der HiveMQ Broker ist ein Java basierter \ac{mqtt} Broker, der sich auf das Anwendungsfeld \acl{iot} spezialisiert. Der Broker unterstützt \ac{mqtt} Version 3 und 5 und ist somit Eclipse Sparkplug kompatibel.
 Eclipse Sparkplug ist eine Open Source Spezifikation die ein Framework für \ac{mqtt} Anwendungen bietet indem sie Definitionen für \ac{mqtt} Topics und \ac{mqtt} Payload Strukturen definiert.
 Die Kompatibilität des HiveMQ Brokers mit Sparkplug und die Clusterfähigkeit (siehe Kapitel \ref{s:hivemq-cluster}) ermöglichen den Einsatz des Brokers in Internet of Things Projekten mit mehreren Millionen Clients.
-%https://www.hivemq.com/blog/mqtt-sparkplug-essentials-part-1-introduction/
+\cite{obermaierMQTTSparkplugEssentials}
 \\
 Neben dem Anwendungsfeld \ac{iot} kann der HiveMQ Broker auch für \textit{Service to Service} Kommunikation im Backend eigesetzt werden.
 Alternativen für eine Event gesteuerte Kommunikation zwischen Services bieten Open Source Broker wie Apache Kafka, RabbitMQ oder ZeroMQ.
 \\
-Bis 2019 war der Quellcode des HiveMQ Brokers nicht frei zugänglich. Im April 2019 wurde eine \textit{Community Edition} des HiveMQ Brokers unter der Apache 2.0 Lizenz auf GitHub veröffentlicht. Für die Enterprise Edition, mit Features wie Clustering und Control Center, ist eine HiveMQ Lizenz nötig und lediglich kostenlos für bis zu 25 Clients.
-% TODO noch mehr schreiben
+Bis 2019 war der Quellcode des HiveMQ Brokers nicht frei zugänglich. Im April 2019 wurde eine \textit{Community Edition} des HiveMQ Brokers unter der Apache 2.0 Lizenz auf GitHub veröffentlicht. Für die Enterprise Edition, mit Features wie Clustering und Control Center, ist eine HiveMQ Lizenz notwendig.
 
 \subsubsection{HiveMQ Cluster} \label{s:hivemq-cluster}
-Ein Merkmal des HiveMQ Broker ist die Möglichkeit ein Broker Cluster zu bilden.
-Ein Broker Cluster (folgend Cluster genannt) ist ein verteiltes System in welchem sich mehrere HiveMQ Broker zusammenschlie{\ss}en.
+Ein Merkmal des HiveMQ Brokers ist die Möglichkeit ein Broker Cluster zu bilden.
+Ein Broker Cluster (folgend Cluster genannt) ist ein verteiltes System, in welchem sich mehrere HiveMQ Broker zusammenschlie{\ss}en.
 Ein Cluster bildet für Clients eine einzige logische Einheit.
 Dies bedeutet, für einen Client macht es keinen Unterschied ob er zu einem einzigen HiveMQ Broker oder zu einem Cluster verbunden ist.
 \cite{HiveMQClusterHiveMQ}
-Durch das clustern der HiveMQ Broker ensteht eine horizontale Skalierung. Wie in Kapitel \ref{s:domain} anwendungsdomäne bereits erläutert, kann der Anwendungsfall \ac{iot} zu mehreren Millionen Clients führen, wobei eine vertikale Skalierung an ihre Grenzen sto{\ss}en kann.
+\\
+Durch das zusammenschlie{\ss}en der HiveMQ Broker ensteht eine horizontale Skalierung. Wie in Kapitel \ref{s:domain} bereits erläutert, kann der Anwendungsfall \ac{iot} zu mehreren Millionen Clients führen, wobei eine vertikale Skalierung an ihre Grenzen sto{\ss}en kann.
 \begin{itemize}
     \item \textbf{Vertikale Skalierung:} Fügt mehr Rechen- oder Speichereinheiten zu einem Server hinzu.
     \item \textbf{Horizontale Skalierung:} Fügt mehrere Server zu einer logischen Recheneinheit hinzu. Dabei kann die Arbeitslast auf die einzelnen Server verteilt werden.
 \end{itemize}
-%TODO bessere quelle für skalierung?
 \cite{HowScaleIT}
-
+\\
 Ein HiveMQ Broker in einem HiveMQ Cluster wird als ein HiveMQ Node (folgend Node genannt) bezeichnet.
 Damit sich mehrere Nodes zu einem Cluster zusammenschlie{\ss}en muss jeder Node:
 \begin{itemize}
@@ -310,7 +309,8 @@ HiveMQ ist in der Lage die Clustergrö{\ss}e zur Laufzeit dynamisch anzupassen. 
 \cite{HiveMQClusterHiveMQ}
 
 \subsubsubsection{Overload Protection} \label{sb:overload-protection}
-HiveMQ stellt einen eingebauten Überlastschutz (engl. \textit{Overload Protection}) für ein HiveMQ Cluster bereit. Jeder Node eines Cluster ist in der Lage die Rate der eingehenden Nachrichten zu reduzieren. Dieser Mechanismus erhöht die Stabilität des Cluster indem gezielt Clients, die zu einer Überlast beitragen, gedrosselt werden. Dadurch kann sich das Cluster von einer Überlastsituation erholen ohne die Service Qualität für alle Clients zu reduzieren.
+HiveMQ stellt einen eingebauten Überlastschutz (engl. \textit{Overload Protection}) für ein HiveMQ Cluster bereit. Jeder Node eines Cluster ist in der Lage die Rate der eingehenden Nachrichten zu reduzieren. Dieser Mechanismus erhöht die Stabilität des Cluster indem gezielt Clients, die zu einer Überlast beitragen, gedrosselt werden.
+Dadurch kann sich das Cluster von einer Überlastsituation erholen, ohne eine Beeinträchtigung der Service Qualität für Clients, die nicht der Überlastsituation beitragen.
 Jeder Node eines Clusters berechnet durchgehend einen individuellen \textit{Overload Protection Level} auf Basis der Menge aller:
 \begin{itemize}
     \item eingehenden \verb|PUBLISH| Nachrichten
@@ -318,33 +318,30 @@ Jeder Node eines Clusters berechnet durchgehend einen individuellen \textit{Over
     \item verbundenen Clients
     \item Queued Messages
 \end{itemize}
-Das Drosseln von Clients basiert auf einem Credit System. Jeder Client erhält nach dem Aufbau einer Verbindung ein Guthaben von 50,000 Credits. Um auf einem Topic Nachrichten zu veröffentlichen muss ein Client mit seinen Credits bezahlen. Diese werden alle 200 Millisekunden um einen bestimmten Wert regeniert bis das maximale Guthaben von 50,000 erreicht wurde. Dieser Wert richtet sich nach dem derzeitigen Overload Protection Level des Nodes, auf dem der Client verbunden ist.
+Das Drosseln von Clients basiert auf einem Credit System. Jeder Client erhält nach dem Aufbau einer Verbindung ein Guthaben von 50,000 Credits. Um auf einem Topic Nachrichten zu veröffentlichen muss ein Client mit seinen Credits bezahlen. Diese werden alle 200 Millisekunden um einen bestimmten Wert regeneriert, bis das maximale Guthaben von 50,000 wieder erreicht wurde. Der Regenrationswert richtet sich nach dem derzeitigen Overload Protection Level des Nodes, auf dem der Client verbunden ist.
+\\
 Hat ein Client alle seine Credits verbraucht, wird \ac{tcp} Backpressure auf dem Socket des Clients angewandt und dieser kann keine Nachrichten mehr veröffentlichen.
 Ist der Zeitraum, in dem \ac{tcp} Backpressure für einen Client angewandt wird, länger als der konfigurierte Keep-Alive Wert, wird die Verbindung des Clients unterbrochen.
 Neben \ac{mqtt} Clients kann auch eine Topologieänderung des Clusters zu einer Erhöhung des Overload Protection Levels führen.
 \cite{ClusterOverloadProtection}
 
-% TODO wirklich schreien ?
-\subsubsubsection{Client Queue}
-\subsubsubsection{Replication}
-
 \subsubsection{Persistente Session} \label{s:persistent-session}
-Um Nachrichten von einem \ac{mqtt} Broker zu erhalten, muss sich ein Client zu diesem verbinden und eine Subscription auf ein Topic erstellen.
-Jedes mal wenn die Verbindung zum Client unterbrochen wird, müssen die Verbindung und alle Subscriptions neu aufgebaut werden.
+Um Nachrichten von einem \ac{mqtt} Broker zu erhalten, muss sich ein Client zu diesem verbinden und eine Subscription auf ein Topic erstellen. Alle Subscriptions die ein Client erstellt, werde mit der \ac{tcp} Verbindung des Clients assoziiert.
+Jedes mal wenn die Verbindung zum Client unterbrochen wird, muss die Verbindung erneut aufgebaut und alle Subscriptions erneut erstellt werden.
 Für einen Client mit limitierten Ressourcen ist dies eine Belastung.
 Um diese Belastung zu reduzieren kann der Client beim Aufbau der Verbindung eine persistente Session anfordern, indem das entsprechende Bit eins von Byte acht des variablen Headers der \verb|CONNECT| Nachricht (siehe Tabelle \ref{table:mqtt-connect-packet-variable-header}) auf null setzt.
 Ist dieses Bit hingegen auf eins gesetzt, werden alle Nachrichten und Informationen von vorherigen Sessions gelöscht.
 Eine persistente Session speichert folgende Daten auf dem Broker:
 \begin{itemize}
-    \item Die Existenz einer persistenten Session. Als Identifikation wird die \acs{clientid} verwendet.
+    \item Die Existenz einer persistenten Session. Als Identifikation wird die Client Kennung verwendet.
     \item Alle Subscriptions des Clients.
     \item Alle Nachrichten mit einem \ac{qos} Level eins oder zwei, die der Client noch nicht bestätigt hat.
     \item Alle Nachrichten mit einem \ac{qos} Level eins oder zwei, die der Client aufgrund der unterbrochenen Verbindung nicht erhalten konnte.
     \item Alle Nachrichten mit einem \ac{qos} Level zwei, die der Client veröffentlicht hat und noch nicht bestätigt wurden.
 \end{itemize}
-Neben dem Broker muss ein Client auch Informationen bei einer persistenten Session speichern. Er ist verantwortlich die folgenden Daten zu persistieren:
+Bei einer persistenten Session muss neben dem Broker auch der Client Informationen speichern. Er ist verantwortlich die folgenden Daten zu persistieren:
 \begin{itemize}
-    \item Seine eigene \ac{clientid}. Diese wird als Identifikationsmerkmal einer persistenten Session auf dem Broker genutzt und muss bei einer erneuten Verbindung immer gleich sein.
+    \item Seine eigene Client Kennung. Diese wird als Identifikationsmerkmal einer persistenten Session auf dem Broker genutzt und muss bei einer erneuten Verbindung immer gleich sein.
     \item Alle \ac{qos} Level eins oder zwei Nachrichten, die noch nicht vom Broker bestätigt wurden.
     \item Alle \ac{qos} Level zwei Nachrichten, die der Client vom Broker erhalten hat und noch nicht vollständig bestätigt wurden.
 \end{itemize}
@@ -352,12 +349,11 @@ Sobald ein Client die Verbindung zu einem Broker verliert und eine persistente S
 \cite{teamPersistentSessionQueuing}
 
 \subsubsubsection{Client Takeover} \label{s:client-takeover}
-Wie bereits im Kapitel \ref{s:persistent-session} beschrieben kann ein Client eine persistente Session bei einem Broker anfordern. Dabei werden zum Beispiel Nachrichten mit einem \ac{qos} Level von eins oder zwei auf dem Broker nachgehalten, falls der Client seine Verbindung verliert. Ein Client Takeover findet statt, wenn der Broker eine neue Client Verbindung erhält aber noch eine offene Verbindung mit der selben \ac{clientid} hat. Dies kann bei \textit{halb-offenen \acs{tcp} Verbindungen} vorkommen, die, wie Andy Stanford-Clark beschreibt, auch bei \ac{tcp} auftreten können:
-"Although TCP/IP in theory notifies you when a socket breaks, in practice, particularly on things like mobile and satellite links, which often 'fake' TCP over the air and put headers back on at each end, it’s quite possible for a TCP session to 'black hole', i.e. it appears to be open still, but in fact is just dumping anything you write to it onto the floor."
-% TODO quelle: https://groups.google.com/forum/#!msg/mqtt/zRqd8JbY4oM/XrMwlQ5TU0EJ
+Wie bereits im Kapitel \ref{s:persistent-session} beschrieben kann ein Client eine persistente Session bei einem Broker anfordern. Dabei werden zum Beispiel Nachrichten mit einem \ac{qos} Level von eins oder zwei auf dem Broker nachgehalten, falls der Client seine Verbindung verliert. Ein Client Takeover findet statt, wenn der Broker eine neue Client Verbindung erhält aber noch eine offene Verbindung mit der selben \ac{clientid} hat. Dies kann bei \textit{halb-offenen \acs{tcp} Verbindungen} vorkommen, die, wie Andy Stanford-Clark beschreibt, bei \ac{tcp} auftreten können:\newline
+``Although TCP/IP in theory notifies you when a socket breaks, in practice, particularly on things like mobile and satellite links, which often 'fake' TCP over the air and put headers back on at each end, it’s quite possible for a TCP session to 'black hole', i.e. it appears to be open still, but in fact is just dumping anything you write to it onto the floor.''\cite{WhyKeepaliveNeeded}\newline
 Der Broker beendet die existierende Verbindung und assoziiert die persistente Session - falls vorhanden - nun mit dem neuen Client.
 \cite{teamKeepAliveClient}
-%TODO where to quote?
+\newpage
 
 \subsection{Load Balancing} \label{s:load-balancing}
 Load balancing wurde um 1990 als Unterstützung für horizontale Skalierung eingeführt, um Traffic auf Server-Infrastrukturen zu verteilen. Dadurch sollte eine erhöhte Verfügbarkeit der Services für Endnutzer erzielt werden.
@@ -371,7 +367,8 @@ Bei einer horizontalen Skalierung werden nicht die Ressourcen eines einzelnen Se
 \cite{bourkeServerLoadBalancing2001}
 Ein \acl{lb} wird dabei den einzelnen Servern vorgeschaltet um einkommenden Traffic basierend diverser load balancing Algorithmen an die entsprechenden Server zu verteilen.
 Je nach Algorithmus sorgt der \ac{lb} dadurch für ein gleimä{\ss}ges verteilen der Last auf das gesamte System. Es ist ebenfalls möglich ausgefallene Server zu detektieren und die Last auf verbleibende Server umzuleiten.
-Load balancing kann Software- und Hardwareseitig betrieben werden. Als Hardware \ac{lb} wird oftmals ein OSI-Layer 4 oder 7 Switch verwendet. Dabei müssen alle Server, die Last erhalten sollen, direkt an den Hardware \ac{lb} angeschlossen werden.
+\\
+Load balancing kann Software- und Hardwareseitig betrieben werden. Als Hardware \ac{lb} wird oftmals ein OSI-Layer vier oder sieben Switch verwendet. Dabei müssen alle Server, die Last erhalten sollen, direkt an den Hardware \ac{lb} angeschlossen werden.
 \cite{WasIstLoad2016}
 Software load balancing braucht, anders als Hardware load balancing, keine dedizierte Hardware und kann in jedem Server, Container oder jeder virtuellen Maschine eingesetzt werden.
 \cite{SoftwareLoadBalancing}
@@ -409,7 +406,7 @@ Das Protokoll, die Server-Infrakstruktur oder das Verhalten der Clients sind wic
 Folgend werden die weit verbreitesten load balancing Algorithmen erläutert.
 
 \paragraph{Round Robin}
-Alle Server werden in eine Liste eigetragen. Der Round robin Algorightmus leitet Traffic immer an den ersten Server in der Liste und verschiebt diesen Server danach an das Ende der Liste.
+Alle Server werden in eine Liste eingetragen. Der Round robin Algorightmus leitet Traffic immer an den ersten Server in der Liste weiter und verschiebt diesen Server danach an das Ende der Liste.
 Dieser Algorightmus teilt alle Anfragen gleichmä{\ss}ig auf die Server auf und findet oft Anwendung wenn alle Server die gleichen Ressourcen zur verfügung haben.
 \cite{WhatLoadBalancer}
 
@@ -426,9 +423,9 @@ Mögliche Daten sind Quell-, Ziel \ac{ip} Adresse, Port oder Domain Name. Durch 
 
 \subsubsection{Envoy} \label{s:envoy}
 % TODO envoy architectur video!
-Envoy ist ein \ac{osi}-Layer 7 Proxy und für gro{\ss}e moderne Service orientierte Architekturen von Lyft entwickelt worden.
+Envoy ist ein \ac{osi}-Layer sieben Proxy und für gro{\ss}e moderne Service orientierte Architekturen von Lyft entwickelt worden.
 Im September 2017 wurde Envoy an die \textit{Cloud Native Computing Foundation} gestiftet, die Cloud Projekte wie Kubernetes, Prometheus, containerd und Jaeger verwaltet.
-Der Envoy Quellcode wird öffentlich auf GitHub verwaltet und hat stand April 2021 bereits 670 Kontributoren und 16.500 Sterne auf GitHub gesammelt. \cite{EnvoyproxyEnvoy2021}
+Der Envoy Quellcode wird öffentlich auf GitHub versioniert und hat stand April 2021 bereits 670 Kontributoren und 16.500 Sterne auf GitHub gesammelt. \cite{EnvoyproxyEnvoy2021}
 \\
 Der in C++ programmierte und hoch performante \ac{lb} Envoy stellt folgende abstrakte Features bereit:
 \begin{itemize}
