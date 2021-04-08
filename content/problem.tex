@@ -14,7 +14,7 @@ In Kapitel \ref{s:mqtt} wurde erläutert, dass \ac{mqtt} langlebige \ac{tcp} Ver
 Der Load Balancer muss aktive Client Verbindungen solange aufrecht halten, bis Clients diese terminieren.
 Aktualisierungen des Load Balancers oder dessen Konfiguration dürfen nicht zu einer Unterbrechung der aktiven Verbindungen führen.
 
-\subsection{Persistente Client Sessions}
+\subsection{Persistente Client Sessions} \label{sp:persistent-session}
 Wie in Kapitel \ref{s:persistent-session} beschrieben können Clients eine persistente Session bei einem Broker anfordern. Dabei werden Nachrichten und Session relevante Daten gespeichert für den Fall, dass die Verbindung zum Client unterbrochen wird. Sobald der Client seine Verbindung wieder aufbaut, findet ein Client Takeover (\ref{s:client-takeover}) statt.
 Dieser Prozess findet bei einem Broker im Arbeitsspeicher statt.
 Dort muss zu den existierenden persistierten Daten der dazugehörige \ac{tcp} Socket ausgetauscht werden.

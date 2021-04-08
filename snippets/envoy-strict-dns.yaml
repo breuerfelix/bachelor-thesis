@@ -11,5 +11,5 @@ clusters:
       - endpoint:
           address:
             socket_address:
-              address: example.cluster
+              address: example.cluster.internal
               port_value: 1883

@@ -33,5 +33,5 @@ static_resources:
         - endpoint:
             address:
               socket_address:
-                address: example.control.plane
+                address: example.controlplane.internal
                 port_value: 18000
