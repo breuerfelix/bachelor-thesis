@@ -1,4 +1,4 @@
-\section{Problembeschreibung}
+\section{Problembeschreibung} \label{s:problem}
 Die clusterfähigkeit des HiveMQ Brokers ermöglicht Millionen \ac{iot} Geräten die Kommunikation untereinander über einen zentralen und ausfallsicheren HiveMQ Cluster.
 Um ein HiveMQ Cluster für \ac{mqtt} Clients zu einem virtuellen Broker mit einer einzigen \ac{ip} Adresse oder Domain zu abstrahieren, wird, wie in Kapitel \ref{s:load-balancing} beschrieben, ein \acl{lb} benötigt.
 In diesem Kapitel werden Anforderung für einen \acl{lb} definiert, um \ac{mqtt} Traffic klug an alle Nodes eines HiveMQ Clusters transparent zum Client zu verteilen.
@@ -8,7 +8,7 @@ Ein HiveMQ Cluster ist, wie in Kapitel \ref{s:hivemq-cluster} beschrieben, in de
 Eine statische Konfiguration der HiveMQ Nodes ist somit nicht möglich.
 
 \subsection{Langlebige TCP Verbindungen}
-TODO Abschnitt vielleicht streichen
+TODO Kapitel vielleicht streichen
 \\
 In Kapitel \ref{s:mqtt} wurde erläutert, dass \ac{mqtt} langlebige \ac{tcp} Verbindungen benutzt um den Datendurchsatz gering zu halten. Dadurch kann der Broker Nachrichten zum Client schicken, ohne das dieser periodisch nach neuen Nachrichten fragen muss.
 Der Load Balancer muss aktive Client Verbindungen solange aufrecht halten, bis Clients diese terminieren.
