@@ -1,29 +1,29 @@
 package main
 
 import (
-	"net"
-	"fmt"
-	"time"
+  "net"
+  "fmt"
+  "time"
 )
 
 var INTERVAL = 5 * time.Second
 
 func refreshDNS(domain string) {
-	for {
-		ips, _ := net.LookupIP(domain)
+  for {
+    ips, _ := net.LookupIP(domain)
 
-		for _, ip := range ips {
-			fmt.Printf("IP: %s\n", ip.String())
-		}
+    for _, ip := range ips {
+      fmt.Printf("IP: %s\n", ip.String())
+    }
 
-		time.Sleep(INTERVAL)
-	}
+    time.Sleep(INTERVAL)
+  }
 }
 
 func main() {
-	go refreshDNS("hivemq.fbr.ai")
+  go refreshDNS("example.cluster.internal")
 
-	// ...
+  // ...
 }
 
 // Output:

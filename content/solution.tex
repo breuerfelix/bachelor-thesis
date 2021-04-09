@@ -196,7 +196,7 @@ Neben der statischen Konfigurationsdatei bietet Envoy zwei Mechanismen für eine
     \cite{ConfigurationDynamicControl}
 \end{itemize}
 Die dynamische Konfiguration via Dateisystem ist gut für einzelne Envoy Instanzen, da keine individuelle Control Plane programmiert werden muss. Betreibt man jedoch ein Envoy Cluster, in dem jede Envoy Instanz die selbe Konfiguration besitzt, muss man bei einer Aktualisierung der Konfiguration die neue Datei auf die Dateisysteme aller Envoys verteilen.
-Für den Anwendungsfall eines Envoy Clusters ist das dynamische verteilen mit einer Control Plane besser geeignet. Jeder Envoy wird mit einer statischen Konfigurationsdatei konfiguriert, in der die Adresse der Control Plane eingetragen ist. Sobald eine Envoy Instanz startet registriert sich diese an der Control Plane und erhält seine Konfiguration. Das Verteilen von Konfigurationsaktualisierungen an die Envoy Instanzen wird nun von der Control Plane übernommen.
+Für den Anwendungsfall eines Envoy Clusters ist das dynamische verteilen mit einer Control Plane besser geeignet. Jeder Envoy wird mit einer statischen Konfigurationsdatei konfiguriert, in der die Adresse der Control Plane eingetragen ist. Sobald eine Envoy Instanz startet, registriert sich diese an der Control Plane und erhält seine Konfiguration. Das Verteilen von Konfigurationsaktualisierungen an die Envoy Instanzen wird nun von der Control Plane übernommen.
 \\
 Quellcodeauszug \ref{code:envoy-control-plane} zeigt eine statische Konfigurationsdatei um sich bei einer Control Plane zu registrieren die unter \verb|example.controlplane.internal:18000| erreichbar ist.
 \begin{figure}
@@ -210,19 +210,34 @@ Die Konfigurationsdatei ist in drei Teile unterteilt:
   \item \verb|dynamic_resources:| Gibt die Quelle der dynamischen Provisionierung an. Im Quellcodeauszug \ref{code:envoy-control-plane} wird eine \verb|gRPC| \ac{api} Namens \verb|xds_cluster| verwendet.
   \item \verb|static_resources:| Es wird die Quelle für eine dynamische Provisionierung definiert. Im Quellcodeauszug \ref{code:envoy-control-plane} wird eine Quelle Namens \verb|xds_cluster| definiert. Diese Quelle wird in \verb|dynamic_resources| referenziert.
 \end{itemize}
-Eine Control Plane kann in jeder Programmiersprache entwickelt werden und muss nur die Spezifikationen der Data-Plane API \cite{EnvoyproxyDataplaneapi2021} berücksichtigen. Um den Einstieg für Entwickler zu erleichtern stellt Envoy Bibliotheken für Java und Golang bereit, die eine Abstraktion der Data-Plane \ac{api} bieten.
+Eine Control Plane kann in jeder Programmiersprache entwickelt werden und muss nur die Spezifikationen der Data-Plane API \cite{EnvoyproxyDataplaneapi2021} berücksichtigen. Um den Einstieg für Entwickler zu erleichtern, stellt Envoy Bibliotheken für Java und Golang bereit, die eine Abstraktion der Data-Plane \ac{api} bieten.
 \\
 Um die Skalierung der Envoy Instanzen zu ermöglichen wird im Rahmen der Thesis eine dynamische Konfiguration via Control Plane in Golang entwickelt. Der Grund für die Auswahl der Programmiersprache ist eine persönliche Präferenz und hat keine Auswirkung auf das load balancing.
 
 \subsubsection{Control Plane} \label{ss:control-plane}
-Envoy stellt eine Beispielhafte Control Plane \cite{DynamicConfigurationControl} bereit, die als Starthilfe für eine anwendungsspezifische Control Plane dient. Für den Anwedungsfall \ac{mqtt} soll die Control Plane eine Konfiguration ähnlich dem Beispiel \ref{code:envoy-weighted-round-robin} erzeugen. Dabei werden die Nodes und deren Gewichtung von der Control Plane bestimmt.
+Eine Envoy Control Plane wird als eigenständiger Webservice betrieben und muss von allen Envoy Instanzen, die ihre Konfiguration von der Control Plane erhalten sollen, erreichbar sein.
 \\
-Die in Kapitel \ref{ss:cluster-discovery} beschriebene HiveMQ Cluster Discovery kann zusammen mit einem gewichtenen Round-robin nicht implementiert werden. Wenn man den einzelnen Envoy Instanzen die Ermittlung der HiveMQ Nodes überlässt, hat man in der Control Plane keine Möglichkeit diesen HiveMQ Nodes individuelle Gewichtungen zu geben. Daher muss die Cluster Discovery in der Control Plane implementiert werden. Dem Envoy werden dann explizit alle HiveMQ Node \ac{ip} Adressen mit deren Gewichtungen und Port vermittelt.
+Abbildung \ref{fig:control-plane-architecture} zeigt den Fluss des Traffics bei einem Envoy als \acl{lb}, konfiguriert von einer Control Plane, in einem \ac{mqtt} Anwendungsfall. Die Envoy Instanz erhält ihre Listener- und Clusterkonfiguration von der Control Plane. \ac{mqtt} Clients verbinden sich mit dem \ac{lb} und werden an einen entsprechenden Node des HiveMQ Clusters weitergeleitet.
+\\
+Envoy stellt eine Beispielhafte Control Plane \cite{DynamicConfigurationControl} bereit, die als Starthilfe für eine anwendungsspezifische Control Plane dient. Für den Anwedungsfall \ac{mqtt} soll die Control Plane eine Konfiguration ähnlich dem Quellcodeauszug \ref{code:envoy-cluster-weight} erzeugen. Dabei werden die Nodes und deren Gewichtung von der Control Plane bestimmt.
+\\
+Die in Kapitel \ref{ss:cluster-discovery} beschriebene HiveMQ Cluster Discovery schlie{\ss}t die Benutzung des weighted round-robin Algorithmus in Envoy aus.
+Bei der Strict \ac{dns} Cluster Discovery Methode ermitteln die Envoy Instanzen die Nodes eines Clusters und propagieren diese nicht an die Control Plane zurück. Somit kann die Control Plane den einzelnen Nodes keine spezifischen Gewichtungen vergeben.
+Anstatt den Envoy Instanzen einen Domain Namen mitzuteilen und diesen auflösen zu lassen, muss der \ac{dns} Cluster Discovery Mechanismus in der Control Plane implementiert werden. Den Envoy Instanzen werden somit explizit alle HiveMQ Node \ac{ip} Adressen mit Gewichtung und Port mitgeteilt.
+\begin{figure}
+    \centering
+    \includegraphics[scale=0.5]{images/control-plane-architecture.png}
+    \caption{Architektur eines Envoy Load Balancers konfiguriert von einer Control Plane mit einem HiveMQ Cluster und MQTT Clients}
+    \label{fig:control-plane-architecture}
+\end{figure}
 
 \subsubsection{DNS Cluster Discovery} \label{ss:dns-discovery}
 Die Implementierung der HiveMQ Cluster Discovery in der Control Plane muss sich Konzeptuell der \ac{dns} Cluster Discovery von der HiveMQ Erweiterung anlehnen. Wie schon in Kapitel \ref{ss:cluster-discovery} beschrieben würde sonst die Topolgie des HiveMQ Clusters im Envoy mit der tatsächlichen Topologie divergieren.
-Die Control Plane muss asynchron und periodisch einen gegebenen Domain Namen auflösen und alle hinterlegten \ac{ip} Adressen als Nodes eines HiveMQ Clusters eintragen. Das Interval der periodischen Auflösung sollte sehr gering gehalten werden, zum Beispiel fünf Sekunden, um auf Topologieänderungen schnell zu reagieren. In der Regel sind in gro{\ss}en Infrastrukturen eigene \ac{dns} Server installiert, die eine hohe Abfragerate verarbeiten können.
-Quellcodeauszug \ref{code:dns-resolve-net} zeige die Auflösung aller \ac{ip} Adressen eines Domain Namens in Golang mit der Standard \verb|net| Bibliothek. Da die Funktion \verb|refreshDNS| als Go Routine gestartet wird, kann die \verb|main| Funktion weiterlaufen und muss nicht auf die Terminierung der \verb|refreshDNS| Funktion warten. Die \verb|refreshDNS| Funktion erneuert die \ac{ip} Adressen periodisch in gegebenem Intervall.
+\\
+Die Control Plane muss asynchron und periodisch einen gegebenen Domain Namen auflösen und alle hinterlegten \ac{ip} Adressen als Nodes eines HiveMQ Clusters eintragen. Das Interval der periodischen Auflösung sollte sehr gering gehalten werden, um auf Topologieänderungen schnell zu reagieren.
+Cloudumgebungen wie Kubernetes haben in der Regel eigene \ac{dns} Services installiert, die eine hohe Abfragerate verarbeiten können.
+\\
+Quellcodeauszug \ref{code:dns-resolve-net} zeige die Auflösung aller \ac{ip} Adressen eines Domain Namens in Golang mit der Standard \verb|net| Bibliothek. Da die Funktion \verb|refreshDNS| als Go Routine gestartet wird, muss die \verb|main| Funktion nicht auf die Terminierung der \verb|refreshDNS| Funktion warten. Die \verb|refreshDNS| Funktion erneuert die \ac{ip} Adressen periodisch in gegebenem Intervall.
 \begin{figure}
     \import{gen/}{dns-resolve-net}
     \caption{\ac{ip} Adressen Auflösung eines Domain Namens in Golang}
@@ -230,10 +245,11 @@ Quellcodeauszug \ref{code:dns-resolve-net} zeige die Auflösung aller \ac{ip} Ad
 \end{figure}
 
 \subsubsection{Weighted CPU Round Robin} \label{ss:weighted-cpu}
-Die Testszenarien aus Kapitel \ref{ss:test} zeigen, dass es bei \ac{mqtt} viele verschieden Client Verhaltensmuster gibt. Ein Client kann sein Verhalten zur Laufzeit um 180 Grad verändern und der Load Balancer ist nicht mehr in der Lage diesen Client mit einem anderen Node zu verbinden. Der Node muss das neue Verhalten des Clients nun verarbeiten.
-Daher korreliert eine \ac{tcp} Verbindung bei \ac{mqtt} nicht mit der verursachten Arbeitslast auf dem Broker. In Szenario 2 haben 300 Publisher doppelt so viel Last erzeugt wie 3000 Subscriber und 1000 Publisher zusammen.
-Die Anzahl der Verbindungen eines Nodes reicht im Fall \ac{mqtt} nicht aus um eine geeignete Load Balancing Entscheidung zu treffen.
-
+Die Testszenarien aus Kapitel \ref{ss:test} zeigen, dass es bei \ac{mqtt} viele verschieden Client Verhaltensmuster gibt. Ein Client kann sein Verhalten zur Laufzeit um 180 Grad verändern und der \acl{lb} ist nicht mehr in der Lage diesen Client mit einem anderen Node zu verbinden. Der Node muss das neue Verhalten des Clients nun verarbeiten.
+Eine \ac{tcp} Verbindung bei \ac{mqtt} korreliert nicht mit der verursachten Arbeitslast auf dem Broker. In Szenario zwei haben 300 Publisher doppelt so viel Last erzeugt wie 3000 Subscriber und 1000 Publisher zusammen.
+Nur anhand der Anzahl aktiver Verbindungen pro Node kann im Fall \ac{mqtt} keine optimale load balancing Entscheidung getroffen werden.
+\\
+TODO ab hier noch bis zum ende des kapitels korrigieren
 Über eine Control Plane kann man die Gewichtung einzelner Nodes eines Cluster im Envoy dynamisch anpassen.
 Die Control Plane muss periodisch und asynchron die aktuelle \ac{cpu} Auslastung eines jeden Nodes abfragen und darauf basierend die Nodes gewichten.
 HiveMQ stellt die \ac{cpu} Auslastung über die Prometheus Erweiterung unter dem Schlüssel \verb|com_hivemq_system_os_global_cpu_total_total| bereit.
@@ -345,12 +361,18 @@ Insgesamt hat der Weighted Round Robin \ac{lb} besser abgeschnitten als der Leas
 \label{table:test-output}
 \end{table}
 
-\subsubsection{Circuit Breaking} \label{ss:circuit-breaking}
-% TODO explain circuit breaking?
-Wie in Kapitel \ref{sb:overload-protection} beschrieben, hat ein HiveMQ Broker mehrere Möglichkeiten sich vor einer Überlastsituation zu schützen. Dabei kann ein Broker im ersten Schritt \ac{tcp} Backpressure auf individuelle Client Verbindungen anwenden um den Paketfluss zu verzögern. Falls dies nicht ausreicht um eine Lastspitze einzudämmen, fängt der Broker an Verbindungen von Clients zu beenden, die ihre Credits aufgebraucht haben. Dadurch werden gezielt Clients vom Broker getrennt, die zu viel Arbeitslast für den Broker verursachen. Durch die Trennung dieser Clients gibt es keine Service Eischränkungen für alle anderen Clients die mit dem Broker verbunden sind. Wenn der Broker Clients, die zu viel Arbeitslast verursachen, nicht abwerfen würde, ist er zu sehr damit beschäftigt die Anfragen dieser Clients zu bearbeiten und die Sericequalität für alle anderen Clients wird eingeschränkt.
+\subsubsection{Überlastschutz} \label{ss:circuit-breaking}
+Wie in Kapitel \ref{ss:weighted-cpu} beschrieben, kann das Lastverhalten von \ac{mqtt} Clients während der Laufzeit stark variieren. Da ein Client zur Laufzeit nicht mit einem anderen Node verbunden werden kann, kann es bei dem Verändern des Lastverhaltens von Clients zu einer Überlastsituation eines Nodes kommen.
+Ein HiveMQ Broker hat mehrere Möglichkeiten sich vor einer solchen Überlastsituation zu schützen (siehe Kapitel \ref{sb:overload-protection}).
+Im ersten Schritt wendet Broker \ac{tcp} Backpressure auf individuelle Client Verbindungen an, um den Paketfluss zu verzögern.
+Falls durch diese Mechanik eine Lastspitze nicht unter Kontrolle gebracht werden kann, wird die Verbindung von Clients unterbrochen, die ihre Credits aufgebraucht haben.
+Dadurch werden gezielt Clients vom Broker getrennt, die zu viel Arbeitslast für den Broker verursachen.
+Durch die Trennung dieser Clients gibt es keine Service Eischränkungen für alle anderen Clients, die mit dem Broker verbunden sind. Andernfalls kann es zu Paketverzögerungen oder Paketverlusten auf einem Broker kommen.
 \\
 Wenn sich ein Node eines Clusters in einer Überlastsituation befindet, ist es wichtig, dass der Load Balancer keine neuen Clients mehr mit diesem Node verbindet.
-Der aktuelle Status der Overload Protection kann über die Prometheus Metriken abgefragt werden. Eine Liste aller Prometheus Metriken findet sich in der HiveMQ Dokumentation \cite{MonitoringHiveMQDocumentation}. Tabelle \ref{table:overload-protection-metrics} gibt eine Übersicht der Metriken, die eine aktuelle Überlastung des Brokers widerspiegeln. Metriken, die sich auf Clients beziehen, beinhalten nur die Daten der Clients, die auf dem Node verbunden sind, bei dem die Metriken abgefragt werden.\cite{ClusterOverloadProtection}
+Über die Prometheus Schnittstelle der HiveMQ Nodes können diverse Metriken über den Zustand eines Nodes abgefragt werden.
+Eine Liste aller Prometheus Metriken findet sich in der HiveMQ Dokumentation \cite{MonitoringHiveMQDocumentation}.
+Tabelle \ref{table:overload-protection-metrics} gibt eine Übersicht der Metriken, die Indikatoren für eine mögliche Überlastsituation sind. Metriken, die sich auf Clients beziehen, enthalten nur Daten von Clients, die mit dem Node verbunden sind, bei dem die Metriken abgefragt wurden.
 \begin{table}[htbp]
 \centering
 \renewcommand{\arraystretch}{1.5}
@@ -371,12 +393,15 @@ Der aktuelle Status der Overload Protection kann über die Prometheus Metriken a
 \caption{HiveMQ Metriken, die eine Auskunft über die Overload Protection des Brokers geben}
 \label{table:overload-protection-metrics}
 \end{table}
-Die Metrik \verb|com.hivemq.supervision.overload.protection.level| aggregiert intern mehrere Metriken zusammen und bestimmt einen allgemeinen Überlast Level des Nodes. Der Wert des Levels liegt zwischen 0 und 10 wobei 10 das höhchste Überlastlevel ist.
-Damit ein Überlastlevel von 10 möglichst nicht erreicht wird, kann der Load Balancer präventiv keine neuen Clients mehr mit einem Node verbinden, der einen bestimmten Schwellenwert als Level überschritten hat.
 \\
-Ein hohes Überlastlevel kann kurzfristig durch Events wie das Beitreten eines neuen Nodes in ein Cluster auftreten. Dabei werden einige Client Queues auf den neuen Node repliziert, was zeitweise die Nodes, auf denen die Queues liegen, stark beansprucht. Daher ist es wichtig, dass der Load Balancer auf solche Events schnell reagiert und keine neuen Clients mehr mit den betroffenen Nodes verbindet.
-Um dies zu gewährleisten, wird eine geringe Abtastfrequenz von 2 Sekunden der Prometheus Metriken gewählt.
-Eine in Abbildung \ref{fig:overload-protection} gezeigte Überlastsituation verursacht einen maximalen Overload Protection Level von 1,5. Die Überlastsituation wurde nur von Client Verbindungen erzeugt. Durch \ac{tcp} Backpressure kann der Broker eine solche Überlastsituation gut verarbeiten ohne die Verbindung der Clients von dem Broker zu unterbrechen. Wenn ein neuer Node in das Cluster aufgenommen wird können Überlastwerte von bis zu 10 erreicht werden. Um nur in einer extremen Situation keine neuen Clientverbindungen zuzulassen, kann der Schwellenwert für den Überlastschutz auf 4 gesetzt werden.
+Die Metrik \verb|com.hivemq.supervision.overload.protection.level| aggregiert intern mehrere Metriken zusammen und bestimmt einen allgemeinen Überlastlevel des Nodes. Der Wert des Levels liegt zwischen 0 und 10 wobei 10 das höhchste Überlastlevel ist.
+Damit ein Überlastlevel von 10 möglichst nicht erreicht wird, kann der \acl{lb} präventiv keine neuen Clients mehr mit einem Node verbinden, der einen bestimmten Schwellenwert als Level überschritten hat.
+\\
+Ein hohes Überlastlevel kann kurzfristig durch Events wie das Beitreten eines neuen Nodes in ein Cluster auftreten. Dabei werden einige Client Queues auf den neuen Node repliziert, was zeitweise die Nodes, auf denen die Queues liegen, stark beansprucht. Daher ist es wichtig, dass der \ac{lb} auf solche Events schnell reagiert und keine neuen Clients mehr mit den betroffenen Nodes verbindet.
+Um dies zu gewährleisten, sollte eine geringe Abtastfrequenz der Prometheus Metriken gewählt werden.
+\\
+Eine in Abbildung \ref{fig:overload-protection} gezeigte Überlastsituation verursacht einen maximalen Überlastschutzlevel von 1,5.
+Die Überlastsituation wurde nur von Client Verbindungen erzeugt. Durch \ac{tcp} Backpressure kann der Broker eine solche Überlastsituation gut verarbeiten ohne die Verbindung der Clients von dem Broker zu unterbrechen. Wenn ein neuer Node in das Cluster aufgenommen wird können Überlastwerte von bis zu 10 erreicht werden. Um nur in einer extremen Situation keine neuen Clientverbindungen zuzulassen, kann der Schwellenwert für den Überlastschutz auf 4 gesetzt werden.
 \\
 \begin{figure}
     \centering
@@ -384,10 +409,13 @@ Eine in Abbildung \ref{fig:overload-protection} gezeigte Überlastsituation veru
     \caption{HiveMQ Cluster das Client TCP Backpressure anwendet}
     \label{fig:overload-protection}
 \end{figure}
-Nodes eines Clusters in Enovy haben einen \textit{Health Status} der angibt, ob diese neue Clients akzeptieren können oder nicht. Der Wert ist entweder \verb|HEALTHY| oder \verb|UNHEALTHY|. Dieser Zustand kann neben der Load Balancing Gewichtung über die Control Plane für jeden Node individuell gesetzt werden.
-%https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/core/v3/health_check.proto#envoy-v3-api-enum-config-core-v3-healthstatus
+Um Envoy zu instruieren keine neuen Clients mit einem sich in Überlastsituation befindenden HiveMQ Node zu verbinden, wird der \textit{Health Status} des Nodes entsprechend gesetzt.
+Der Wert ist entweder \verb|HEALTHY| oder \verb|UNHEALTHY|. Dieser Zustand kann über die Control Plane für jeden Node individuell gesetzt werden.
+\cite{HealthCheckEnvoy}
+\begin{comment}
 \\
 In der Control Plane werden nun asynchron und periodisch alle zwei Sekunden die Prometheus Metriken wie in Kapitel \ref{ss:weighted-cpu} beschrieben von allen Nodes des Clusters abgerufen. Sobald die Metrik \verb|com.hivemq.supervision.overload.protection.level| einen Wert von über fünf erreicht, wird der Health Status des Nodes auf \verb|UNHEALTHY| gesetzt. Der Load Balancer verbindet nun keine neuen Clients mehr mit diesem Node. Sobald der Wert wieder unter fünf sinkt, wird der Status auf \verb|HEALTHY| gesetzt und es können wieder neue Clients mit dem Node verbunden werden.
+\end{comment}
 
 \subsubsection{Health Check} \ref{ss:health-check}
 In Kapitel \ref{ss:circuit-breaking} wurde beschrieben, dass man über die Control Plane den Health Status der Nodes eines Clusters angeben kann. Der Health Status gibt an, ob der Node neue Client Verbindungen erhalten kann oder nicht.

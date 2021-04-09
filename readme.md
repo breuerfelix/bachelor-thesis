@@ -1,3 +1,12 @@
+TODO bis zur ersten abgabe:
+- kapitel solution -> control plane korrigieren
+- qullenangabe tabelle
+- grammarly
+
+feedback janine:
+- quellenangabe tabelle
+- auf oder in dem topic oder whatever
+
 TODO:
 - zahlen 0 - 12 ausgeschrieben, runde zahlen auch ausschreiben
 
@@ -5,7 +14,6 @@ feedback neu:
 - gesamtsystem
 - problembeschreibung - was ist smart in den header ? - missing features
 - was fehlt den normalen load balancern ?
-- consistent hashing
 - industrial iot -> iiot
 - anwendungsfeld -> internet of things
 
@@ -31,13 +39,6 @@ fazit:
 allgemein:
 - was beschreibt das problem ?
 - story telling / roter faden!
-- das wort verteilte systeme reinnehmen
-- beispiele nicht so konkret machen -> konzeptueller
-
-anwendungsfeld:
-- MQTT als service-2-service event bus findet man aber auch hier und da. Ist aber seltener. Wie gesagt, da nutzen die meisten RabbitMQ (AMQP) oder neuerdings Kafka.
-- Veilleicht reißt du das kurz zur Einordnung an?
-- Ja auch eine Einordnung der Technologie und Nennung bzw. Abgrenzung gegenüber ähnlichen Lösungen macht ganz sicher Sinn.
 
 load balancing:
 - load balancing strategien, was ist relevant etc
