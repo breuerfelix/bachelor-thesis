@@ -417,8 +417,8 @@ Der Wert ist entweder \verb|HEALTHY| oder \verb|UNHEALTHY|. Dieser Zustand kann 
 In der Control Plane werden nun asynchron und periodisch alle zwei Sekunden die Prometheus Metriken wie in Kapitel \ref{ss:weighted-cpu} beschrieben von allen Nodes des Clusters abgerufen. Sobald die Metrik \verb|com.hivemq.supervision.overload.protection.level| einen Wert von über fünf erreicht, wird der Health Status des Nodes auf \verb|UNHEALTHY| gesetzt. Der Load Balancer verbindet nun keine neuen Clients mehr mit diesem Node. Sobald der Wert wieder unter fünf sinkt, wird der Status auf \verb|HEALTHY| gesetzt und es können wieder neue Clients mit dem Node verbunden werden.
 \end{comment}
 
-\subsubsection{Health Check} \ref{ss:health-check}
-In Kapitel \ref{ss:circuit-breaking} wurde beschrieben, dass man über die Control Plane den Health Status der Nodes eines Clusters angeben kann. Der Health Status gibt an, ob der Node neue Client Verbindungen erhalten kann oder nicht.
+\subsubsection{Health Check} \label{ss:health-check}
+In Kapitel \ref{ss:circuit-breaking} wurde beschrieben, dass man über die Control Plane den Health Status der Nodes eines Clusters angeben kann. Der Health Status gibt an, ob ein Node neue Client Verbindungen erhalten kann.
 \ac{http} Services implementieren für diesen Zweck oft eine \verb|/health| Route die der Load Balancer periodisch abrufen kann. Wenn der \ac{http} Status Code der Antwort 200 beträgt, ist der Service healthy und bereit für neue Verbindungen.
 \\
 Um zu überprüfen ob ein Node bereit ist neue Client Verbindungen \ac{mqtt} Konform anzunehmen, muss die Control Plane sich mit einem Dummy \ac{mqtt} Client mit dem Node verbinden. Falls die Verbindung erfolgreich ist, sollte der Dummy Client die Verbindung \ac{mqtt} Konform beenden und der Node kann als \verb|HEALTHY| markiert werden.
