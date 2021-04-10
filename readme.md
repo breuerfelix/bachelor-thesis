@@ -2,6 +2,8 @@ TODO bis zur ersten abgabe:
 - kapitel solution -> control plane korrigieren
 - qullenangabe tabelle
 - grammarly
+- ablaufdiagramm health check
+- eclipse bibliothek zotero
 
 feedback janine:
 - quellenangabe tabelle

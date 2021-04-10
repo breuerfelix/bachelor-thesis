@@ -1,12 +1,12 @@
 package main
 
 import (
-	"fmt"
-	"log"
-	"os"
-	"time"
+  "fmt"
+  "log"
+  "os"
+  "time"
 
-	"github.com/eclipse/paho.mqtt.golang"
+  "github.com/eclipse/paho.mqtt.golang"
 )
 
 func checkHealth(host string, port int) (ret bool) {

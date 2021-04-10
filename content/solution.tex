@@ -412,23 +412,29 @@ Die Überlastsituation wurde nur von Client Verbindungen erzeugt. Durch \ac{tcp}
 Um Envoy zu instruieren keine neuen Clients mit einem sich in Überlastsituation befindenden HiveMQ Node zu verbinden, wird der \textit{Health Status} des Nodes entsprechend gesetzt.
 Der Wert ist entweder \verb|HEALTHY| oder \verb|UNHEALTHY|. Dieser Zustand kann über die Control Plane für jeden Node individuell gesetzt werden.
 \cite{HealthCheckEnvoy}
+Die Funktionalität des \textit{Health Status} eines Nodes wird in Kapitel \ref{ss:health-check} detailliert betrachtet.
 \begin{comment}
 \\
 In der Control Plane werden nun asynchron und periodisch alle zwei Sekunden die Prometheus Metriken wie in Kapitel \ref{ss:weighted-cpu} beschrieben von allen Nodes des Clusters abgerufen. Sobald die Metrik \verb|com.hivemq.supervision.overload.protection.level| einen Wert von über fünf erreicht, wird der Health Status des Nodes auf \verb|UNHEALTHY| gesetzt. Der Load Balancer verbindet nun keine neuen Clients mehr mit diesem Node. Sobald der Wert wieder unter fünf sinkt, wird der Status auf \verb|HEALTHY| gesetzt und es können wieder neue Clients mit dem Node verbunden werden.
 \end{comment}
 
 \subsubsection{Health Check} \label{ss:health-check}
-In Kapitel \ref{ss:circuit-breaking} wurde beschrieben, dass man über die Control Plane den Health Status der Nodes eines Clusters angeben kann. Der Health Status gibt an, ob ein Node neue Client Verbindungen erhalten kann.
-\ac{http} Services implementieren für diesen Zweck oft eine \verb|/health| Route die der Load Balancer periodisch abrufen kann. Wenn der \ac{http} Status Code der Antwort 200 beträgt, ist der Service healthy und bereit für neue Verbindungen.
+Nodes eines Clusters in Envoy haben einen Gesundheitszustand (engl. \textit{Health Status}) der angibt, ob ein Node neue Clientverbindungen erhalten kann.
+Der Health Status eines Nodes ist anwendungsspezifisch und kann unteranderem durch \textit{health checks} bestimmt werden.
+\ac{http} Services implementieren für diesen Zweck oft eine \verb|/health| Route die der \acl{lb} periodisch abrufen kann. Wenn der \ac{http} Status Code der Antwort 200 beträgt, ist der Service healthy und bereit für neue Verbindungen.
 \\
-Um zu überprüfen ob ein Node bereit ist neue Client Verbindungen \ac{mqtt} Konform anzunehmen, muss die Control Plane sich mit einem Dummy \ac{mqtt} Client mit dem Node verbinden. Falls die Verbindung erfolgreich ist, sollte der Dummy Client die Verbindung \ac{mqtt} Konform beenden und der Node kann als \verb|HEALTHY| markiert werden.
-Um einen ausführlicheren Health Check zu implementieren, können noch weitere \ac{mqtt} Funktionen wie Publish und Subscribe getestet werden. Dazu abonniert der Dummy Client ein Topic, das nicht von anderen Clients verwendet wird, nachdem er sich erfolgreich verbunden hat. Nach dem abonnieren veröffentlicht er eine beliebige Nachricht auf dem Topic und überprüft ob er diese Nachricht empfängt. Abbildung \ref{figure:} zeigt den detaillierten Ablauf dieses Health Checks. Erst wenn keine Fehler in dem Ablauf aufgetreten sind, wird der Node als \verb|HEALTHY| markiert.
-% TODO ablaufdiagramm erstellen
-Um Clients möglichst immer mit einen funktionierenden Node zu verbinden, muss der Health Check aktiv periodisch von der Control Plane ausgeführt werden. Dazu kann ein Timeout bestimmt werden, nachdem ein Health Check erfolgreich durchgelaufen sein muss. Falls der Health Check länger als der Timeout braucht, gilt der Node als \verb|UNHEALTHY|. Dadurch kann neben der Funktion auch eine gegebene Leistung des Brokers für Clients gewährtleistet werden.
+Um zu überprüfen ob ein HiveMQ Broker bereit ist neue Client Verbindungen \ac{mqtt} Konform anzunehmen, muss sich die Control Plane mit einen Dummy \ac{mqtt} Client bei dem Broker anmelden. Falls die Verbindung erfolgreich ist, sollte der Dummy Client die Verbindung \ac{mqtt} Konform beenden und der Node kann als \verb|HEALTHY| markiert werden.
+Um einen ausführlicheren Health Check zu implementieren, können noch weitere \ac{mqtt} Funktionen wie Publish und Subscribe getestet werden. Dazu abonniert der Dummy Client ein Topic, das nicht von anderen Clients verwendet wird. Nach dem abonnieren veröffentlicht der Dummy Client eine beliebige Nachricht auf dem zuvor abonnierten Topic und überprüft ob er diese Nachricht empfängt. Abbildung \ref{figure:} zeigt den detaillierten Ablauf dieses Health Checks. Wenn keine Fehler während des Health Checks auftreten, wird der Node als \verb|HEALTHY| markiert.
+TODO ablaufdiagramm erstellen
+\\
+Um Clients möglichst immer mit einem funktionierenden HiveMQ Node eines Clusters zu verbinden, muss der Health Check periodisch von der Control Plane ausgeführt werden.
+Zudem kann ein Zeitfenster definiert werden, in dem ein Health Check erfolgreich durchgelaufen sein muss. Falls der Health Check länger als das Zeitfenster braucht, gilt der Node als \verb|UNHEALTHY|. Dadurch kann neben der Funktionalität des Brokers auch eine gegebene Antwortzeit gewährtleistet werden.
 \\
 Eclipse stellt eine Open Source \ac{mqtt} Bibliothek für Golang bereit.
 % https://github.com/eclipse/paho.mqtt.golang
-Die Bibliothek bietet eine Abstraktion für das \ac{mqtt} Protokoll und übernimmt das de- und encodieren von \ac{mqtt} Paketen. Dies erleichtert das überprüfen des Health Statuses der einzelnen Nodes.
+Die Bibliothek bietet eine Abstraktion für das \ac{mqtt} Protokoll und übernimmt das de- und enkodieren von \ac{mqtt} Paketen. Dies erleichtert das überprüfen des Health Statuses der einzelnen Nodes.
+% TODO vielleicht ganz am ende zeigen
+\begin{comment}
 Quellcodeauszug \ref{code:sample-mqtt-client} zeigt die Implementierung des Ablaufdiagramms \ref{figure:} in Golang mit der \ac{mqtt} Bibliothek von Eclipse. Die Funktion \verb|checkHealth| gibt \verb|true| zurück, falls der Node \verb|HEALTHY| ist, andernfalls \verb|false|. Die Funktion ist blockend und muss von der Control Plane asynchron und periodisch in einer Go Routine ausgeführt werden.
 \begin{figure}
     \import{gen/}{sample-mqtt-client}
@@ -436,6 +442,7 @@ Quellcodeauszug \ref{code:sample-mqtt-client} zeigt die Implementierung des Abla
     \label{code:sample-mqtt-client}
 \end{figure}
 \\
+\end{comment}
 Sobald die \ac{dns} Cluster Discovery aus Kapitel \ref{ss:dns-discovery} einen neuen Node entdeckt hat, muss überprüft werden, ob der Node bereits dem Cluster beigetreten ist. Bei der \ac{dns} Cluster Discovery besteht die Möglichkeit, dass die Control Plane einen anderen \ac{dns} Server benutzt als die HiveMQ Nodes. Wenn zum Zeitpunkt des Startes des neuen Nodes die \ac{ip} Adresse des Nodes noch nicht in der \ac{dns} Registry aller Nodes eingetragen ist, dann startet dieser Node als eigenständiger Broker und ist nicht Teil des Clusters.
 Alle Clients die mit diesem Broker verbunden werden, können nicht mit den Clients aus dem Cluster kommunizieren. Dies führt zu einem Datenleck, da zum Beispiel Nachrichten, die auf dem Cluster auf dem Topic \verb|sensors| veröffentlicht werden, nicht an Clients weitergeleitet werden, die auf dem einzelnen Broker das Topic \verb|sensors| abonniert haben.
 Der Load Balancer darf erst Clients mit einem neuen Node verbinden, wenn dieser Teil des Clusters ist.
