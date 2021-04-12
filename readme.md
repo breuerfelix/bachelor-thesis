@@ -1,9 +1,42 @@
+TODO chrstian:
+- dipl th deckblatt
+- um nachrichten entkoppelt nachrichten auszutauschen
+- hardware lb mehr erklären -> performance ist nicht direkt schlechter
+- unter osi layer = hardware
+- layer 4 und höher -> softwarelösung
+- consistent hashing -> warum?
+- betrieb der LB und des clusters sollte transparent sein -> dies ist besonders schwer bei langlebigen tcp verbindungen
+- client hat nen takeover -> client hat keinen takeover -> client merkt sobald die verbindung wegkommt
+- problembeschreibung circuit breaking
+- 4.5 verbindungsorientiertes
+- envoy teil: warum habe ich envoy gewählt -> ein paar zeilen
+- - control plane, pipeline, eigenschaften, hot reload, warum nimmt man envoy
+- programmierbar vs konfigurierbar -> envoy ist eher programmierbar -> vor allem durch wasm
+- discovery selber mechanismus -> selbe datenbasis
+- kube-dns rausschmeißen
+- stricted weighted round-robin
+-- es geht nicht darum jede einzelne verbindung perfekt zu optimieren
+-- es geht darum auf viele verschiedene verbindungen zu optimieren
+-- future work -> es geht um die verteilung eine verbindung spezifische verbindung zu verteilen
+- ausblick: verteilung findet auf warscheinlichkeiten statt
+- ist envoy eine gute basis ? ist das vorgehen gut ? basis ist ausbaufähig -> man kann mehrere pakete parsen außer connect paket
+
+- warum envoy
+- welche probleme löse ich ?
+- smartness -> anpassungsfähigkeit des load balancers und seiner entscheidungen
+- hivemq success stories
+- die probleme besser beschreiben, beispiele?
+- quellen für die probleme, warum hab ich die probleme?
+- mqtt kennt keine cluster
+
 TODO bis zur ersten abgabe:
 - kapitel solution -> control plane korrigieren
 - qullenangabe tabelle
 - grammarly
 - ablaufdiagramm health check
 - eclipse bibliothek zotero
+- health check kapitel
+- weighted cpu kapitel
 
 feedback janine:
 - quellenangabe tabelle

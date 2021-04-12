@@ -456,20 +456,18 @@ Wenn die \ac{dns} Cluster Discovery einen neuen Node entdeckt hat, der noch nich
 
 \subsubsection{Aktualisierung der Konfiguration}
 Um Aktualisierungen wie Health Status, Gewichtung oder Anzahl der Nodes an eine Envoy Instanz zu schicken, werden versionierte Momentaufnahmen (engl. \textit{Snapshots}) von einem Zustand der Konfiguration erstellt. Wenn die Version des Snapshots auf dem Envoy eine andere Version ist als die Version des aktuellen Snapshots auf der Control Plane, liefert die Control Plane den aktuellen Snapshot an die Envoy Instanz aus.
-Für die Entwicklung einer Control Plane bedeutet dies, sobald sich die Konfiguration ändert, muss sich auch die Version ändern damit die neue Konfiguration an die Envoys ausgeliefert wird. Wenn die Konfiguration einen Zustand annimmt, für den sie in der Vergangenheit schon eine Version gebildet hat, sollte die Control Plane diese Version wiederverwenden. Somit kann man Snapshots mit ihrere Version in einem Cache-Speicher hinterlegen.
 \\
-Um bei der gleichen Cluster Konfiguration immer die selbe Version zu benutzen kann man die Cluster Konfiguration in eine Hash Funktion geben und bekommt einen String mit fixer Länge als Rückgabewert zurück. Die Hash Funktion garantiert einen immer gleichen Rückgabewert bei gleichem Input. Dementsprechend wird bei gleichbleibender Konfiguration immer die gleiche Version erzeugt.
-% TODO hash beschreiben
-Die Eingabe der Hash Funktion sind alle Informationen bei deren Änderung eine neue Version erstellt werden soll. Dies ist eine Liste aller HiveMQ Nodes mit folgenden Werten:
+Um Konfigurationen optimal in einen Cache-Speicher ablegen zu können, sollte eine einzigartige Konfiguration immer die selbe Version haben.
+Dazu kann die Cluster Konfiguration in eine Hash Funktion gegeben werden um als Resultat einen String mit fixer Länge als Rückgabewert zu kriegen. Die Hash Funktion garantiert einen immer gleichen Rückgabewert bei gleichem Input. Dementsprechend wird bei gleichbleibender Konfiguration immer die gleiche Version erzeugt.
+Als Eingabe der Hash Funktion dienen alle Informationen bei deren Änderung eine neue Version erstellt werden soll. Dies ist eine Liste aller HiveMQ Nodes mit folgenden Werten:
 \begin{itemize}
   \item \ac{ip} Adresse
   \item Port
   \item Gewichtung
   \item Health Status
 \end{itemize}
-Die Reihenfolge, in der die Nodes in der Liste für die Hash Funktion vorkommen, ist von relevanz. Falls alle Nodes die selben Werte haben, sich aber die Reihenfolge der Liste geändert hat, würde die Hash Funktion einen neuen Wert zurückgeben. Daher muss sichergestellt werden, dass die Nodes immer in der gleichen Reihenfolge vorkommen. Um die Liste der Nodes zu sortieren müssen einzigartige Eigenschaften der Nodes verglichen werden.
+Die Reihenfolge, in der die Nodes in der Liste für die Hash Funktion vorkommen, ist von relevanz. Falls alle Nodes die selben Werte haben, sich aber die Reihenfolge der Liste geändert hat, würde die Hash Funktion einen neuen Wert zurückgeben. Daher muss sichergestellt werden, dass die Nodes immer in der gleichen Reihenfolge vorkommen. Um die Liste der Nodes zu sortieren, müssen einzigartige Eigenschaften der Nodes verglichen werden.
 Es können niemals zwei HiveMQ Nodes die selbe \ac{ip} Adresse und den selben Port haben. Beide Werte als String vereint können verglichen werden um bei gleichbleibenden Nodes die selbe Reihenfolge in einer Liste einzuhalten.
-
 \begin{figure}
     \import{gen/}{snapshot-versioning}
     \caption{Generierung einer Snapshot Version basierend von HiveMQ Node Eigenschaften}
@@ -478,24 +476,26 @@ Es können niemals zwei HiveMQ Nodes die selbe \ac{ip} Adresse und den selben Po
 Die Funktion \verb|generateVersion| aus Quellcodeauszug \ref{code:snapshot-versioning} generiert die Version für einen Snapshot. Es wird eine HiveMQ Node Liste übergeben und ein String zurückgegeben, der als Version des Snapshots dient. Nach der Sortierung der HiveMQ Node Liste nach Identifier, der aus Hostnamen und Port besteht, werden die Werte Identifier (Hostname und Port), Gewichtung und Health Status in eine Hash Funktion gegeben. Das Ergebnis der Hash Funktion ist der Rückgabewert der Funktion \verb|generateVersion|.
 
 \subsection{Sticky Session} \label{ss:sticky-session}
-% TODO kapitel vielleicht löschen
-Der HiveMQ Broker speichert temporär Daten von \ac{mqtt} Clients ab. Darunter sind Daten wie zum Beispiel Topic Aliasse oder Nachrichten die nicht zugestellt werden konnten, weil die Verbindung des Clients unterbrochen wurde. Sobald sich ein Client, bei dem die Verbindung unterbrochen wurde, wieder mit dem Broker verbindet, kann der Broker die vorbehaltenen Daten zustellen. Diese Funktion vermindert den Datenverlust bei instabilen Netzwerken.
+Ein HiveMQ Broker speichert temporär Daten von \ac{mqtt} Clients ab. Darunter sind Daten wie zum Beispiel Topic Aliasse oder Nachrichten, die nicht zugestellt werden konnten, weil die Verbindung des Clients unterbrochen wurde. Sobald sich ein Client, bei dem die Verbindung unterbrochen wurde, wieder mit dem Broker verbindet, kann der Broker die vorbehaltenen Nachrichten zustellen. Dadurch wird bei instablien Netzwerken der Datenverlust verringert.
 \\
-Bei einem HiveMQ Cluster werden die Client Daten nur auf dem Node aufbewahrt, mit dem der Client verbunden ist. Wenn die Verbindung eines Clients unterbrochen wird und bei der Wiederverbindung mit einem anderen Node als zuvor Verbunden wird, müssen die Client Daten über die interne Cluster Kommunikation von dem alten auf den neuen Node transferiert werden. Je mehr Daten der alte Node vorbehalten musste, desto länger dauert der Transfer der Daten.
+Bei einem HiveMQ Cluster werden die Client Daten nur auf dem Node aufbewahrt, mit dem der Client verbunden ist. Wenn die Verbindung eines Clients unterbrochen wird und bei der Wiederverbindung mit einem anderen Node als zuvor verbunden wird, müssen die Client Daten von dem alten auf den neuen Node transferiert werden. Je mehr Daten der alte Node vorbehalten musste, desto länger dauert der Transfer der Daten.
 Im Optimalfall verbindet sich der Client mit dem selben Node wie zuvor wodurch kein Transfer der Daten notwendig ist.
-Ein solches Verfahren nennt sich \textit{Sticky Session} oder \textit{Session Affinity}. Dabei werden einzigartige Identifier eines Clients im Load Balancer extrahiert, zum Beispiel einen generierten einzigartigen \ac{http} Header, und diese in einer HashMap mit dem Zielnode gespeichert. Sobald der Client eine erneute Anfrage stellt und der \ac{http} Header vorhanden ist, kann der Load Balancer in der HashMap den alten Node nachschlagen und den Client mit diesem Node verbinden. % TODO cite this
+Ein solches Verfahren nennt sich \textit{Sticky Session} oder \textit{Session Affinity}. Dabei werden einzigartige Identifier eines Clients im Load Balancer extrahiert, und diese in einer HashMap mit dem Zielnode gespeichert. Sobald der Client eine erneute Verbindung aufbaut, kann der Load Balancer in der HashMap den alten Node nachschlagen und den Client mit diesem Node verbinden. \cite{WhatDoesTerm}
 
-\subsubsection{Client Identifier}
-Jeder \ac{mqtt} Client wird durch einen einzigartigen Client Identifier identifiziert. Dieser wird, wie in Kapitel \ref{s:mqtt-connect} beschrieben, in dem \ac{mqtt} \verb|CONNECT| Paket beim Verbindungsaufbau vom Client an den Broker geschickt. Ein Client Identifier darf niemals zweimal vergeben werden. Sobald sich ein Client mit einem Identifier mit dem Broker verbindet der bereits von einem anderen Client genutzt wird, unterbricht der Broker die Verbindung mit dem bereits Verbundenen Client und führt einen Client Takeover durch für den neuen Client durch. Dadurch wird sichergestellt, dass jeder Client Identifier nur einmal vergeben ist.
+\subsubsection{Clientkennung} \label{ss:clientid}
+Jeder \ac{mqtt} Client wird durch eine einzigartige Clientkennung identifiziert. Dieser wird, wie in Kapitel \ref{s:mqtt-connect} beschrieben, in dem \ac{mqtt} \verb|CONNECT| Paket beim Verbindungsaufbau vom Client an den Broker geschickt.
+Eine Clientkennung darf niemals doppelt vergeben werden. Sobald sich ein Client mit einer Kennung mit dem Broker verbindet der bereits von einem anderen Client genutzt wird, unterbricht der Broker die Verbindung mit dem bereits Verbundenen Client und führt einen Client Takeover für den neuen Client durch. Dadurch wird sichergestellt, dass jede Clientkennung nur einmal vergeben ist.
 \\
-Anstelle eines einzigartigen Cookies bei \ac{http}, kann bei \ac{mqtt} der Client Identifier für die Speicherung in der HashMap genutzt werden. Dieser wird als Schlüssel mit dem Zielnode in der HashMap abgelegt, sodass der Load Balancer einen wiederkehrenden Client immer mit dem selben Node verbinden kann.
+Die Clientkennung eignet sich durch ihre Einzigartigkeit als Identifier für eine Sticky Session.
+
 \subsubsection{MQTT CONNECT}
-Bislang wird Envoy für den Smart Load Balancer als ein Layer 4 Load Balancer benutzt. Für Protokolle wie \ac{http} kann Envoy ebenfalls als Layer 7 Load Balancer eingesetzt werden, da die decodierung der \ac{http} Pakete bereits in Envoy implementiert ist. Dadurch können zum Beispiel Load Balancing Entscheidungen basierend der angefragten \ac{http} Route des Clients getroffen werden.
-Das \ac{mqtt} Protokoll ist nicht in Envoy integriert. Aus diesem Grund gibt es keine Möglichkeit in der Envoy Konfiguration ein Load Balancing anhand des Client Identifiers zu treffen, da Envoy die einzelnen \ac{mqtt} Pakete nicht decodiert.
+In Kapitel \ref{ss:clientid} wurde die Benutzung der \ac{mqtt} Clientekennung als Merkmal für eine Sticky Session beschrieben. Envoy ist im Kern ein \ac{osi}-Layer vier \acl{lb} und hat auf Informationen, wie eine Layer sieben \ac{mqtt} Clientkennung, keinen Zugriff. Wie in Kapitel \ref{s:envoy} erläutert, kann Envoy zum Beispiel für \ac{http} als Layer sieben Proxy betrieben werden, da das dekodieren von \ac{http} Paketen bereits in Envoy implementiert wurde.
+Das \ac{mqtt} Protokoll ist nicht in Envoy integriert. Aus diesem Grund gibt es keine Möglichkeit in der Envoy Konfiguration eine load balancing Entscheidung anhand der Clientkennung zu treffen, da Envoy die einzelnen \ac{mqtt} Pakete nicht dekodiert.
 \\
-Envoy ermöglicht das einbinden von Web Assembly Modulen um diese als Netzwerk Filter zu benutzen. Ein Netzwerk Filter kann zum Beispiel das Decodieren der \ac{mqtt} Pakete sein um diese den nachfolgenden Filtern in der Pipeline zur Verfügung zu stellen. Bislang gibt es \ac{wasm} \acp{sdk} für Rust, C++, AssemblyScript und Golang. \cite{sebastianHowWriteWASM} Beispiele für eine Implementation eines Golang Netzwerk Filters finden sich in Repository \cite{TetratelabsProxywasmgosdk2021}.
+Envoy ermöglicht das einbinden von Web Assembly Modulen um diese als Netzwerk Filter zu benutzen. Ein Netzwerk Filter kann \ac{mqtt} Pakete dekodieren, um diese den nachfolgenden Filtern in der Pipeline zur Verfügung zu stellen. Bislang gibt es \ac{wasm} \acp{sdk} für Rust, C++, AssemblyScript und Golang. \cite{sebastianHowWriteWASM} Beispiele für eine Implementation eines Golang Netzwerk Filters finden sich in Repository \cite{TetratelabsProxywasmgosdk2021}.
 \\
-Das Decodieren der \ac{mqtt} Pakete in Golang wurde bereits von der in Kapitel \ref{ss:health-check} gezeigten Bibliothek von Eclipse implementiert. Der Quellcodeauszug \ref{code:mqtt-connect-decode} zeigt einen Auszug aus der Datei \verb|packets/connect.go| des Repositories und decodiert ein \ac{mqtt} \verb|CONNECT| Paket. Das Error Handling wurde für bessere Lesbarkeit entfernt. Quellcodeauszug \ref{mqtt-connect-struct} zeigt die Struktur eines \verb|CONNECT| Paketes basierend der in Kapiel \ref{s:mqtt-connect} beschriebenen Felder.
+Das Dekodieren der \ac{mqtt} Pakete in Golang wurde bereits von der in Kapitel \ref{ss:health-check} gezeigten Bibliothek von Eclipse implementiert.
+Der Quellcodeauszug \ref{code:mqtt-connect-decode} zeigt einen Auszug aus der Datei \verb|packets/connect.go| des Repositories und dekodiert ein \ac{mqtt} \verb|CONNECT| Paket. Die Fehlerabhandlung wurde für bessere Lesbarkeit entfernt. Quellcodeauszug \ref{mqtt-connect-struct} zeigt die Struktur eines \verb|CONNECT| Paketes basierend der in Kapiel \ref{s:mqtt-connect} beschriebenen Felder.
 \begin{figure}
     \import{gen/}{mqtt-connect-struct}
     \caption{}
@@ -503,19 +503,20 @@ Das Decodieren der \ac{mqtt} Pakete in Golang wurde bereits von der in Kapitel \
 \end{figure}
 \begin{figure}
     \import{gen/}{mqtt-connect-decode}
-    \caption{Decodieren eines MQTT CONNECT Paketes in Golang \cite{EclipsePahoMqtt2021}}
+    \caption{Dekodieren eines MQTT CONNECT Paketes in Golang \cite{EclipsePahoMqtt2021}}
     \label{code:mqtt-connect-decode}
 \end{figure}
 \\
-Bei jeder neuen Client Verbindung muss der Load Balancer das erste Paket des Clients mit der Funktion \verb|Unpack| aus Quellcodeauszug \ref{code:mqtt-connect-decode} decodieren um an den Wert von \verb|ConnectPacket.ClientIdentifier| zu gelangen. In Envoy kann dynamischer State an jede \verb|Envoy::Network::Connection| über eine \verb|map<string, FilterState::Object>| angehangen werden. Auf diesen State kann über alle Filter hinweg zugegriffen werden. Der Golang \ac{mqtt} Decode Filter kann den ClientIdentifier in diese \verb|map| speichern, wodurch weitere \ac{mqtt} spezifische Filter entwickelt werden können.
-Envoy kann zudem Daten über Verbindungen hinweg teilen. In diesen Daten muss eine HashMap angelegt werden, in der alle bisherigen Client Identifier mit ihren Zielnodes gespeichert werden.\cite{SharingDataFilters}
+Bei jeder neuen Client Verbindung muss der \acl{lb} das erste Paket des Clients mit der Funktion \verb|Unpack| aus Quellcodeauszug \ref{code:mqtt-connect-decode} dekodieren um an den Wert von \verb|ConnectPacket.ClientIdentifier| zu gelangen. In Envoy kann dynamischer State an jede \verb|Envoy::Network::Connection| über eine \verb|map<string, FilterState::Object>| angehangen werden. Auf diesen State kann über alle Filter hinweg zugegriffen werden. Der Golang \ac{mqtt} Decode Filter kann den ClientIdentifier in diese \verb|map| speichern, wodurch weitere \ac{mqtt} spezifische Filter entwickelt werden können.
+Envoy kann zudem Daten über Verbindungen hinweg teilen. In diesen Daten muss eine HashMap angelegt werden, in der alle bisherigen Clientkennungen mit ihren Zielnodes gespeichert werden.\cite{SharingDataFilters}
 
 \subsubsection{Cluster Health}
-Bei dem in Kapitel \ref{ss:weighted-cpu} vorgestellten Weighted Round Robin Load Balancing Algorithmus ist es nicht möglich einen individuellen Client mit einem bestimmten Node zu verbinden. Der Load Balancer muss sich entscheiden ob er einen Client basierend dem Weighted Round Robin oder dem Sticky Session Algorithmus mit einem Zielnode verbindet.
-Eine Möglichkeit beide Algorithmen in einem Load Balancer zu verwenden ist, bei einem neuen Client zuerst in der HashMap nachzuschlagen ob dieser Client bereits mit einem Node verbunden wurden. Falls dieser Node noch vorhanden und \verb|HEALTHY| ist, wird der Client erneut mit dem Node verbunden. Andernfalls wird ein neuer Node basierend dem Weighted Round Robin Algorithmus bestimmt.
-Diese Methode harmoniert gut mit dem beschriebenen Circuit Breaking aus Kapitel \ref{ss:circuit-breaking}. Für den Fall, dass ein HiveMQ Node die Verbindung eines Clients unterbricht weil der Node überlastet ist, markiert das Circuit Breaking diesen Node als \verb|UNHEALTHY| und der Load Balancer wird den Client, der versucht sich wieder mit dem Cluster zu verbinden, mit einem anderen Node verbinden anstatt mit dem selben.
+Bei dem in Kapitel \ref{ss:weighted-cpu} vorgestellten weighted round-robin load balancing Algorithmus ist es nicht möglich, einen individuellen Client mit einem bestimmten Node zu verbinden. Der \acl{lb} muss entscheiden, ob ein Client basierend dem weighted round-robin oder dem Sticky Session Algorithmus mit einem Zielnode verbindet.
 \\
-Durch diese Implementation der Sticky Session werden Clients, die ihre Verbindung verlieren, immer mit dem selben Node wiederverbunden und Clients, deren Verbindung absichtlich beendet wurde, werden einem neuen Node zugewiesen. Clients, die sich zum ersten mal mit dem Cluster verbinden, werden die bisher basierend der freien Last der einzelnen Nodes verteilt.
+Eine Möglichkeit beide Algorithmen in einem \acl{lb} zu verwenden ist, bei einem neuen Client zuerst in der HashMap nachzuschlagen ob dieser Client bereits mit einem Node verbunden wurden. Falls dieser Node noch vorhanden und \verb|HEALTHY| ist, wird der Client erneut mit dem Node verbunden. Andernfalls wird ein neuer Node basierend dem weighted round-robin Algorithmus bestimmt.
+Diese Methode harmoniert mit dem beschriebenen Überlastschutz aus Kapitel \ref{ss:circuit-breaking}. Für den Fall, dass ein HiveMQ Node die Verbindung eines Clients unterbricht weil der Node überlastet ist, markiert der Überlastschutz diesen Node als \verb|UNHEALTHY| und der \acl{lb} wird den Client, der sich wieder mit dem Cluster verbindet, mit einem anderen Node zu verbinden anstatt mit dem selben.
+\\
+Durch diese Implementation der Sticky Session werden Clients, die ihre Verbindung verlieren, immer mit dem selben Node wiederverbunden und Clients, deren Verbindung absichtlich beendet wurde, werden einem neuen Node zugewiesen. Clients, die sich zum ersten mal mit dem Cluster verbinden, werden basierend der freien Last der einzelnen Nodes verteilt.
 \newpage
 
 \begin{comment}
