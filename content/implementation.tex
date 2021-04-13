@@ -62,8 +62,11 @@ Die \ac{dns} Cluster Discovery aus Kapitel \ref{ss:dns-discovery} ist in der Clu
 Beim Start der Control Plane wird von der Main Komponente eine Go Routine gestartet, die periodisch und asynchron in einem gegebenen Intervall die Funktion \verb|CheckNodes| der Cluster Struktur aufruft. Diese verwendet die \verb|net| Standard Bibliothek von Golang, um den Domainnamen des Clusers aufzulösen und für alle \ac{ip} Adressen eine Node Struktur erstellt. Wenn bereits eine Node Struktur für ein \ac{ip} Adressen und Port Paar vorhanden ist, wird die Referenz der Struktur in die neue Liste übernommen.
 
 \subsubsection{Weighted Round Robin}
-%TODO schreiben
-Der Weighted Round Robin Algorithmus basierend auf der \ac{cpu} Auslastung der einzelnen HiveMQ Nodes aus Kapitel \ref{ss:weighted-cpu} ist in der Metrics Komponente implementiert.
+Der weighted round-robin Algorithmus basierend auf der \ac{cpu} Auslastung der einzelnen HiveMQ Nodes aus Kapitel \ref{ss:weighted-cpu} ist in der Metrics Komponente implementiert.
+\\
+Quellcodeauszug \ref{code:weighted-cpu} zeigt den Algorithmus für die Bestimmung der Gewichtung der HiveMQ Nodes anhand der \ac{cpu} Auslastung.
+Zeile 8 - 17 berechnen die durchschnittliche \ac{cpu} Auslastung alle gespeicherten Metriken individuell für jeden Node. Abgefragte Metriken werden nur für einen bestimmten Zeitraum gespeichert (siehe Kapitel \ref{si:control-plane}). Durch die Bildung des Durchschnittwertes über einen bestimmte Zeitraum, wird die Regelung der Gewichtung träge. Somit wird die Auswirkung von kurzfristigen Lastspitzen auf die Gewichtung reduziert.
+Zeile 19 - 34 bestimmen die Gewichtung der Nodes basierend der zuvor berechneten Durchschnittsauslastung. Die Metrik der \ac{cpu} Auslastung kann einen Maximalwert von 100 erreichen. Da die freie \ac{cpu} Auslastung für die Gewichtung verwendet wird, wird die Durchschnittsauslastung von der maximalen Auslastung abgezogen, um die freie Auslastung zu erhalten. Bevor das Ergebnis als Gewichtung gesetzt wird, muss überprüft werden, ob dieses \verb|NaN| oder kleiner als eins ist. Die kleinste erlaubte Gewichtung für Envoy ist eins.
 \begin{figure}
     \import{gen/}{weighted-cpu}
     \caption{Algorithmus um die Gewichtung der HiveMQ Nodes basierend der CPU Auslastung zu bestimmen}
