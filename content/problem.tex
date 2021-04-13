@@ -1,7 +1,7 @@
 \section{Problembeschreibung} \label{s:problem}
 Die clusterfähigkeit des HiveMQ Brokers ermöglicht Millionen \ac{iot} Geräten die Kommunikation untereinander über einen zentralen und ausfallsicheren HiveMQ Cluster.
 Um ein HiveMQ Cluster für \ac{mqtt} Clients zu einem virtuellen Broker mit einer einzigen \ac{ip} Adresse oder Domain zu abstrahieren, wird, wie in Kapitel \ref{s:load-balancing} beschrieben, ein \acl{lb} benötigt.
-In diesem Kapitel werden Anforderung für einen \acl{lb} definiert, um \ac{mqtt} Traffic klug an alle Nodes eines HiveMQ Clusters transparent zum Client zu verteilen.
+In diesem Kapitel werden Anforderung für einen \acl{lb} definiert, um \ac{mqtt} Traffic \textit{klug} an alle Nodes eines HiveMQ Clusters transparent zum Client zu verteilen.
 
 \subsection{Cluster Discovery} \label{sp:cluster-discovery}
 Ein HiveMQ Cluster ist, wie in Kapitel \ref{s:hivemq-cluster} beschrieben, in der Lage, zur Laufzeit die grö{\ss}e des Clusters anzupassen. Der Load Balancer muss daher ebenfalls in der Lage sein, neue HiveMQ Nodes zur Laufzeit zu entdecken und neue Clients mit den neuen Nodes zu verbinden. Falls sich die Anzahl der Nodes verringert, darf der Load Balancer keine neuen Verbindungen mehr mit den alten Nodes aufbauen. Dies würde zu Fehlermeldungen bei den Clients führen.

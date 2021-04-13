@@ -1,0 +1,22 @@
+@startuml
+participant "Control Plane" as cp
+participant "HiveMQ Broker" as broker
+
+cp -> broker: CONNECT\nID: health-check-client
+broker --> cp: CONNACK
+|||
+cp -> broker: SUBSCRIBE\nTopic: healthcheck
+broker --> cp: SUBACK
+|||
+cp -> broker: PUBLISH\nTopic: healthcheck\nPayload: check
+broker --> cp: PUBACK
+|||
+broker -> cp: PUBLISH\nTopic: healthcheck\nPayload: check
+cp --> broker: PUBACK
+|||
+cp -> broker: UNSUBSCRIBE\nTopic: healthcheck
+broker --> cp: UNSUBACK
+
+|||
+cp -> broker: DISCONNECT
+@enduml

@@ -7,6 +7,9 @@ rm main.pdf
 rm -rf gen
 python minted.py
 
+# generate plantuml
+plantuml -o ../gen diagrams
+
 # replace german umlaute
 sed -i 's/ß/{\\ss}/g' content/*
 

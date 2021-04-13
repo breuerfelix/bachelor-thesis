@@ -1,5 +1,14 @@
+TODO bis zur ersten abgabe:
+- qullenangabe tabelle
+- grammarly
+- weighted cpu kapitel überarbeiten
+- envoy kapitel ausführlicher schreiben
+- implementation uml diagram
+- refactor code
+- hab ich probleme ausführlich?
+- mqtt v5 quellenangabe
+
 TODO chrstian:
-- dipl th deckblatt
 - um nachrichten entkoppelt nachrichten auszutauschen
 - hardware lb mehr erklären -> performance ist nicht direkt schlechter
 - unter osi layer = hardware
@@ -10,14 +19,14 @@ TODO chrstian:
 - problembeschreibung circuit breaking
 - 4.5 verbindungsorientiertes
 - envoy teil: warum habe ich envoy gewählt -> ein paar zeilen
-- - control plane, pipeline, eigenschaften, hot reload, warum nimmt man envoy
+  - control plane, pipeline, eigenschaften, hot reload, warum nimmt man envoy
 - programmierbar vs konfigurierbar -> envoy ist eher programmierbar -> vor allem durch wasm
 - discovery selber mechanismus -> selbe datenbasis
 - kube-dns rausschmeißen
 - stricted weighted round-robin
--- es geht nicht darum jede einzelne verbindung perfekt zu optimieren
--- es geht darum auf viele verschiedene verbindungen zu optimieren
--- future work -> es geht um die verteilung eine verbindung spezifische verbindung zu verteilen
+  - es geht nicht darum jede einzelne verbindung perfekt zu optimieren
+  - es geht darum auf viele verschiedene verbindungen zu optimieren
+  - future work -> es geht um die verteilung eine verbindung spezifische verbindung zu verteilen
 - ausblick: verteilung findet auf warscheinlichkeiten statt
 - ist envoy eine gute basis ? ist das vorgehen gut ? basis ist ausbaufähig -> man kann mehrere pakete parsen außer connect paket
 
@@ -29,51 +38,21 @@ TODO chrstian:
 - quellen für die probleme, warum hab ich die probleme?
 - mqtt kennt keine cluster
 
-TODO bis zur ersten abgabe:
-- kapitel solution -> control plane korrigieren
-- qullenangabe tabelle
-- grammarly
-- ablaufdiagramm health check
-- eclipse bibliothek zotero
-- health check kapitel
-- weighted cpu kapitel
-
 feedback janine:
-- quellenangabe tabelle
 - auf oder in dem topic oder whatever
 
-TODO:
+TODO letzter check:
 - zahlen 0 - 12 ausgeschrieben, runde zahlen auch ausschreiben
+- fragezeichen quellen?
 
 feedback neu:
-- gesamtsystem
-- problembeschreibung - was ist smart in den header ? - missing features
-- was fehlt den normalen load balancern ?
-- industrial iot -> iiot
-- anwendungsfeld -> internet of things
-
-- szenario andeuten -> was will ich damit machen?
 - bild zum algorithmus
 - grafiken überarbeiten
 - panel -> repeat option
 - slow start -> ramp up
 - hivemq kann das implementieren
 - ist ein operatives ding -> kann metriken berücksichtigen
-- plantuml
 - regelung träge
-
-- cluster discovery
-- splitbrain
-- nicht so komplex wie das problem entstehen kann
-- broker muss die discovery machen -> nicht der lb
-
-fazit:
-- es gibt ganz viele verschiedene konfigurationen
-- personal note -> eigene meinung
-
-allgemein:
-- was beschreibt das problem ?
-- story telling / roter faden!
 
 load balancing:
 - load balancing strategien, was ist relevant etc
@@ -82,9 +61,7 @@ load balancing:
 - zeig load balancing auf allen layern -> dann einordnen in mqtt
 
 cluster discovery:
-- cluster discovery nicht so ausführlich
 - bei dns ist es okay wenn der state unterschiedlich / man muss nur zeigen das man damit umgehen kann
-- node count prüfung rausnehmen
 - distributed system hat das problem split brain
 - splitbrain is nicht mein problem, das wird durch mqtt health check gelöst, muss der hivemq lösen
 
@@ -92,14 +69,8 @@ formulierungen:
 - clients sind nicht mit anderen clients nicht synchronisiert
 
 hivemq:
-- hivemq ist aktuell relevant, geil 3.3 sparkplug, industrial, iot zahlen, eine seite
-- vielleicht auch im anwendungsfeld iot sowas reinpacken
+- industrial iot iiot
 - mqtt hat viele konzepte die man rekombinieren kann
-- hivemq cluster -> man braucht load balancing -> nächstes kapitel
-- cluster discovery vielleicht nicht so ausführlich ?
-
-lösungskonzept:
-- keine AWS beispiele
 
 ## wichtige formale fragen
 

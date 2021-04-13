@@ -1,33 +1,46 @@
-\section{Architektur und Implementation}
-In Kapitel \ref{s:solution} wurden einige Konzepte und deren Implementation für einen \textit{Smart Load Balancer} für \ac{mqtt} beschrieben. In diesem Kapitel wird gezeigt, wie man viele dieser einzelnen Konzepte in einen Envoy Load Balancer integriert und verwendet.
-Im Rahmen der Thesis wurde die \ac{dns} Cluster Discovery \ref{ss:dns-discovery}, das weighted \ac{cpu} Round Robin \ref{ss:weighted-cpu}, das Circuit Breaking \ref{ss:circuit-breaking} und das \ac{mqtt} Health Checking \ref{ss:health-check} aus Kapitel \ref{s:solution} in einer Envoy Control Plane implementiert.
+\section{Architektur und Implementierung}
+In Kapitel \ref{s:solution} wurden Konzepte für einen \textit{klugen} \ac{mqtt} \acl{lb} beschrieben. In diesem Kapitel wird gezeigt, wie man einige dieser Konzepte in einen Envoy \acl{lb} integriert.
+Im Rahmen der Thesis wurde die \ac{dns} Cluster Discovery \ref{ss:dns-discovery}, das weighted \ac{cpu} round-robin \ref{ss:weighted-cpu}, der Überlastschutz \ref{ss:circuit-breaking} und der \ac{mqtt} Health Check \ref{ss:health-check} aus Kapitel \ref{s:solution} in einer Envoy Control Plane implementiert.
 
-% TODO figure con der architecture
 \subsection{Envoy Control Plane} \label{si:control-plane}
-Die Envoy Control Plane ist das Herzstück des Smart Load Balancers. Die einzelnen Envoy Instanzen erhalten alle nötigen Informationen dynamisch von der Control Plane und kriegen statisch nur die Information wie die Control Plane zu erreichen ist provisioniert.
-Die Konfigurationen werden mit gRPC zwischen Envoy und Control Plane ausgetauscht. Daher muss die Control Plane einen gRPC Server implementieren, der von allen Envoys erreichbar ist.
-Als Quellcodebasis für die Control Plane wurde ein minimales Beispiel aus dem offiziellen Github Repository \cite{EnvoyproxyGocontrolplane} verwendet. Dieses erzeugt eine Envoy Konfiguration die einen \ac{http} Endpunkt definiert. Da die offizielle Referenzimplementation einer Control Plane in Golang programmiert ist, wurde die Control Plane des Smart Load Balancers, nachfolgend Control Plane genannt, ebenfalls in Golang implementiert.
+Die Envoy Control Plane ist die \textit{kluge} Komponente des Systems aus Kapitel \ref{s:solution}. Obwohl die einzelnen Envoy Instanzen die load balancing Entscheidung treffen, liefert die Control Plane alle Informationen, auf dessen Basis diese Entscheidung getroffen wird.
+Als Quellcodebasis für die Control Plane wurde ein minimales Beispiel aus dem offiziellen Github Repository \cite{EnvoyproxyGocontrolplane} verwendet. Dieses startet einen gRPC Server der eine Envoy Konfiguration erzeugt, die einen \ac{http} Endpunkt definiert. Da die offizielle Referenzimplementierung einer Control Plane in Golang programmiert ist, wurde die Control Plane des Smart Load Balancers, nachfolgend Control Plane genannt, ebenfalls in Golang implementiert.
 \\
-Die parallele Ausführung von mehreren Go Routinen ist ein wichtiger Bestandteil der Control Plane. Diese muss asynchron und nicht blockend Aufgaben abarbeiten wie zum Beispiel das Überprüfen eines Health Status der HiveMQ Nodes und parallel den neusten Snapshot an alle Envoys ausliefern.
+Die parallele Ausführung von mehreren Go Routinen ist ein wichtiger Bestandteil der Control Plane. Diese muss asynchron und nicht blockend Aufgaben abarbeiten, wie zum Beispiel das Überprüfen eines Health Status der HiveMQ Nodes, und parallel den neusten Snapshot an alle Envoys ausliefern.
 Um bei einem asynchronen Programm keine \textit{Data Races} zu verursachen, muss darauf geachtet werden, dass immer nur eine Go Routine Schreibzugriff auf eine Variable erhält und lesende Go Routinen sich zu Beginn eine Kopie der Variable erstellen, damit diese nicht während der Bearbeitung von der schreibenden Go Routine verändert wird.
 \\
-Die Control Plane besteht aus folgenden Komponenten:% TODO komponenten diagram zeigen
+Die Control Plane besteht den in Abbildung \ref{fig:component-diagram} dargestellten Komponenten. Komponenten des Paketes \verb|github.com/breuerfelix/mqtt-control-plane| wurden im Rahmen der Thesis programmiert.
 \begin{itemize}
-  \item \textbf{Server:} Der Server akzeptiert eingehende gRPC Verbindungen von Envoys. Sobald eine neue Snapshot Version im Cache vorliegt, wird diese an alle Envoys mit einer älteren Version ausgeliefert.
-  \item \textbf{Cluster:} Ein Cluster repräsentiert ein HiveMQ Cluster und dient als Container für eine Liste von allen HiveMQ Node Strukturen. Ein Cluster enthält zudem einen Domain Namen unter dem die \ac{dns} Discovery die einzelnen Nodes entdecken kann.
-  \item \textbf{HiveMQ:} HiveMQ ist eine Struktur die alle Daten eines HiveMQ Nodes enthält. Darunter befinden sich \ac{ip} Adresse, Port, Health Status, Weight und nach Zeitstempel sortierte Metriken für einen bestimmten Zeitraum.
-  \item \textbf{Resources:} Generiert Envoy Ressourcen basierend einer Cluster Struktur. Es wird ein \ac{tcp} Listener und ein Upsteam Envoy Cluster mit allen Endpunkten und Gewichtungen erzeugt. Das Endprodukt ist ein Snapshot, das in den Cache gelegt wird.
-  \item \textbf{Metrics:} Fragt periodisch alle Metriken der HiveMQ Nodes einer Cluster Struktur ab. Basierend eines gegebenen Intervalls werden die Metriken verarbeitet und Health Status sowieso Gewichtung berechnet.
+  \item \textbf{Main:} Die Main Komponente ist der Einstiegspunkt des Programms und initialisiert die Metrics, Resources und Cluster Komponente. Nach der Initialisierung werden alle nötigen Go Routinen aufgerufen und anschlie{\ss}end ein gRPC Server gestartet, der eingehende Envoy Verbindungen akzeptiert, um die aktuelle Konfiguration eines Cache-Speichers auszuliefern.
+  \item \textbf{Resources:} Generiert Envoy Ressourcen basierend einer Cluster Struktur. Es wird ein \ac{tcp} Listener und ein Upsteam Envoy Cluster mit allen Endpunkten und Gewichtungen erzeugt. Die Envoy Ressourcen werden als Snapshot zusammengefasst und können in einem Cache-Speicher hinterlegt werden.
+  \item \textbf{Metrics:} Wertet periodisch alle Metriken der HiveMQ Nodes einer Cluster Struktur aus. Dabei werden Health Status und Gewichtung entsprechend angepasst.
+  \item \textbf{Cluster:} Ein Cluster repräsentiert ein HiveMQ Cluster und dient als Container für eine Liste von allen HiveMQ Node Strukturen. Ein Cluster enthält zudem einen Domainnamen, unter dem die \ac{dns} Discovery die einzelnen Nodes entdecken kann.
+  \item \textbf{Node:} Node ist eine Struktur, die alle Daten eines HiveMQ Nodes enthält. Darunter befinden sich \ac{ip} Adresse, Port, Health Status, Weight und nach Zeitstempel sortierte Metriken für einen bestimmten Zeitraum.
+\end{itemize}
+\begin{figure}
+    \centering
+    \includegraphics[scale=0.5]{gen/component-diagram.png}
+    \caption{UML Komponentendiagramm der Control Plane}
+    \label{fig:component-diagram}
+\end{figure}
+Abbildung \ref{fig:class-diagram} zeigt die Cluster und Node Strukturen in einem UML Klassendiagramm.
+\begin{itemize}
+  \item \textbf{Cluster:} Die Cluster Struktur enthält alle Daten um die Envoy Konfiguration für ein HiveMQ Cluster zu generieren. Die Funktion \verb|CheckNodes| löst die \ac{ip} Adressen der Domain des Feldes \verb|Domain| auf. Anhand der erhaltenen \ac{ip} Adressen wird die Liste aller Node Strukturen des Clusters erstellt. Die Funktion \verb|UpdateSnapshot| benutzt die Resources Komponente um einen Snapshot des aktuellen Clusters zu bilden und in den Cache-Speicher des \verb|Cache| Feldes zu speichern.
+  \item \textbf{Node:} Eine Node Struktur repräsentiert einen HiveMQ Node. Die Funktion \verb|FetchMetrics| ruft die aktuellen Prometheus Metriken des Nodes ab und speichert die geparsten Daten in dem \verb|Metrics| Feld der Struktur ab. Die Funktion \verb|filterOldData| löscht alte gespeicherte Metriken die nicht mehr verarbeitet werden. \verb|CheckHealth| benutzt die MQTT Komponente der Eclipse Bibliothek um einen Health Check des Nodes durchzuführen (siehe Kapitel \ref{si:health-check}).
 \end{itemize}
 
-% TODO classes UML Diagram
-\paragraph{Server}
-In der \verb|main| Methode der Control Plane wird zu Beginn ein Cache Struct erstellt und die Referenz dem Server übergeben, der in der Main Go Routine ausgeführt wird. Dieser empfängt eingehende Envoy Verbindungen und liefert den neusten Snapshot aus dem Cache aus. Da eine Referenz des Caches übergeben wurde, können parallel andere Go Routinen ebenfalls auf den Cache zugreifen und neue Snapshots einfügen. Dem Server wird au{\ss}erdem ein Endpunkt und Port übergeben auf dem dieser einen \ac{tcp} Listener für die Envoy Instanzen registriert.
+\begin{figure}
+    \centering
+    \includegraphics[scale=0.6]{gen/class.png}
+    \caption{UML Klassendiagramm der Control Plane}
+    \label{fig:class-diagram}
+\end{figure}
 
+\begin{comment}
 \paragraph{Cluster}
-In der \verb|main| Methode der Control Plane wird eine Cluster Struktur erstellt und die Referenz in einer Variable gespeichert. Diese Referenz wird folgend an alle anderen Go Routinen übergeben, damit immer auf die aktuelle HiveMQ Cluster Topologie zugegriffen werden kann. Die Liste der HiveMQ Nodes in einer Cluster Struktur ist ein Golang Slice. Die Elemente dieses Slices werden niemals geändert. Falls sich die Topologie des HiveMQ Clusters ändert, wird ein neues Slice erstellt und in der Cluster Struktur referenziert. Sobald sich eine Go Routine das Slice eines Clusters in einer Variable speichert ist dadurch garantiert, dass sich die Werte dieses Slices nicht mehr ändern. Dies ist erforderlich, da es in Golang keine unveränderbare Listen gibt.
+In der \verb|main| Methode der Control Plane wird eine Cluster Struktur erstellt. Diese wird folgend an alle anderen Go Routinen übergeben, damit immer auf die aktuelle HiveMQ Cluster Topologie zugegriffen werden kann. Die Liste der HiveMQ Nodes in einer Cluster Struktur ist ein Golang Slice. Die Elemente dieses Slices werden niemals geändert. Falls sich die Topologie des HiveMQ Clusters ändert, wird ein neues Slice erstellt und in der Cluster Struktur referenziert. Sobald sich eine Go Routine das Slice eines Clusters in einer Variable speichert ist dadurch garantiert, dass sich die Werte dieses Slices nicht mehr ändern. Dies ist erforderlich, da es in Golang keine unveränderbare Listen gibt.
 
-\paragraph{HiveMQ}
+\paragraph{Node}
 Eine HiveMQ Struktur repräsentiert ein HiveMQ Node und enthält alle Metadaten eines HiveMQ Nodes. Die Funktion \verb|NewHiveMQ| erstellt eine neue HiveMQ Struktur und gibt die Referenz auf diese zurück. Von HiveMQ Strukturen existieren nur Referenzen in der Control Plane. Dadurch können Werte der einzelnen Strukturen verändert werden ohne eine neue Struktur zu erstellen.
 Eine HiveMQ Struktur besitzt eine Map mit einem String als Schlüssel und einer Liste aus Datenpunkten als Wert. In dieser Map werden die Metriken des HiveMQ Nodes abgespeichert. Der Schlüssel ist der jeweilige Prometheus Schlüssel der Metrik und die Liste der Datenpunkte ist nach Zeitstempel sortiert. Der erste Wert der Liste ist der älteste Wert. Damit die Control Plane nicht unendlich viel Arbeitsspeicher verbraucht indem sie alle Metriken für die gesamte Laufzeit abspeichert, werden Metriken, die älter als 60 Sekunden sind, gelöscht.
 
@@ -40,19 +53,16 @@ Die Metriken Komponente ruft bei Aufruf der \verb|InitMetrics| Funktion die aktu
 \paragraph{Main}
 Die Main Komponente ist der Eintiegspunkt der Control Plane. Bei Aufruf wird zunächst eine Cluster Struktur erstellt, eine gegebene Domain aufgelöst und für alle \ac{ip} Adressen eine HiveMQ Struktur erstellt.
 Anschlie{\ss}end werden zwei Go Routinen gestartet. Die erste löst periodisch den Domain Namen des Clusters auf um Topologieänderungen am Cluster umzusetzen. Die zweite Go Routine prüft periodisch die \ac{mqtt} Funktionalität eines jeden HiveMQ Nodes durch die Methode \verb|CheckHealth| der HiveMQ Struktur.
+\end{comment}
+
+\subsection{Funktionalität}
 
 \subsubsection{DNS Cluster Discovery}
-Die \ac{dns} Cluster Discovery aus Kapitel \ref{ss:dns-discovery} ist in der Main Komponente implementiert. Quellcodeauszug \ref{code:discover-cluster} zeigt die Funktion \verb|discoverCluster|, die in der Main Funktion als Go Routine asynchron aufgerufen wird.
-In Zeile 4 wird eine neue Liste erstellt, das in Zeile 25 in die Variable \verb|cluster.Nodes| gespeichert wird. Wie in Kapitel \ref{si:control-plane} erwähnt wird somit immer eine neue Liste erstellt anstatt die vorhandene zu editieren.
-Falls ein HiveMQ Node bereits existiert wird die Referenz der HiveMQ Struktur in Zeile 10 in die neue Liste übernommen.
-Zeile 21 setzt vorraus, dass alle HiveMQ Nodes unter dem Standard Port 1883 erreichbar sind.
-\begin{figure}
-    \import{gen/}{discover-cluster}
-    \caption{Go Routine die periodisch eine Domain auflöst und HiveMQ Strukturen erstellt}
-    \label{code:discover-cluster}
-\end{figure}
+Die \ac{dns} Cluster Discovery aus Kapitel \ref{ss:dns-discovery} ist in der Cluster Komponente implementiert.
+Beim Start der Control Plane wird von der Main Komponente eine Go Routine gestartet, die periodisch und asynchron in einem gegebenen Intervall die Funktion \verb|CheckNodes| der Cluster Struktur aufruft. Diese verwendet die \verb|net| Standard Bibliothek von Golang, um den Domainnamen des Clusers aufzulösen und für alle \ac{ip} Adressen eine Node Struktur erstellt. Wenn bereits eine Node Struktur für ein \ac{ip} Adressen und Port Paar vorhanden ist, wird die Referenz der Struktur in die neue Liste übernommen.
 
 \subsubsection{Weighted Round Robin}
+%TODO schreiben
 Der Weighted Round Robin Algorithmus basierend auf der \ac{cpu} Auslastung der einzelnen HiveMQ Nodes aus Kapitel \ref{ss:weighted-cpu} ist in der Metrics Komponente implementiert.
 \begin{figure}
     \import{gen/}{weighted-cpu}
@@ -61,10 +71,14 @@ Der Weighted Round Robin Algorithmus basierend auf der \ac{cpu} Auslastung der e
 \end{figure}
 
 \subsubsection{Health Check} \label{si:health-check}
-Der \ac{mqtt} Health Check aus Kapitel \ref{ss:health-check} ist in der Main und HiveMQ Komponente implementiert. In der HiveMQ Komponente wird die Funktion \verb|chechHealth| aus Quellcodeauszug \ref{code:sample-mqtt-client} eingefügt. Diese wird periodisch für jeden HiveMQ Node in einer Go Routine der Main Komponente ausgeführt. Wenn die \verb|checkHealth| Methode \verb|false| zurückgibt, ist der HiveMQ Node nicht mehr in der Lage neue Client Verbindungen zu erhalten und sein Health Status wird auf \verb|UNHEALTHY| gesetzt. Es wird au{\ss}erdem sofort ein neuer Snapshot in den Cache geschrieben, damit so wenig Clients wie möglich mit einen \verb|UNHEALTHY| HiveMQ Node verbunden werden. Der \ac{mqtt} Health Status wird au{\ss}erdem in die Variable \verb|MqttHealthy| der HiveMQ Struktur gespeichert damit diese von anderen Komponenten verarbeitet werden kann. Für den Fall, dass mehrere Faktoren den Health Status eines Nodes bestimmen, müssen alle Faktoren den Status \verb|HEALTHY| aufweisen damit ein Node derart gekennzeichnet wird.
+Der \ac{mqtt} Health Check aus Kapitel \ref{ss:health-check} ist in der Node Komponente implementiert. Die Funktion \verb|CheckHealth| wird periodisch für jeden HiveMQ Node in einer Go Routine der Main Komponente aufgerufen. Wenn die \verb|CheckHealth| Methode \verb|false| zurückgibt, ist der HiveMQ Node nicht in der Lage neue Client Verbindungen zu erhalten und sein Health Status wird auf \verb|UNHEALTHY| gesetzt. Es wird au{\ss}erdem sofort ein neuer Snapshot in den Cache geschrieben, damit so wenig Clients wie möglich mit einen \verb|UNHEALTHY| HiveMQ Node verbunden werden. Der \ac{mqtt} Health Status wird au{\ss}erdem in die Variable \verb|MqttHealthy| der Node Struktur gespeichert, damit diese von anderen Komponenten verarbeitet werden kann. Für den Fall, dass mehrere Faktoren den Health Status eines Nodes bestimmen, müssen alle Faktoren den Status \verb|HEALTHY| aufweisen damit ein Node derart gekennzeichnet wird.
+\\
+Eclipse stellt eine Open Source \ac{mqtt} Bibliothek für Golang bereit.
+\cite{EclipsePahoMqtt2021}
+Die Bibliothek bietet eine Abstraktion für das \ac{mqtt} Protokoll und übernimmt das de- und enkodieren von \ac{mqtt} Paketen. Die Funktion \verb|CheckHealth| wurde mit der Bibliothek programmiert und verhält sich wie das in Abbildung \ref{fig:health-check-sequence} dargestellte Ablaufdiagramm.
 
-\subsubsection{Circuit Breaking}
-Das Circuit Breaking aus Kapitel \ref{ss:circuit-breaking} ist in der Metrics Komponente implementiert. Quellcodeauszug \ref{code:circuit-breaking} zeigt den Algorithmus um den Health Status aller Nodes basierend der Metrik \verb|OverloadProtection| zu bestimmen. In Zeile 10 wird auf den zuletzt bekannten Wert der Metrik zugegriffen und in Zeile 12 wird die Varible \verb|OverloadProtectionHealthy| der HiveMQ Struktur auf \verb|true| gesetzt, falls der Wert der Metrik kleiner oder gleich 5 ist.
+\subsubsection{Überlastschutz}
+Der Überlastschutz aus Kapitel \ref{ss:circuit-breaking} ist in der Metrics Komponente implementiert. Quellcodeauszug \ref{code:circuit-breaking} zeigt den Algorithmus um den Health Status aller Nodes basierend der Metrik \verb|OverloadProtection| zu bestimmen. In Zeile 10 wird auf den zuletzt bekannten Wert der Metrik zugegriffen und in Zeile 12 wird die Varible \verb|OverloadProtectionHealthy| der HiveMQ Struktur auf \verb|true| gesetzt, falls der Wert der Metrik kleiner oder gleich 5 ist.
 Sobald der Overload Protection Wert überschritten wurde oder der \ac{mqtt} Health Check aus Kapitel \ref{si:health-check} fehlgeschlagen ist, darf der HiveMQ Node nicht mehr als \verb|HEALTHY| gekennzeichnet werden. Zeile 18 - 22 setzen den Health Status erst auf \verb|HEALTHY| sobald beide Bedingungen erfüllt sind.
 \begin{figure}
     \import{gen/}{circuit-breaking}
@@ -73,11 +87,20 @@ Sobald der Overload Protection Wert überschritten wurde oder der \ac{mqtt} Heal
 \end{figure}
 \newpage
 
-\subsection{Deployment}
-\subsubsection{HiveMQ}
-\subsubsection{Control-Plane}
-\subsubsection{Envoy}
-\subsubsection{Test Szenarien}
+\subsection{Einsatz}
+In Kapitel \ref{ss:control-plane} wurde der Einsatz des Envoy \acl{lb} bereits eingeordnet. Abbildung \ref{fig:deployment-diagram} zeigt den Aufbau einer HiveMQ Cluster Installation mit einem Envoy \ac{lb} und einer Control Plane.
+\\
+\ac{mqtt} Clients bauen ihre Verbindung mit der Envoy Instanz auf, die das HiveMQ Cluster transparent zum Client abstrahiert. Envoy erhält seine Konfiguration von der Control Plane und entscheidet auf dessen Grundlagen, mit welchem HiveMQ Node ein neuer Client verbunden wird. Die Control Plane ruft periodisch die aktuellen Metriken aller HiveMQ Nodes des Clusters ab. Anhand der Metriken werden Health Status und Gewichtung der einzelnen Nodes bestimmt.
+\begin{figure}
+    \centering
+    \includegraphics[scale=0.6]{gen/deployment.png}
+    \caption{UML Einsatzdiagramm}
+    \label{fig:deployment-diagram}
+\end{figure}
+\\
+Bei der in Abbildung \ref{fig:deployment-diagram} gezeigten Architektur müssen weder HiveMQ Nodes, noch Control Plane, für die \ac{mqtt} Clients erreichbar sein. Es muss nur der \acl{lb} für die Clients erreichbar sein.
+\\
+Da sich bei der Control Plane mehrere Envoy Instanzen registrieren können, kann anstatt einer Envoy Instanz auch ein Envoy Cluster eingesetzt werden. Dabei wird ein Cloud Load Balancer vor das Envoy Cluster geschaltet, um dieses für die \ac{mqtt} Clients zu abstrahieren. Da jeder Envoy seine Konfiguration von der Control Plane erhält, wird in jeder Envoy Instanz die selbe load balancing Entscheidung getroffen. Durch die Clusterfähigkeit der Envoy Instanzen ist diese Installation, wie das HiveMQ Cluster, horizontal skalierbar.
 \newpage
 
 \begin{comment}

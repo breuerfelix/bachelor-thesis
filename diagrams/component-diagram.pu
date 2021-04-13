@@ -1,0 +1,34 @@
+@startuml
+
+package "github.com/breuerfelix/mqtt-control-plane" {
+  component Metrics
+  component Main
+  component Resources
+  component Cluster
+  component Node
+}
+
+package "github.com/envoyproxy/go-control-plane" {
+  component Snapshot
+  component Cache
+}
+
+package "github.com/eclipse/paho.mqtt.golang" {
+  component mqtt
+}
+
+package "github.com/prometheus/common" {
+  component expfmt
+}
+
+Main -left-> Metrics
+Main -right-> Resources
+Main --> Cluster
+Resources -> Snapshot
+Metrics --> Cluster
+Cluster -> Node
+Cluster -> Cache
+Node --> mqtt
+Node --> expfmt
+
+@enduml

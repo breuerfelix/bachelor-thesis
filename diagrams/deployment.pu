@@ -1,0 +1,27 @@
+@startuml
+skinparam nodesep 100
+
+cloud HiveMQ as hq {
+  node "HiveMQ Node 1" as h1
+  node "HiveMQ Node 2" as h2
+  node "HiveMQ Node 3" as h3
+}
+
+cloud "Load Balancer" as lb {
+  node "Control Plane" as cp
+  node "Envoy" as e
+}
+
+cloud "MQTT Clients" as c
+
+c <--> e
+
+cp <-> e
+
+lb <--> hq
+
+h1 <-> h2
+h1 <-> h3
+h2 <--> h3
+
+@enduml

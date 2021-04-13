@@ -1,0 +1,30 @@
+@startuml
+class Cluster {
+  +Domain: String
+  +Cache: SnapshotCache
+
+  +CheckNodes(): void
+  +UpdateSnapshot(): void
+}
+
+class Node {
+  +ID: String
+  +HostName: String
+  +Port: Integer
+  +Weight: Integer
+  +Healthy: Boolean
+  +MetricsPort: Integer
+  +Metrics: Map[String][]Float
+  +MqttHealthy: Boolean
+  +OverloadProtectionHealthy: Boolean
+
+  +GetHashString(): String
+  +GetMetricsURL(): String
+  +FetchMetrics(): void
+  -filterOldData(): void
+  +CheckHealth(): Boolean
+}
+
+left to right direction
+Cluster "1" *-- "n" Node : contains
+@enduml
