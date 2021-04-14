@@ -68,7 +68,7 @@ Szenario zwei wird in folgende Phasen untergliedert:
 \end{itemize}
 Szenario drei hat dieselben Phasen wie Szenario zwei in unterschiedlicher Reihenfolge. Phase drei wird mit Phase fünf und sechs getauscht.
 \\
-Alle Szenarien werden mit einem round-robin und least connection \ac{lb} Algorithmus ausgeführt, um die Last der einzelnen Nodes zu untersuchen. Die \ac{cpu} Auslastung des Nodes wird als Lastindikator verwendet. Zur veranschaulichung der einzelnen Phasen wird neben der \ac{cpu} Auslastung auch die aktuelle Anzahl der Clients pro Node visualisiert.
+Alle Szenarien werden mit einem round-robin und least connection \ac{lb} Algorithmus ausgeführt, um die Last der einzelnen Nodes zu untersuchen. Die \ac{cpu} Auslastung des Nodes wird als Lastindikator verwendet. Zur Veranschaulichung der einzelnen Phasen wird neben der \ac{cpu} Auslastung auch die aktuelle Anzahl der Clients pro Node visualisiert.
 Alle Metriken werden periodisch mit Prometheus erfasst und Grafana visualisiert.
 \\
 Um einen Indikator für die Verteilung der Auslastung im Cluster zu erstellen, werden die Beträge der Differenz der \ac{cpu} Auslastung aller Nodes zueinander addiert. Je grö{\ss}er das Ergebnis, desto ungleichmä{\ss}iger ist die Last verteilt.
@@ -196,7 +196,7 @@ Neben der statischen Konfigurationsdatei bietet Envoy zwei Mechanismen für eine
     \cite{ConfigurationDynamicControl}
 \end{itemize}
 Die dynamische Konfiguration via Dateisystem ist gut für einzelne Envoy Instanzen, da keine individuelle Control Plane programmiert werden muss. Betreibt man jedoch ein Envoy Cluster, in dem jede Envoy Instanz dieselbe Konfiguration besitzt, muss man bei einer Aktualisierung der Konfiguration die neue Datei auf die Dateisysteme aller Envoys verteilen.
-Für den Anwendungsfall eines Envoy Clusters ist das dynamische verteilen mit einer Control Plane besser geeignet. Jeder Envoy wird mit einer statischen Konfigurationsdatei konfiguriert, in der die Adresse der Control Plane eingetragen ist. Sobald eine Envoy Instanz startet, registriert sich diese an der Control Plane und erhält seine Konfiguration. Das Verteilen von Konfigurationsaktualisierungen an die Envoy Instanzen wird nun von der Control Plane übernommen.
+Für den Anwendungsfall eines Envoy Clusters ist das dynamische Verteilen mit einer Control Plane besser geeignet. Jeder Envoy wird mit einer statischen Konfigurationsdatei konfiguriert, in der die Adresse der Control Plane eingetragen ist. Sobald eine Envoy Instanz startet, registriert sich diese an der Control Plane und erhält seine Konfiguration. Das Verteilen von Konfigurationsaktualisierungen an die Envoy Instanzen wird nun von der Control Plane übernommen.
 \\
 Quellcodeauszug \ref{code:envoy-control-plane} zeigt eine statische Konfigurationsdatei, um sich bei einer Control Plane zu registrieren die unter \verb|example.controlplane.internal:18000| erreichbar ist.
 \begin{figure}

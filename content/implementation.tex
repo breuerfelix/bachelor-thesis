@@ -26,7 +26,7 @@ Die Control Plane besteht den in Abbildung \ref{fig:component-diagram} dargestel
 Abbildung \ref{fig:class-diagram} zeigt die Cluster und Node Strukturen in einem UML Klassendiagramm.
 \begin{itemize}
   \item \textbf{Cluster:} Die Cluster Struktur enthält alle Daten um die Envoy Konfiguration für ein HiveMQ Cluster zu generieren. Die Funktion \verb|CheckNodes| löst die \ac{ip} Adressen der Domain des Feldes \verb|Domain| auf. Anhand der erhaltenen \ac{ip} Adressen wird die Liste aller Node Strukturen des Clusters erstellt. Die Funktion \verb|UpdateSnapshot| benutzt die Resources Komponente um einen Snapshot des aktuellen Clusters zu bilden und in den Cache-Speicher des \verb|Cache| Feldes zu speichern.
-  \item \textbf{Node:} Eine Node Struktur repräsentiert einen HiveMQ Node. Die Funktion \verb|FetchMetrics| ruft die aktuellen Prometheus Metriken des Nodes ab und speichert die geparsten Daten in dem \verb|Metrics| Feld der Struktur ab. Die Funktion \verb|filterOldData| löscht alte gespeicherte Metriken die nicht mehr verarbeitet werden. \verb|CheckHealth| benutzt die MQTT Komponente der Eclipse Bibliothek um einen Health Check des Nodes durchzuführen (siehe Kapitel \ref{si:health-check}).
+  \item \textbf{Node:} Eine Node Struktur repräsentiert einen HiveMQ Node. Die Funktion \verb|FetchMetrics| ruft die aktuellen Prometheus Metriken des Nodes ab und speichert die geparsten Daten in dem \verb|Metrics| Feld der Struktur ab. Die Funktion \verb|filterOldData| löscht alte gespeicherte Metriken, die nicht mehr verarbeitet werden. \verb|CheckHealth| benutzt die MQTT Komponente der Eclipse Bibliothek, um einen Health Check des Nodes durchzuführen (siehe Kapitel \ref{si:health-check}).
 \end{itemize}
 
 \begin{figure}
@@ -65,7 +65,7 @@ Beim Start der Control Plane wird von der Main Komponente eine Go Routine gestar
 Der weighted round-robin Algorithmus basierend auf der \ac{cpu} Auslastung der einzelnen HiveMQ Nodes aus Kapitel \ref{ss:weighted-cpu} ist in der Metrics Komponente implementiert.
 \\
 Quellcodeauszug \ref{code:weighted-cpu} zeigt den Algorithmus für die Bestimmung der Gewichtung der HiveMQ Nodes anhand der \ac{cpu} Auslastung.
-Zeile 8 - 17 berechnen die durchschnittliche \ac{cpu} Auslastung alle gespeicherten Metriken individuell für jeden Node. Abgefragte Metriken werden nur für einen bestimmten Zeitraum gespeichert (siehe Kapitel \ref{si:control-plane}). Durch die Bildung des Durchschnittwertes über einen bestimmte Zeitraum, wird die Regelung der Gewichtung träge. Somit wird die Auswirkung von kurzfristigen Lastspitzen auf die Gewichtung reduziert.
+Zeile 8 - 17 berechnen die durchschnittliche \ac{cpu} Auslastung alle gespeicherten Metriken individuell für jeden Node. Abgefragte Metriken werden nur für einen bestimmten Zeitraum gespeichert (siehe Kapitel \ref{si:control-plane}). Durch die Bildung des Durchschnittwertes über einen bestimmten Zeitraum, wird die Regelung der Gewichtung träge. Somit wird die Auswirkung von kurzfristigen Lastspitzen auf die Gewichtung reduziert.
 Zeile 19 - 34 bestimmen die Gewichtung der Nodes basierend der zuvor berechneten Durchschnittsauslastung. Die Metrik der \ac{cpu} Auslastung kann einen Maximalwert von 100 erreichen. Da die freie \ac{cpu} Auslastung für die Gewichtung verwendet wird, wird die Durchschnittsauslastung von der maximalen Auslastung abgezogen, um die freie Auslastung zu erhalten. Bevor das Ergebnis als Gewichtung gesetzt wird, muss überprüft werden, ob dieses \verb|NaN| oder kleiner als eins ist. Die kleinste erlaubte Gewichtung für Envoy ist eins.
 \begin{figure}
     \import{gen/}{weighted-cpu}
@@ -74,14 +74,14 @@ Zeile 19 - 34 bestimmen die Gewichtung der Nodes basierend der zuvor berechneten
 \end{figure}
 
 \subsubsection{Health Check} \label{si:health-check}
-Der \ac{mqtt} Health Check aus Kapitel \ref{ss:health-check} ist in der Node Komponente implementiert. Die Funktion \verb|CheckHealth| wird periodisch für jeden HiveMQ Node in einer Go Routine der Main Komponente aufgerufen. Wenn die \verb|CheckHealth| Methode \verb|false| zurückgibt, ist der HiveMQ Node nicht in der Lage neue Client Verbindungen zu erhalten und sein Health Status wird auf \verb|UNHEALTHY| gesetzt. Es wird au{\ss}erdem sofort ein neuer Snapshot in den Cache geschrieben, damit so wenig Clients wie möglich mit einen \verb|UNHEALTHY| HiveMQ Node verbunden werden. Der \ac{mqtt} Health Status wird au{\ss}erdem in die Variable \verb|MqttHealthy| der Node Struktur gespeichert, damit diese von anderen Komponenten verarbeitet werden kann. Für den Fall, dass mehrere Faktoren den Health Status eines Nodes bestimmen, müssen alle Faktoren den Status \verb|HEALTHY| aufweisen damit ein Node derart gekennzeichnet wird.
+Der \ac{mqtt} Health Check aus Kapitel \ref{ss:health-check} ist in der Node Komponente implementiert. Die Funktion \verb|CheckHealth| wird periodisch für jeden HiveMQ Node in einer Go Routine der Main Komponente aufgerufen. Wenn die \verb|CheckHealth| Methode \verb|false| zurückgibt, ist der HiveMQ Node nicht in der Lage neue Client Verbindungen zu erhalten und sein Health Status wird auf \verb|UNHEALTHY| gesetzt. Es wird au{\ss}erdem sofort ein neuer Snapshot in den Cache geschrieben, damit so wenig Clients wie möglich mit einem \verb|UNHEALTHY| HiveMQ Node verbunden werden. Der \ac{mqtt} Health Status wird au{\ss}erdem in die Variable \verb|MqttHealthy| der Node Struktur gespeichert, damit diese von anderen Komponenten verarbeitet werden kann. Für den Fall, dass mehrere Faktoren den Health Status eines Nodes bestimmen, müssen alle Faktoren den Status \verb|HEALTHY| aufweisen damit ein Node derart gekennzeichnet wird.
 \\
 Eclipse stellt eine Open Source \ac{mqtt} Bibliothek für Golang bereit.
 \cite{EclipsePahoMqtt2021}
 Die Bibliothek bietet eine Abstraktion für das \ac{mqtt} Protokoll und übernimmt das de- und enkodieren von \ac{mqtt} Paketen. Die Funktion \verb|CheckHealth| wurde mit der Bibliothek programmiert und verhält sich wie das in Abbildung \ref{fig:health-check-sequence} dargestellte Ablaufdiagramm.
 
 \subsubsection{Überlastschutz}
-Der Überlastschutz aus Kapitel \ref{ss:circuit-breaking} ist in der Metrics Komponente implementiert. Quellcodeauszug \ref{code:circuit-breaking} zeigt den Algorithmus um den Health Status aller Nodes basierend der Metrik \verb|OverloadProtection| zu bestimmen. In Zeile 10 wird auf den zuletzt bekannten Wert der Metrik zugegriffen und in Zeile 12 wird die Varible \verb|OverloadProtectionHealthy| der HiveMQ Struktur auf \verb|true| gesetzt, falls der Wert der Metrik kleiner oder gleich 5 ist.
+Der Überlastschutz aus Kapitel \ref{ss:circuit-breaking} ist in der Metrics Komponente implementiert. Quellcodeauszug \ref{code:circuit-breaking} zeigt den Algorithmus, um den Health Status aller Nodes basierend der Metrik \verb|OverloadProtection| zu bestimmen. In Zeile 10 wird auf den zuletzt bekannten Wert der Metrik zugegriffen und in Zeile 12 wird die Varible \verb|OverloadProtectionHealthy| der HiveMQ Struktur auf \verb|true| gesetzt, falls der Wert der Metrik kleiner oder gleich 5 ist.
 Sobald der Overload Protection Wert überschritten wurde oder der \ac{mqtt} Health Check aus Kapitel \ref{si:health-check} fehlgeschlagen ist, darf der HiveMQ Node nicht mehr als \verb|HEALTHY| gekennzeichnet werden. Zeile 18 - 22 setzen den Health Status erst auf \verb|HEALTHY| sobald beide Bedingungen erfüllt sind.
 \begin{figure}
     \import{gen/}{circuit-breaking}
@@ -91,7 +91,7 @@ Sobald der Overload Protection Wert überschritten wurde oder der \ac{mqtt} Heal
 \newpage
 
 \subsection{Einsatz}
-In Kapitel \ref{ss:control-plane} wurde der Einsatz des Envoy \acl{lb} in einem \ac{mqtt} Anwedungsfeld bereits eingeordnet. Abbildung \ref{fig:deployment-diagram} zeigt den Aufbau einer HiveMQ Cluster Installation mit einem Envoy \ac{lb} und einer Control Plane.
+In Kapitel \ref{ss:control-plane} wurde der Einsatz des Envoy \acl{lb} in einem \ac{mqtt} Anwendungsfeld bereits eingeordnet. Abbildung \ref{fig:deployment-diagram} zeigt den Aufbau einer HiveMQ Cluster Installation mit einem Envoy \ac{lb} und einer Control Plane.
 \\
 \ac{mqtt} Clients bauen ihre Verbindung mit der Envoy Instanz auf, die das HiveMQ Cluster transparent zum Client abstrahiert. Envoy erhält seine Konfiguration von der Control Plane und entscheidet auf dessen Grundlagen, mit welchem HiveMQ Node ein neuer Client verbunden wird. Die Control Plane ruft periodisch die aktuellen Metriken aller HiveMQ Nodes des Clusters ab. Anhand der Metriken werden Health Status und Gewichtung der einzelnen Nodes bestimmt.
 \begin{figure}
@@ -103,7 +103,7 @@ In Kapitel \ref{ss:control-plane} wurde der Einsatz des Envoy \acl{lb} in einem 
 \\
 Bei der in Abbildung \ref{fig:deployment-diagram} gezeigten Architektur müssen weder HiveMQ Nodes, noch Control Plane, für die \ac{mqtt} Clients erreichbar sein. Control Plane und Envoy müssen Netzwerkverbindungen mit allen Nodes des HiveMQ Clusters aufbauen können.
 \\
-Da sich bei der Control Plane mehrere Envoy Instanzen registrieren können, kann anstatt einer Envoy Instanz auch ein Envoy Cluster eingesetzt werden. Dabei wird ein Cloud Load Balancer vor das Envoy Cluster geschaltet, um dieses für die \ac{mqtt} Clients zu abstrahieren. Da jeder Envoy seine Konfiguration von der Control Plane erhält, wird in jeder Envoy Instanz die selbe load balancing Entscheidung getroffen. Durch die Clusterfähigkeit der Envoy Instanzen ist diese Installation, wie das HiveMQ Cluster, horizontal skalierbar.
+Da sich bei der Control Plane mehrere Envoy Instanzen registrieren können, kann anstatt einer Envoy Instanz auch ein Envoy Cluster eingesetzt werden. Dabei wird ein Cloud Load Balancer vor das Envoy Cluster geschaltet, um dieses für die \ac{mqtt} Clients zu abstrahieren. Da jeder Envoy seine Konfiguration von der Control Plane erhält, wird in jeder Envoy Instanz dieselbe load balancing Entscheidung getroffen. Durch die Clusterfähigkeit der Envoy Instanzen ist diese Installation, wie das HiveMQ Cluster, horizontal skalierbar.
 \newpage
 
 \begin{comment}
