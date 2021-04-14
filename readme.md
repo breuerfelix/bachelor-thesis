@@ -1,15 +1,11 @@
 TODO bis zur ersten abgabe:
 - qullenangabe tabelle
-- grammarly
 - weighted cpu kapitel überarbeiten
 - envoy kapitel ausführlicher schreiben
-- implementation uml diagram
-- refactor code
 - hab ich probleme ausführlich?
 - mqtt v5 quellenangabe
 
 TODO chrstian:
-- um nachrichten entkoppelt nachrichten auszutauschen
 - hardware lb mehr erklären -> performance ist nicht direkt schlechter
 - unter osi layer = hardware
 - layer 4 und höher -> softwarelösung
@@ -18,11 +14,7 @@ TODO chrstian:
 - client hat nen takeover -> client hat keinen takeover -> client merkt sobald die verbindung wegkommt
 - problembeschreibung circuit breaking
 - 4.5 verbindungsorientiertes
-- envoy teil: warum habe ich envoy gewählt -> ein paar zeilen
-  - control plane, pipeline, eigenschaften, hot reload, warum nimmt man envoy
-- programmierbar vs konfigurierbar -> envoy ist eher programmierbar -> vor allem durch wasm
 - discovery selber mechanismus -> selbe datenbasis
-- kube-dns rausschmeißen
 - stricted weighted round-robin
   - es geht nicht darum jede einzelne verbindung perfekt zu optimieren
   - es geht darum auf viele verschiedene verbindungen zu optimieren
@@ -30,7 +22,6 @@ TODO chrstian:
 - ausblick: verteilung findet auf warscheinlichkeiten statt
 - ist envoy eine gute basis ? ist das vorgehen gut ? basis ist ausbaufähig -> man kann mehrere pakete parsen außer connect paket
 
-- warum envoy
 - welche probleme löse ich ?
 - smartness -> anpassungsfähigkeit des load balancers und seiner entscheidungen
 - hivemq success stories
@@ -38,35 +29,23 @@ TODO chrstian:
 - quellen für die probleme, warum hab ich die probleme?
 - mqtt kennt keine cluster
 
-feedback janine:
-- auf oder in dem topic oder whatever
-
 TODO letzter check:
 - zahlen 0 - 12 ausgeschrieben, runde zahlen auch ausschreiben
 - fragezeichen quellen?
 
 feedback neu:
-- bild zum algorithmus
 - grafiken überarbeiten
 - panel -> repeat option
 - slow start -> ramp up
 - hivemq kann das implementieren
 - ist ein operatives ding -> kann metriken berücksichtigen
-- regelung träge
 
 load balancing:
-- load balancing strategien, was ist relevant etc
-- zeigen das ich eine mqtt connection nur auf connection based 
 - wichtig! ist kern der arbeit
-- zeig load balancing auf allen layern -> dann einordnen in mqtt
 
 cluster discovery:
-- bei dns ist es okay wenn der state unterschiedlich / man muss nur zeigen das man damit umgehen kann
 - distributed system hat das problem split brain
 - splitbrain is nicht mein problem, das wird durch mqtt health check gelöst, muss der hivemq lösen
-
-formulierungen:
-- clients sind nicht mit anderen clients nicht synchronisiert
 
 hivemq:
 - industrial iot iiot

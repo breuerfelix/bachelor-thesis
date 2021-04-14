@@ -27,7 +27,7 @@ Envoy und HiveMQ stellen beide eine statische Cluster Discovery zur Verfügung. 
 Eine weitere gemeinsame Cluster Discovery Methode ist die Strict \ac{dns} Methode. HiveMQ hat diese Methode nicht in der Standard Version eingebaut, stellt für diesen Anwendungsfall aber eine frei zugängliche Erweiterung bereit.
 Bei dieser Methode werden periodisch alle Einträge zu einem gegebenen \ac{dns} Eintrag abgefragt. Alle erhaltenen Einträge werden als Nodes des Cluster anerkannt. Die Frequenz der Abfrage kann in Envoy mit der Variable \verb|dns_refresh_rate| bestimmt werden. In der HiveMQ Erweiterung ist die Einstellung der Frequenz derzeit noch nicht möglich. Ein Issue \cite{AllowConfigurationDiscovery} und ein Pull Request \cite{ExponentialBackoffGeneral} wurden bereits zu diesem Feature auf GitHub erstellt.
 \\
-Anders als bei der statischen Cluster Konfiguration ist bei der Strict \ac{dns} Methode eine dynamische Änderung der Nodes möglich. In Cloudumgebungen wie Kubernetes werden \ac{dns} Zonen dynamisch von Plugins wie \textit{CoreDNS} oder \textit{kube-dns} verwaltet.\cite{DNSServicesPods}
+Anders als bei der statischen Cluster Konfiguration ist bei der Strict \ac{dns} Methode eine dynamische Änderung der Nodes möglich. In Cloudumgebungen wie Kubernetes werden \ac{dns} Zonen dynamisch von Plugins wie \textit{CoreDNS} verwaltet.\cite{DNSServicesPods}
 Die Strict \ac{dns} Methode kann auf Änderungen dieser Zonen reagieren und dynamisch die Topologie des HiveMQ Clusters anpassen.
 \\
 Der Quellcodeauszug \ref{code:envoy-strict-dns} zeigt eine Envoy Cluster Konfiguration, die den \ac{dns} namen \verb|example.cluster.internal| auflöst und neue Verbindungen auf alle Einträge an den Port \verb|1883| verteilt.
@@ -364,7 +364,7 @@ Insgesamt hat der Weighted Round Robin \ac{lb} besser abgeschnitten als der Leas
 \subsubsection{Überlastschutz} \label{ss:circuit-breaking}
 Wie in Kapitel \ref{ss:weighted-cpu} beschrieben, kann das Lastverhalten von \ac{mqtt} Clients während der Laufzeit stark variieren. Da ein Client zur Laufzeit nicht mit einem anderen Node verbunden werden kann, kann es bei dem Verändern des Lastverhaltens von Clients zu einer Überlastsituation eines Nodes kommen.
 Ein HiveMQ Broker hat mehrere Möglichkeiten sich vor einer solchen Überlastsituation zu schützen (siehe Kapitel \ref{sb:overload-protection}).
-Im ersten Schritt wendet Broker \ac{tcp} Backpressure auf individuelle Client Verbindungen an, um den Paketfluss zu verzögern.
+Im ersten Schritt wendet Broker \ac{tcp} Backpressure auf individuelle Clientverbindungen an, um den Paketfluss zu verzögern.
 Falls durch diese Mechanik eine Lastspitze nicht unter Kontrolle gebracht werden kann, wird die Verbindung von Clients unterbrochen, die ihre Credits aufgebraucht haben.
 Dadurch werden gezielt Clients vom Broker getrennt, die zu viel Arbeitslast für den Broker verursachen.
 Durch die Trennung dieser Clients gibt es keine Service Eischränkungen für alle anderen Clients, die mit dem Broker verbunden sind. Andernfalls kann es zu Paketverzögerungen oder Paketverlusten auf einem Broker kommen.

@@ -91,7 +91,7 @@ Sobald der Overload Protection Wert überschritten wurde oder der \ac{mqtt} Heal
 \newpage
 
 \subsection{Einsatz}
-In Kapitel \ref{ss:control-plane} wurde der Einsatz des Envoy \acl{lb} bereits eingeordnet. Abbildung \ref{fig:deployment-diagram} zeigt den Aufbau einer HiveMQ Cluster Installation mit einem Envoy \ac{lb} und einer Control Plane.
+In Kapitel \ref{ss:control-plane} wurde der Einsatz des Envoy \acl{lb} in einem \ac{mqtt} Anwedungsfeld bereits eingeordnet. Abbildung \ref{fig:deployment-diagram} zeigt den Aufbau einer HiveMQ Cluster Installation mit einem Envoy \ac{lb} und einer Control Plane.
 \\
 \ac{mqtt} Clients bauen ihre Verbindung mit der Envoy Instanz auf, die das HiveMQ Cluster transparent zum Client abstrahiert. Envoy erhält seine Konfiguration von der Control Plane und entscheidet auf dessen Grundlagen, mit welchem HiveMQ Node ein neuer Client verbunden wird. Die Control Plane ruft periodisch die aktuellen Metriken aller HiveMQ Nodes des Clusters ab. Anhand der Metriken werden Health Status und Gewichtung der einzelnen Nodes bestimmt.
 \begin{figure}
@@ -101,7 +101,7 @@ In Kapitel \ref{ss:control-plane} wurde der Einsatz des Envoy \acl{lb} bereits e
     \label{fig:deployment-diagram}
 \end{figure}
 \\
-Bei der in Abbildung \ref{fig:deployment-diagram} gezeigten Architektur müssen weder HiveMQ Nodes, noch Control Plane, für die \ac{mqtt} Clients erreichbar sein. Es muss nur der \acl{lb} für die Clients erreichbar sein.
+Bei der in Abbildung \ref{fig:deployment-diagram} gezeigten Architektur müssen weder HiveMQ Nodes, noch Control Plane, für die \ac{mqtt} Clients erreichbar sein. Control Plane und Envoy müssen Netzwerkverbindungen mit allen Nodes des HiveMQ Clusters aufbauen können.
 \\
 Da sich bei der Control Plane mehrere Envoy Instanzen registrieren können, kann anstatt einer Envoy Instanz auch ein Envoy Cluster eingesetzt werden. Dabei wird ein Cloud Load Balancer vor das Envoy Cluster geschaltet, um dieses für die \ac{mqtt} Clients zu abstrahieren. Da jeder Envoy seine Konfiguration von der Control Plane erhält, wird in jeder Envoy Instanz die selbe load balancing Entscheidung getroffen. Durch die Clusterfähigkeit der Envoy Instanzen ist diese Installation, wie das HiveMQ Cluster, horizontal skalierbar.
 \newpage
