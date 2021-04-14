@@ -31,10 +31,12 @@ Der Broker kann Nachrichten auch aufbewahren, sodass Clients, die zu einem spät
 Durch dieses System entsteht eine Entkopplung der einzelnen Clients auf mehreren Ebenen.
 \begin{itemize}
     \item \textbf{Räumliche Entkopplung:} Publisher und Subscriber der Nachricht müssen sich nicht kennen.
+      \cite{teamPublishSubscribeMQTT}
     \item \textbf{Zeitliche Entkopplung:} Publisher und Subscriber müssen nicht zur selben Zeit aktiv sein.
+      \cite{teamPublishSubscribeMQTT}
     \item \textbf{Synchronisierungs Entkopplung:} Publisher und Subscriber müssen ihre Operationen beim Publizieren und Konsumieren nicht unterbrechen.
+      \cite{teamPublishSubscribeMQTT}
 \end{itemize}
-\cite{teamPublishSubscribeMQTT}
 In verteilten Systemen bietet ein solches Konzept eine einheitliche Abstraktion der Kommunikationsebene.
 \cite{domingusDistributedSystemsIntroduction2020}
 \begin{figure}
@@ -112,7 +114,7 @@ Als Beispiel dient ein Temperatursensor, der alle zehn Minuten seine Temperatur 
     Daten des Pakets, optional \\
     \hline
 \end{tabular}
-\caption{Struktur eines \ac{mqtt} Paketes}
+\caption{Struktur eines \ac{mqtt} Paketes. Quelle: \cite{mqtt5Specification}}
 \label{table:mqtt-packet-structure}
 \end{table}
 Tabelle \ref{table:fixed-header} zeigt den detaillierten Aufbau des fixen Headers. Im ersten Byte werden Bit sieben bis vier für die spezifische Art des Paketes verwendet. Tabelle \ref{table:mqtt-packet-types} enhält eine Liste mit allen möglichen Pakettypen und deren Wert. Byte zwei gibt die restliche Paketlänge enkodiert als \textit{Variable Byte Integer} an.
@@ -131,7 +133,7 @@ Die Enkodierung eines \textit{Variable Byte Integer} wird in Kapitel 1.5.5 der \
     Byte 2 & \multicolumn{8}{c|}{Restliche Paketlänge} \\
     \hline
 \end{tabularx}
-\caption{Aufbau des fixen \ac{mqtt} Headers}
+\caption{Aufbau des fixen \ac{mqtt} Headers. Quelle: \cite{mqtt5Specification}}
 \label{table:fixed-header}
 \end{table}
 
@@ -176,7 +178,7 @@ Die Enkodierung eines \textit{Variable Byte Integer} wird in Kapitel 1.5.5 der \
     AUTH & 15 \\
     \hline
 \end{tabular}
-\caption{Verfügbare \ac{mqtt} Paketarten und deren Wert}
+\caption{Verfügbare \ac{mqtt} Paketarten und deren Wert. Quelle: \cite{mqtt5Specification}}
 \label{table:mqtt-packet-types}
 \end{table}
 
@@ -185,21 +187,22 @@ Nachdem eine \ac{tcp} Verbindung zwischen einem Client und einem Broker aufgebau
 Tabelle \ref{table:mqtt-connect-packet-variable-header} zeigt den Aufbau und Inhalt eines Beispielhaften variablen Headers eines \verb|CONNECT| Paketes.
 Die ersten sechs Byte geben den Namen des Protokolls als UTF-8 enkodierten String an. Dieser wird sich in zukünftigen Versionen nicht ändern und dient als Identifikationsmerkmal des \ac{mqtt} Protokolls für Server, die mehrere Protokolle implementiert haben. Byte sieben gibt die verwendete \ac{mqtt} Version des Clients an. In Byte acht kann der Client Kennzeichnungen für die Präsenz der optionalen Daten setzen. Die Länge der Eigenschaften wird mit Byte elf bestimmt. In den Eigenschaften kann der Client zum Beispiel eine maximale Paketgrö{\ss}e oder Themen Aliasse setzen.\cite{mqtt5Specification}\\
 Auf den variablen Header folgen die Daten (engl. \textit{Payload}) des \verb|CONNECT| Paketes. Diese sind eine oder mehrere Felder mit ihrer Länge als Präfix. Byte acht des variablen Headers bestimmt das Vorkommen der Felder, die - falls vorhanden - eine strikte Reihenfolge einhalten müssen.
+\cite{mqtt5Specification}
 \begin{enumerate}
-    \item Client Kennung
+    \item Clientkennung
     \item \textit{Will} Eigenschaften
     \item \textit{Will} Thema
     \item \textit{Will} Payload
     \item Benutzername
     \item Passwort
 \end{enumerate}
-Die Client Kennung ist als einziges Feld nicht optional. Sie muss ein UTF-8 enkodierter String aus folgenden Zeichen bestehen:
+Die Clientkennung ist als einziges Feld nicht optional. Sie muss ein UTF-8 enkodierter String aus folgenden Zeichen bestehen:
 \begin{itemize}
     \item 0-9
     \item a-z
     \item A-Z
 \end{itemize}
-Eine Client Kennung dient zur Identifikation des aktuellen Zustands des Clients und muss daher einzigartig vergeben sein. Ist bereits ein Client mit der gleichen Kennung mit dem Broker verbunden, wird die Verbindung des existierenden Clients getrennt und es findet ein \textit{Client takeover} statt (siehe \ref{s:client-takeover}).\cite{mqtt5Specification}
+Eine Clientkennung dient zur Identifikation des aktuellen Zustands des Clients und muss daher einzigartig vergeben sein. Ist bereits ein Client mit der gleichen Kennung mit dem Broker verbunden, wird die Verbindung des existierenden Clients getrennt und es findet ein \textit{Client takeover} statt (siehe \ref{s:client-takeover}).\cite{mqtt5Specification}
 \begin{table}[h!]
 \centering
 \renewcommand{\arraystretch}{1.5}
@@ -237,7 +240,7 @@ Eine Client Kennung dient zur Identifikation des aktuellen Zustands des Clients 
     Byte 11 & Länge der Eigenschaften & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
     \hline
 \end{tabularx}
-\caption{Beispielhaftes \ac{mqtt} CONNECT Paket}
+\caption{Beispielhaftes \ac{mqtt} CONNECT Paket. Quelle: \cite{mqtt5Specification}}
 \label{table:mqtt-connect-packet-variable-header}
 \end{table}
 Der Broker muss eine \verb|CONNECT| Nachricht von einem Client mit einem \verb|CONNACK| Paket beantworten.\cite{mqtt5Specification}
@@ -287,10 +290,10 @@ Um dies zu erreichen, tauschen alle Nodes eines Clusters Informationen über Cli
 Durch das Zusammenschlie{\ss}en der HiveMQ Broker ensteht eine horizontale Skalierung. Wie in Kapitel \ref{s:domain} bereits erläutert, können sich im Anwendungsfall \ac{iot} mehrere Millionen Clients mit einem \ac{mqtt} Broker verbinden. Hierbei kann eine vertikale Skalierung an ihre Grenzen sto{\ss}en.
 \begin{itemize}
     \item \textbf{Vertikale Skalierung:} Fügt mehr Rechen- oder Speichereinheiten zu einem Server hinzu.
+      \cite{HowScaleIT}
     \item \textbf{Horizontale Skalierung:} Fügt mehrere Server zu einer logischen Recheneinheit hinzu. Dabei kann die Arbeitslast auf die einzelnen Server verteilt werden.
+      \cite{HowScaleIT}
 \end{itemize}
-\cite{HowScaleIT}
-\\
 Ein HiveMQ Broker in einem HiveMQ Cluster wird als ein HiveMQ Node (im Folgenden Node genannt) bezeichnet.
 Damit sich mehrere Nodes zu einem Cluster zusammenschlie{\ss}en muss jeder Node:
 \begin{itemize}
@@ -309,8 +312,9 @@ Die Cluster Discovery beschreibt den Mechanismus wie sich individuelle Nodes geg
 HiveMQ ist in der Lage die Clustergrö{\ss}e zur Laufzeit dynamisch anzupassen. Diesen Mechanismus muss der gewählte Cluster Discovery Modus unterstützten.
 \cite{HiveMQClusterHiveMQ}
 
-\subsubsubsection{Overload Protection} \label{sb:overload-protection}
+\subsubsubsection{Überlastschutz} \label{sb:overload-protection}
 HiveMQ stellt einen eingebauten Überlastschutz (engl. \textit{Overload Protection}) für ein HiveMQ Cluster bereit. Jeder Node eines Clusters ist in der Lage die Rate der eingehenden Nachrichten zu reduzieren. Dieser Mechanismus erhöht die Stabilität des Clusters, indem gezielt Clients, die zu einer Überlast beitragen, gedrosselt werden.
+\cite{ClusterOverloadProtection}
 Dadurch kann sich das Cluster von einer Überlastsituation erholen, ohne die Service Qualität für Clients, die nicht der Überlastsituation beitragen, zu beeinträchtigen.
 Jeder Node eines Clusters berechnet durchgehend einen individuellen \textit{Overload Protection Level} auf Basis der Menge aller:
 \begin{itemize}
@@ -322,6 +326,7 @@ Jeder Node eines Clusters berechnet durchgehend einen individuellen \textit{Over
 Das Drosseln von Clients basiert auf einem Credit System. Jeder Client erhält nach dem Aufbau einer Verbindung ein Guthaben von 50,000 Credits.
 Für jede Veröffentlichung einer Nachricht werden die Credits des Clients reduziert.
 Diese werden alle 200 Millisekunden um einen bestimmten Wert regeneriert, bis das maximale Guthaben von 50,000 erreicht wurde. Der Regenerationswert richtet sich nach dem derzeitigen Overload Protection Level des Nodes, mit dem der Client verbunden ist.
+\cite{ClusterOverloadProtection}
 \\
 Hat ein Client alle seine Credits verbraucht, wird \ac{tcp} Backpressure auf dem Socket des Clients angewandt woraufhin dieser keine Nachrichten mehr veröffentlichen kann.
 Überschreitet der Zeitraum, in dem \ac{tcp} Backpressure für einen Client angewandt wird, den konfigurierten Keep-Alive Wert der Verbindung, wird diese unterbrochen.
@@ -345,7 +350,7 @@ Eine persistente Session speichert folgende Daten auf dem Broker:
 \end{itemize}
 Bei einer persistenten Session muss neben dem Broker auch der Client Informationen speichern. Er ist verantwortlich die folgenden Daten zu persistieren:
 \begin{itemize}
-    \item Seine eigene Client Kennung. Diese wird als Identifikationsmerkmal einer persistenten Session auf dem Broker genutzt und muss bei einer erneuten Verbindung immer gleich sein.
+    \item Seine eigene Clientkennung. Diese wird als Identifikationsmerkmal einer persistenten Session auf dem Broker genutzt und muss bei einer erneuten Verbindung immer gleich sein.
     \item Alle \ac{qos} Level eins oder zwei Nachrichten, die noch nicht vom Broker bestätigt wurden.
     \item Alle \ac{qos} Level zwei Nachrichten, die der Client vom Broker erhalten hat und noch nicht vollständig bestätigt wurden.
 \end{itemize}
@@ -424,7 +429,6 @@ Mögliche Daten sind Quell-, Ziel \ac{ip} Adresse, Port oder Domain Name. Durch 
 \cite{WhatLoadBalancer}
 
 \subsubsection{Envoy} \label{s:envoy}
-% TODO envoy architectur video!
 Envoy ist ein \ac{osi}-Layer sieben Proxy und für gro{\ss}e moderne Service orientierte Architekturen von Lyft entwickelt worden.
 Im September 2017 wurde Envoy an die \textit{Cloud Native Computing Foundation} gestiftet, die Cloud Projekte wie Kubernetes, Prometheus, containerd und Jaeger verwaltet.
 Der Envoy Quellcode wird öffentlich auf GitHub versioniert und hat stand April 2021 bereits 670 Kontributoren und 16.500 Sterne auf GitHub gesammelt. \cite{EnvoyproxyEnvoy2021}
@@ -432,13 +436,17 @@ Der Envoy Quellcode wird öffentlich auf GitHub versioniert und hat stand April 
 Der in C++ programmierte und hoch performante \ac{lb} Envoy stellt folgende abstrakte Features bereit:
 \begin{itemize}
     \item \textbf{\acs{osi}-Layer 3/4 Filter:} Envoy erlaubt das Dazuschalten von \acs{tcp} oder \acs{udp} Filtern in die Netzwerk Pipeline. Filter wie zum Beispiel für MongoDB, Redis, \ac{tls} Authentifizierung wurden bereits in Envoy implementiert. Benutzerdefinierte Filter können direkt in C++ implementiert und eingebunden oder als \ac{wasm} Modul integriert werden.
+      \cite{WhatEnvoyEnvoy}
     \item \textbf{\acs{http} \ac{osi}-Layer 7 Filter:} Aufgrund der Popularität von \ac{http} wurden diverse \ac{osi}-Layer 7 \ac{http} Filter in Envoy implementiert. Filter wie \textit{buffering}, \textit{routing} und \textit{rate-limiting} sind bereits in Envoy integriert und können über einen \ac{http} Connection Manager konfiguriert werden.
+      \cite{WhatEnvoyEnvoy}
     \item \textbf{Dynamische Konfiguration:} Envoy kann dynamisch über eine \textit{Data-Plane API} provisioniert werden. Dabei können Daten wie Cluster, \ac{http} Routen, Listener Sockets oder \ac{tls} Zertifikate dynamisch von einer externen Quelle bereitgestellt werden.
+      \cite{WhatEnvoyEnvoy}
     \item \textbf{Observeability:} Envoy verfolgt das Ziel transparete Netzwerke zu erschaffen. Um dies zu erreichen werden umfangreiche Statistiken bereitgestellt, die zum Beispiel mit \textit{statsd} aggregiert werden können.
+      \cite{WhatEnvoyEnvoy}
 \end{itemize}
-\cite{WhatEnvoyEnvoy}
 Envoy wird unteranderem bei Slack \cite{MigratingMillionsConcurrent2021} als \acl{lb} für Websockets eingesetzt. Zudem findet Envoy Anwendung in \textit{service-meshes} als Edge Proxy bei Istio \cite{Istio} und Google Traffic Director \cite{TrafficDirectorGoogle}.
 
+\begin{comment}
 \subsubsubsection{Architecture}
 test
 \cite{datawireEnvoyInternalsDeep2018}
@@ -447,4 +455,5 @@ warum envoy?
 - programmierbar vs konfigurierbar -> envoy ist eher programmierbar -> vor allem durch wasm
 - envoy teil: warum habe ich envoy gewählt -> ein paar zeilen
   - control plane, pipeline, eigenschaften, hot reload, warum nimmt man envoy
+\end{comment}
 \newpage
