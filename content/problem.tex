@@ -17,8 +17,8 @@ Wie in Kapitel \ref{s:persistent-session} beschrieben können Clients eine persi
 Dieser Prozess findet bei einem Broker im Arbeitsspeicher statt.
 Dort muss zu den existierenden persistierten Daten der dazugehörige \ac{tcp} Socket ausgetauscht werden.
 Wenn der Client die Verbindung mit einem anderen Node des HiveMQ Cluster wiederaufbaut, ist ein Client Takeover komplexer.
-In diesem Szenario muss der Node, auf dem der alte Client verbunden war, alle persistierten Daten an den neuen Node übermitteln.
-Wenn der alte Client über einen längeren Zeitraum nicht verbunden war, können sich viele Daten anhäufen.
+In diesem Szenario muss der Node, auf dem der Client verbunden war, alle persistierten Daten an den neuen Node übermitteln.
+Wenn der Client über einen längeren Zeitraum nicht verbunden war, können sich viele Daten anhäufen.
 \\
 Im Optimallfall wird der neue Client mit demselben Node verbunden, mit dem er zuvor verbunden war, um interne Kommunikation und Latenzen beim Verbindungsaufbau zu verringern.
 \begin{comment}

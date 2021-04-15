@@ -6,7 +6,7 @@ TODO:
 
 Das folgende Kapitel erläutert die erforderlichen technologischen Grundlagen für das tiefere Verständnis des Themas der Thesis.
 Das \acs{mqtt} Protokoll wird in Kapitel \ref{s:mqtt} beschrieben.
-Kapitel \ref{s:hivemq-broker} handelt von dem HiveMQ Broker und geht insbesondere auf die Cluster Mechanik des Brokers ein.
+Kapitel \ref{s:hivemq-broker} handelt von dem HiveMQ Broker und geht insbesondere auf die Cluster-Mechanik des Brokers ein.
 Abschlie{\ss}end wird die Funktionalität eines Load Balancers am Beispiel von Envoy in Kapitel \ref{s:load-balancing} dargestellt.
 
 \subsection{Message Queuing Telemetry Transport} \label{s:mqtt}
@@ -14,7 +14,7 @@ Abschlie{\ss}end wird die Funktionalität eines Load Balancers am Beispiel von E
 \ac{mqtt} wurde im Jahr 2013 von der \ac{oasis} als Open Source standardisiert und wird heutzutage von vielen gro{\ss}en \ac{iot} Plattformen wie AWS IoT und Sparkplug unterstützt.
 \cite{WhatMQTTDefinition}\\
 Es gibt derzeit zwei Versionen der MQTT Spezifikation: 3.1.1 und 5. Alle Referenzen, falls nicht explizit gekennzeichnet, beziehen sich auf die aktuelle Version 5 des Protokolls.\\
-\ac{mqtt} ist ein OSI-Layer 7 \textit{Publish and Subscribe} Protkoll, das auf \acs{tcp} / \acs{ip} aufsetzt. Anders als das Request / Response Paradigma bei \acs{http} ist \ac{mqtt} Event gesteuert und erlaubt Servern eine Nachricht direkt an einen bestimmten Client zu schicken. Somit muss nicht periodisch nach neuen Nachrichten gefragt werden. Zusammen mit einem fixen Paket-Header von nur zwei Byte sorgen diese Eigenschaften für einen geringen Datendurchsatz.\cite{WhatMQTTDefinition}
+\ac{mqtt} ist ein OSI-Layer sieben \textit{Publish and Subscribe} Protkoll, das auf \acs{tcp} / \acs{ip} aufsetzt. Anders als das Request / Response Paradigma bei \acs{http} ist \ac{mqtt} eventgesteuert und erlaubt Servern, Nachrichten direkt an Clients zu schicken. Somit müssen Clients nicht periodisch nach neuen Nachrichten fragen. Zusammen mit einem fixen Paket-Header von nur zwei Byte sorgen diese Eigenschaften für einen geringen Datendurchsatz im Netzwerk.\cite{WhatMQTTDefinition}
 
 \subsubsection{Publish and Subscribe} \label{s:publish-subscribe}
 \ac{mqtt} nutzt das \textit{Publish and Subscribe} Kommunikationsschema, das eine Struktur bietet, um Nachrichten entkoppelt zwischen Clients auszutauschen. In diesem Schema gibt es zwei unterschiedliche Systeme:
@@ -22,21 +22,19 @@ Es gibt derzeit zwei Versionen der MQTT Spezifikation: 3.1.1 und 5. Alle Referen
     \item Clients
     \item Broker
 \end{itemize}
-Clients sind alle Teilnehmer dieses Systems, die Nachrichten empfangen oder veröffentlichen wollen. Um Nachrichten erfolgreich zu vermitteln, wird ein Broker als Mittelsmann verwendet.\cite{teamGettingStartedMQTT}
+Clients sind alle Teilnehmer dieses Systems, die Nachrichten empfangen (\textit{Subscriber}) oder veröffentlichen (\textit{Publisher}) wollen. Um Nachrichten erfolgreich zu vermitteln, wird ein Broker als Mittelsmann verwendet.\cite{teamGettingStartedMQTT}
 Jede Nachricht wird durch den Publisher in bestimmte Klassen kategorisiert. Der Publisher wei{\ss} nicht ob, oder wer, an dieser Nachricht interessiert ist und schickt die klassifizierte Nachricht an den Broker.
 Clients, die an bestimmten Nachrichten interessiert sind, müssen bei dem Broker eine Subscription erstellen und dabei eine Kategorie angeben.
-Somit kann der Broker eingehende kategorisierte Nachrichten an die entsprechenden Clients, auch Subscriber genannt, weiterleiten. Die Kategorie funktioniert wie ein Filter auf alle Nachrichten.
+Somit kann der Broker eingehende kategorisierte Nachrichten an die entsprechenden Clients weiterleiten. Die Kategorie funktioniert wie ein Filter auf allen Nachrichten.
 Der Broker kann Nachrichten auch aufbewahren, sodass Clients, die zu einem späteren Zeitpunkt eine Kategorie abonnieren, ebenfalls die vergangenen Nachrichten erhalten.
 \cite{EverythingYouNeed}
 Durch dieses System entsteht eine Entkopplung der einzelnen Clients auf mehreren Ebenen.
 \begin{itemize}
     \item \textbf{Räumliche Entkopplung:} Publisher und Subscriber der Nachricht müssen sich nicht kennen.
-      \cite{teamPublishSubscribeMQTT}
     \item \textbf{Zeitliche Entkopplung:} Publisher und Subscriber müssen nicht zur selben Zeit aktiv sein.
-      \cite{teamPublishSubscribeMQTT}
     \item \textbf{Synchronisierungs Entkopplung:} Publisher und Subscriber müssen ihre Operationen beim Publizieren und Konsumieren nicht unterbrechen.
-      \cite{teamPublishSubscribeMQTT}
 \end{itemize}
+\cite{teamPublishSubscribeMQTT}
 In verteilten Systemen bietet ein solches Konzept eine einheitliche Abstraktion der Kommunikationsebene.
 \cite{domingusDistributedSystemsIntroduction2020}
 \begin{figure}
@@ -51,8 +49,8 @@ Ein oder mehrere \textit{Topic levels} werden mit einem Schrägstrich (\verb|/|)
 Abbildung \ref{fig:publish-subscribe} zeigt einen Client, der auf das Thema \verb|temperature| Nachrichten veröffentlicht. Diese wird an zwei weitere Clients, die das Topic \verb|temperature| abonniert haben, durch den Broker weitergeleitet. Topics müssen auf einem Broker nicht explizit angelegt werden. Sobald ein Client auf einem Topic publiziert oder es abonniert, wird dieses automatisch angelegt.\cite{WhatMQTTDefinition}\\
 Beim Abonnieren eines Topics können die Topic levels Wildcards enthalten. Bei Wildcards werden zwischen den folgenden zwei unterschieden:\cite{mqtt5Specification}
 \begin{itemize}
-    \item Multi-level '\verb|#|': Schlie{\ss}t das Vorgänger- und alle nachfolgenden Topics mit ein.
-    \item Single-level '\verb|+|': Schlie{\ss}t alle Topics auf einer einzigen Ebene mit ein.
+    \item Multi-level '\verb|#|': Schlie{\ss}t das Vorgänger- und alle nachfolgenden Topic levels mit ein.
+    \item Single-level '\verb|+|': Schlie{\ss}t alle Topic levels auf einer einzigen Ebene mit ein.
 \end{itemize}
 Bei der folgenden Topic-Struktur
 \begin{itemize}
@@ -83,7 +81,7 @@ Bei \ac{qos} Level 1 und 2 werden Handshakes zur Verifizierung der Nachrichtenü
 
 \subsubsection{Retained Message} \label{s:retained-messages}
 In \ac{mqtt} kann pro Topic die zuletzt veröffentlichte Nachricht aufbewahrt werden.
-Dazu muss im \verb|PUBLISH| Paket die \verb|RETAIN| Kennzeichnung gesetzt werden.
+Dazu muss im \verb|PUBLISH| Paket die \verb|RETAIN| Kennzeichnung gesetzt werden (siehe Kapitel \ref{s:packet-structure}).
 In diesem Fall speichert der Broker die Nachricht mit dem dazugehörigen Topic und \ac{qos} Level ab.
 Falls bereits eine aufbewahrte Nachricht (engl. \textit{Retained Message}) auf diesem Topic vorhanden ist, wird sie überschrieben.
 Jeder Client, der ein Topic abonniert das eine Retained Message besitzt, bekommt diese Nachricht direkt nach dem Abonnieren zugeschickt.
@@ -94,7 +92,7 @@ Um eine Retained Message zu löschen, muss eine neue Nachricht mit der \verb|RET
 Wenn ein Topic eine Retained Message (im Folgenden \textit{M1} genannt) aufweist und eine neue Nachricht ohne \verb|RETAIN| Kennzeichnung auf diesem Topic veröffentlicht wird, wird die aktuelle Retained Message M1 nicht überschrieben. Neue Subscriber erhalten weiterhin die Nachricht \textit{M1}.
 \cite{mqtt5Specification}
 \\
-Durch Retained Messages können neue Subscriber direkt einen Wert erhalten, nachdem sie ein Topic abonniert haben. Daher wird eine Retained Messaged auch \textit{last known good value} genannt.
+Durch Retained Messages können neue Subscriber direkt einen Wert erhalten, nachdem sie ein Topic abonniert haben. Daher wird eine Retained Message auch \textit{last known good value} genannt.
 \cite{teamRetainedMessagesMQTT}
 \begin{comment}
 Als Beispiel dient ein Temperatursensor, der alle zehn Minuten seine Temperatur auf das Topic \verb|sensors/temperature| veröffentlicht. Um den aktuellen Temperaturwert abzufragen gibt es ein Konsolenprogramm, das bei der Ausführung eine Verbindung zu dem Broker herstellt, das Topic \verb|sensors/temperature| abonniert, den ersten erhaltenen Wert auf der Konsole ausgibt, das Topic deabonniert und die Verbindung wieder schlie{\ss}t. Wenn das Programm eine Minute nachdem der Temperatursensor seine Nachricht veröffentlicht hat ausgeführt wird, muss der Benutzer neun Minuten warten bis er die aktuelle Temperatur angezeigt bekommt. Wenn der Temperatursensor seine Nachrichten hingegen als Retained Message veröffentlicht, bekommt das Konsolenprogramm nach dem abonnieren den letzten Temperaturwert und kann diesen anzeigen.
@@ -276,7 +274,7 @@ Die Kompatibilität des HiveMQ Brokers mit Sparkplug und die Clusterfähigkeit (
 \cite{obermaierMQTTSparkplugEssentials}
 \\
 Neben dem Anwendungsfeld \ac{iot} kann der HiveMQ Broker auch für \textit{Service to Service} Kommunikation im Backend eigesetzt werden.
-Eine Alternative für Event gesteuerte Kommunikation zwischen Services bieten Open Source Broker wie Apache Kafka, RabbitMQ oder ZeroMQ.
+Eine Alternative für eventgesteuerte Kommunikation zwischen Services bieten Open Source Broker wie Apache Kafka, RabbitMQ oder ZeroMQ.
 \\
 Bis 2019 war der Quellcode des HiveMQ Brokers nicht frei zugänglich. Im April 2019 wurde eine \textit{Community Edition} des HiveMQ Brokers unter der Apache 2.0 Lizenz auf GitHub veröffentlicht. Für die Enterprise Edition, mit Features wie Clustering und Control Center, ist eine HiveMQ Lizenz notwendig.
 
@@ -290,10 +288,9 @@ Um dies zu erreichen, tauschen alle Nodes eines Clusters Informationen über Cli
 Durch das Zusammenschlie{\ss}en der HiveMQ Broker ensteht eine horizontale Skalierung. Wie in Kapitel \ref{s:domain} bereits erläutert, können sich im Anwendungsfall \ac{iot} mehrere Millionen Clients mit einem \ac{mqtt} Broker verbinden. Hierbei kann eine vertikale Skalierung an ihre Grenzen sto{\ss}en.
 \begin{itemize}
     \item \textbf{Vertikale Skalierung:} Fügt mehr Rechen- oder Speichereinheiten zu einem Server hinzu.
-      \cite{HowScaleIT}
     \item \textbf{Horizontale Skalierung:} Fügt mehrere Server zu einer logischen Recheneinheit hinzu. Dabei kann die Arbeitslast auf die einzelnen Server verteilt werden.
-      \cite{HowScaleIT}
 \end{itemize}
+\cite{HowScaleIT}
 Ein HiveMQ Broker in einem HiveMQ Cluster wird als ein HiveMQ Node (im Folgenden Node genannt) bezeichnet.
 Damit sich mehrere Nodes zu einem Cluster zusammenschlie{\ss}en muss jeder Node:
 \begin{itemize}
@@ -328,17 +325,15 @@ Für jede Veröffentlichung einer Nachricht werden die Credits des Clients reduz
 Diese werden alle 200 Millisekunden um einen bestimmten Wert regeneriert, bis das maximale Guthaben von 50,000 erreicht wurde. Der Regenerationswert richtet sich nach dem derzeitigen Overload Protection Level des Nodes, mit dem der Client verbunden ist.
 \cite{ClusterOverloadProtection}
 \\
-Hat ein Client alle seine Credits verbraucht, wird \ac{tcp} Backpressure auf dem Socket des Clients angewandt woraufhin dieser keine Nachrichten mehr veröffentlichen kann.
+Hat ein Client alle seine Credits verbraucht, wird \ac{tcp} Backpressure auf dem Socket des Clients angewandt, woraufhin dieser keine Nachrichten mehr veröffentlichen kann.
 Überschreitet der Zeitraum, in dem \ac{tcp} Backpressure für einen Client angewandt wird, den konfigurierten Keep-Alive Wert der Verbindung, wird diese unterbrochen.
-Ist der Zeitraum, in dem \ac{tcp} Backpressure für einen Client angewandt wird, länger als der konfigurierte Keep-Alive Wert, wird die Verbindung des Clients unterbrochen.
-Neben \ac{mqtt} Clients kann auch eine Topologieänderung des Clusters zu einer Erhöhung des Overload Protection Levels führen.
 \cite{ClusterOverloadProtection}
 
 \subsubsection{Persistente Session} \label{s:persistent-session}
 Um Nachrichten von einem \ac{mqtt} Broker zu erhalten, muss sich ein Client mit diesem verbinden und eine Subscription auf einem Topic erstellen. Alle Subscriptions die ein Client erstellt, werde mit der \ac{tcp} Verbindung des Clients assoziiert.
 Jedes Mal, wenn die Verbindung zum Client unterbrochen wird, muss die Verbindung erneut aufgebaut und alle Subscriptions erneut erstellt werden.
 Für einen Client mit limitierten Ressourcen ist dies eine Belastung.
-Um diese Belastung zu reduzieren, kann der Client beim Aufbau der Verbindung eine persistente Session anfordern, indem das entsprechende Bit eins von Byte acht des variablen Headers der \verb|CONNECT| Nachricht (siehe Tabelle \ref{table:mqtt-connect-packet-variable-header}) auf null setzt.
+Um diese Belastung zu reduzieren, kann der Client beim Aufbau der Verbindung eine persistente Session anfordern, indem das entsprechende Bit eins von Byte acht des variablen Headers der \verb|CONNECT| Nachricht (siehe Tabelle \ref{table:mqtt-connect-packet-variable-header}) auf null gesetzt wird.
 Ist dieses Bit hingegen auf eins gesetzt, werden alle Nachrichten und Informationen von vorherigen Sessions gelöscht.
 Eine persistente Session speichert folgende Daten auf dem Broker:
 \begin{itemize}
@@ -358,7 +353,9 @@ Sobald ein Client die Verbindung zu einem Broker verliert und eine persistente S
 \cite{teamPersistentSessionQueuing}
 
 \subsubsubsection{Client Takeover} \label{s:client-takeover}
-Wie bereits im Kapitel \ref{s:persistent-session} beschrieben kann ein Client eine persistente Session bei einem Broker anfordern. Dabei werden zum Beispiel Nachrichten mit einem \ac{qos} Level von eins oder zwei auf dem Broker nachgehalten, falls der Client seine Verbindung verliert. Ein Client Takeover findet statt, wenn der Broker eine neue Client Verbindung erhält aber noch eine offene Verbindung mit derselben \ac{clientid} hat. Dies kann bei \textit{halb-offenen \acs{tcp} Verbindungen} vorkommen, die, wie Andy Stanford-Clark beschreibt, bei \ac{tcp} auftreten können:\newline
+Wie bereits im Kapitel \ref{s:persistent-session} beschrieben kann ein Client eine persistente Session bei einem Broker anfordern. Dabei werden zum Beispiel Nachrichten mit einem \ac{qos} Level von eins oder zwei auf dem Broker nachgehalten, falls der Client seine Verbindung verliert.
+\\
+Ein Client Takeover findet statt, wenn der Broker eine neue Client Verbindung erhält aber noch eine offene Verbindung mit derselben Clientkennung hat. Dies kann bei \textit{halb-offenen \acs{tcp} Verbindungen} vorkommen, die, wie Andy Stanford-Clark beschreibt, bei \ac{tcp} auftreten können:\newline
 ``Although TCP/IP in theory notifies you when a socket breaks, in practice, particularly on things like mobile and satellite links, which often 'fake' TCP over the air and put headers back on at each end, it’s quite possible for a TCP session to 'black hole', i.e. it appears to be open still, but in fact is just dumping anything you write to it onto the floor.''\cite{WhyKeepaliveNeeded}\newline
 Der Broker beendet die existierende Verbindung und assoziiert die persistente Session - falls vorhanden - nun mit dem neuen Client.
 \cite{teamKeepAliveClient}
@@ -376,8 +373,9 @@ Bei einer horizontalen Skalierung werden nicht die Ressourcen eines einzelnen Se
 \cite{bourkeServerLoadBalancing2001}
 Ein \acl{lb} wird bei der horizontalen Skalierung den einzelnen Servern vorgeschaltet, um einkommenden Traffic basierend diverser load balancing Algorithmen an die entsprechenden Server zu verteilen.
 Je nach Algorithmus sorgt der \ac{lb} dadurch für ein gleimä{\ss}ges verteilen der Last auf das gesamte System. Es ist ebenfalls möglich ausgefallene Server zu detektieren und die Last auf verbleibende Server umzuleiten.
+\cite{LoadBalancing101}
 \\
-Load balancing kann Software- und Hardwareseitig betrieben werden. Als Hardware \ac{lb} wird oftmals ein OSI-Layer vier oder sieben Switch verwendet. Dabei müssen alle Server, die Last erhalten sollen, direkt an den Hardware \ac{lb} angeschlossen werden.
+Load balancing kann Software- und Hardwareseitig betrieben werden. Als Hardware \ac{lb} wird oftmals ein OSI-Layer vier oder sieben Switch verwendet. Dabei müssen alle Server die Last erhalten sollen, direkt an den Hardware \ac{lb} angeschlossen werden.
 \cite{WasIstLoad2016}
 Software load balancing braucht, anders als Hardware load balancing, keine dedizierte Hardware und kann in jedem Server, Container oder jeder virtuellen Maschine eingesetzt werden.
 \cite{SoftwareLoadBalancing}
@@ -415,7 +413,7 @@ Das Protokoll, die Server-Infrakstruktur oder das Verhalten der Clients sind wic
 Folgend werden die weit verbreitesten load balancing Algorithmen erläutert.
 
 \paragraph{Round Robin}
-Alle Server werden in eine Liste eingetragen. Der Round robin Algorithmus leitet Traffic immer an den ersten Server in der Liste weiter und verschiebt diesen Server danach an das Ende der Liste.
+Alle Server werden in eine Liste eingetragen. Der round-robin Algorithmus leitet Traffic immer an den ersten Server in der Liste weiter und verschiebt diesen Server danach an das Ende der Liste.
 Dieser Algorithmus teilt alle Anfragen gleichmä{\ss}ig auf die Server auf und findet oft Anwendung wenn alle Server die gleichen Ressourcen zur verfügung haben.
 \cite{WhatLoadBalancer}
 
@@ -429,21 +427,18 @@ Mögliche Daten sind Quell-, Ziel \ac{ip} Adresse, Port oder Domain Name. Durch 
 \cite{WhatLoadBalancer}
 
 \subsubsection{Envoy} \label{s:envoy}
-Envoy ist ein \ac{osi}-Layer sieben Proxy und für gro{\ss}e moderne Service orientierte Architekturen von Lyft entwickelt worden.
+Envoy ist ein \ac{osi}-Layer sieben \acl{lb} und für gro{\ss}e moderne Service orientierte Architekturen von Lyft entwickelt worden.
 Im September 2017 wurde Envoy an die \textit{Cloud Native Computing Foundation} gestiftet, die Cloud Projekte wie Kubernetes, Prometheus, containerd und Jaeger verwaltet.
 Der Envoy Quellcode wird öffentlich auf GitHub versioniert und hat stand April 2021 bereits 670 Kontributoren und 16.500 Sterne auf GitHub gesammelt. \cite{EnvoyproxyEnvoy2021}
 \\
 Der in C++ programmierte und hoch performante \ac{lb} Envoy stellt folgende abstrakte Features bereit:
 \begin{itemize}
     \item \textbf{\acs{osi}-Layer 3/4 Filter:} Envoy erlaubt das Dazuschalten von \acs{tcp} oder \acs{udp} Filtern in die Netzwerk Pipeline. Filter wie zum Beispiel für MongoDB, Redis, \ac{tls} Authentifizierung wurden bereits in Envoy implementiert. Benutzerdefinierte Filter können direkt in C++ implementiert und eingebunden oder als \ac{wasm} Modul integriert werden.
-      \cite{WhatEnvoyEnvoy}
-    \item \textbf{\acs{http} \ac{osi}-Layer 7 Filter:} Aufgrund der Popularität von \ac{http} wurden diverse \ac{osi}-Layer 7 \ac{http} Filter in Envoy implementiert. Filter wie \textit{buffering}, \textit{routing} und \textit{rate-limiting} sind bereits in Envoy integriert und können über einen \ac{http} Connection Manager konfiguriert werden.
-      \cite{WhatEnvoyEnvoy}
+    \item \textbf{\acs{http} \ac{osi}-Layer 7 Filter:} Aufgrund der Popularität von \ac{http} wurden diverse \ac{osi}-Layer sieben \ac{http} Filter in Envoy implementiert. Filter wie \textit{buffering}, \textit{routing} und \textit{rate-limiting} sind bereits in Envoy integriert und können über einen \ac{http} Connection Manager konfiguriert werden.
     \item \textbf{Dynamische Konfiguration:} Envoy kann dynamisch über eine \textit{Data-Plane API} provisioniert werden. Dabei können Daten wie Cluster, \ac{http} Routen, Listener Sockets oder \ac{tls} Zertifikate dynamisch von einer externen Quelle bereitgestellt werden.
-      \cite{WhatEnvoyEnvoy}
     \item \textbf{Observeability:} Envoy verfolgt das Ziel transparete Netzwerke zu erschaffen. Um dies zu erreichen werden umfangreiche Statistiken bereitgestellt, die zum Beispiel mit \textit{statsd} aggregiert werden können.
-      \cite{WhatEnvoyEnvoy}
 \end{itemize}
+\cite{WhatEnvoyEnvoy}
 Envoy wird unteranderem bei Slack \cite{MigratingMillionsConcurrent2021} als \acl{lb} für Websockets eingesetzt. Zudem findet Envoy Anwendung in \textit{service-meshes} als Edge Proxy bei Istio \cite{Istio} und Google Traffic Director \cite{TrafficDirectorGoogle}.
 
 \begin{comment}

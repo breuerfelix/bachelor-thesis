@@ -1,3 +1,8 @@
+in email schreiben:
+- grafiken + position
+- einleitung + fazit
+- 5.2.5 überarbeiten
+
 TODO bis zur ersten abgabe:
 - qullenangabe tabelle
 - weighted cpu kapitel überarbeiten
