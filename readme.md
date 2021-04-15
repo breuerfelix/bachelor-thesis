@@ -4,8 +4,6 @@ in email schreiben:
 - 5.2.5 überarbeiten
 
 TODO bis zur ersten abgabe:
-- qullenangabe tabelle
-- weighted cpu kapitel überarbeiten
 - envoy kapitel ausführlicher schreiben
 - hab ich probleme ausführlich?
 - mqtt v5 quellenangabe

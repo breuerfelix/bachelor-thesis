@@ -55,8 +55,8 @@ Die Main Komponente ist der Eintiegspunkt der Control Plane. Bei Aufruf wird zun
 Anschlie{\ss}end werden zwei Go Routinen gestartet. Die erste löst periodisch den Domain Namen des Clusters auf um Topologieänderungen am Cluster umzusetzen. Die zweite Go Routine prüft periodisch die \ac{mqtt} Funktionalität eines jeden HiveMQ Nodes durch die Methode \verb|CheckHealth| der HiveMQ Struktur.
 \end{comment}
 
+\newpage
 \subsection{Funktionalität}
-
 \subsubsection{DNS Cluster Discovery}
 Die \ac{dns} Cluster Discovery aus Kapitel \ref{ss:dns-discovery} ist in der Cluster Komponente implementiert.
 Beim Start der Control Plane wird von der Main Komponente eine Go Routine gestartet, die periodisch und asynchron in einem gegebenen Intervall die Funktion \verb|CheckNodes| der Cluster Struktur aufruft. Diese verwendet die \verb|net| Standard Bibliothek von Golang, um den Domainnamen des Clusers aufzulösen und für alle \ac{ip} Adressen eine Node Struktur erstellt. Wenn bereits eine Node Struktur für ein \ac{ip} Adressen und Port Paar vorhanden ist, wird die Referenz der Struktur in die neue Liste übernommen.
