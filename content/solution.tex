@@ -149,7 +149,7 @@ Die Clients aus Phase drei und vier werden nur auf Node eins und zwei verteilt, 
 \end{figure}
 
 \subsubsection{Weighted Round Robin} \label{ss:weighted-rr}
-Kapitel \ref{ss:test} zeigt, dass ein least connection \acl{lb} in Szenario drei und ein round-robin \ac{lb} in Szenario zwei, die Last gleichmä{\ss}ig verteilen kann. Bei den anderen Szenarien befindet sich das Cluster nach den Szenarien in einem ungleichen Lastverhältnis. Da \ac{mqtt} auf langlebigen \ac{tcp} Verbindungen basiert, wird sich dieses Lastverhältnis nicht verändern, bis die Clients ihre Verbindung neu aufbauen oder ihr Verhalten verändern.
+Kapitel \ref{ss:test} zeigt, dass ein least connection \acl{lb} in Szenario drei und ein round-robin \ac{lb} in Szenario zwei, die Last gleichmä{\ss}ig verteilen kann. Bei den anderen Szenarien befindet sich das Cluster anschlie{\ss}end in einem ungleichen Lastverhältnis. Da \ac{mqtt} auf langlebigen \ac{tcp} Verbindungen basiert, wird sich dieses Lastverhältnis nicht verändern, bis die Clients ihre Verbindung neu aufbauen oder ihr Verhalten verändern.
 Der \ac{lb} muss dynamisch auf ein bestimmtes Client-Verhalten reagieren und Clients basierend der Arbeitslast der einzelnen Nodes verteilen.
 \\
 Bei dem weighted round-robin load balancing Algorithmus wird jedem Node eines Clusters eine Gewichtung zugeordnet. Die Gewichtung des Nodes bestimmt die Wahrscheinlichkeit, mit der ein neuer Client mit einem Node verbunden wird.
@@ -157,7 +157,7 @@ Um mehr Clients an Nodes mit geringerer Auslastung zu verbinden, muss die derzei
 Diese Mechanik wird bereits bei anderen Protokollen wie \ac{http} eingesetzt.
 Eine load balancing Entscheidung bei \ac{mqtt} ist jedoch relevanter als bei Protokollen wie \ac{http}, weil die Entscheidung für die Dauer der Verbindung nicht mehr verändert werden kann. Da \ac{mqtt} von langlebigen \ac{tcp} Verbindungen profitiert, kann der \ac{lb} die Last eines bestimmten Clients nach dem Verbindungsaufbau nicht mehr steuern.
 \\
-Envoy hat mehrere load balancing Algorithmen, unter anderem weighted round-robin, implementiert. Jedem Node eines Cluster wird eine Gewichtung in Form eines Integer Wertes zugeordnet. Je grö{\ss}er der Wert im Verhältnis zu allen anderen Nodes des Cluster ist, desto höher ist die Wahrscheinlichkeit, mit der ein neuer Client mit dem Node verbunden wird. Der Wert der Gewichtung muss grö{\ss}er als eins sein und die Werte aller Nodes addiert dürfen nicht grö{\ss}er als 4294967295 sein.
+Envoy hat mehrere load balancing Algorithmen, unter anderem weighted round-robin, implementiert. Jedem Node eines Cluster wird eine Gewichtung in Form eines Integer Wertes zugeordnet. Je grö{\ss}er der Wert im Verhältnis zu allen anderen Nodes des Cluster ist, desto höher ist die Wahrscheinlichkeit mit der ein neuer Client mit dem Node verbunden wird. Der Wert der Gewichtung muss grö{\ss}er als eins sein und die Werte aller Nodes addiert dürfen nicht grö{\ss}er als 4294967295 sein.
 Um den Prozentsatz zu berechnen, wie viele Clients mit einem individuellen Node verbunden werden, teil Envoy die Gewichtung des jeweiligen Nodes durch die Summe der Gewichtungen aller Nodes und multipliziert das Ergebnis mit 100.
 \cite{SupportedLoadBalancers}
 \\
@@ -246,22 +246,23 @@ Quellcodeauszug \ref{code:dns-resolve-net} zeige die Auflösung aller \ac{ip} Ad
 \end{figure}
 
 \subsubsection{Weighted CPU Round Robin} \label{ss:weighted-cpu}
-Die Testszenarien aus Kapitel \ref{ss:test} zeigen, dass es bei \ac{mqtt} viele verschiedene Client Verhaltensmuster gibt. Ein Client kann sein Verhalten zur Laufzeit um 180 Grad verändern und der \acl{lb} ist nicht mehr in der Lage diesen Client mit einem anderen Node zu verbinden. Der Node muss das neue Verhalten des Clients nun verarbeiten.
+Die Testszenarien aus Kapitel \ref{ss:test} zeigen, dass es bei \ac{mqtt} viele verschiedene Client Verhaltensmuster gibt. Zudem kann ein Client sein Verhalten zur Laufzeit verändern und der \acl{lb} ist nicht mehr in der Lage diesen Client mit einem anderen Node zu verbinden.
 Eine \ac{tcp} Verbindung bei \ac{mqtt} korreliert nicht mit der verursachten Arbeitslast auf dem Broker. In Szenario zwei haben 300 Publisher doppelt so viel Last erzeugt wie 3000 Subscriber und 1000 Publisher zusammen.
 Nur anhand der Anzahl aktiver Verbindungen pro Node kann im Fall \ac{mqtt} keine optimale load balancing Entscheidung getroffen werden.
 \\
-% TODO ab hier noch bis zum ende korrigieren
-Über eine Control Plane kann man die Gewichtung einzelner Nodes eines Cluster im Envoy dynamisch anpassen.
+In Kapitel \ref{ss:test} wurde bereits die \ac{cpu} Auslastung als Indikator für die Arbeitslast eines Nodes gewählt. Die \ac{cpu} Auslastung ergibt sich aus der Anzahl der Anweisungen, die eine \ac{cpu} in bestimmter Zeit ausführt.
+HiveMQ stellt die aktuelle \ac{cpu} Auslastung über die Prometheus Metriken zur Verfügung. Der \acl{lb} muss die Gewichtung der einzelnen Nodes anhand dieser Metriken bestimmen, damit Nodes mit geringerer Auslastung mehr Clients erhalten. Somit kann Verbindungsunabhängig eine gleichmä{\ss}ige Verteilung der Last im Cluster erfolgen.
+\\
+Über eine Control Plane kann die Gewichtung einzelner Nodes eines Cluster im Envoy dynamisch angepasst werden.
 Die Control Plane muss periodisch und asynchron die aktuelle \ac{cpu} Auslastung eines jeden Nodes abfragen und darauf basierend die Nodes gewichten.
-HiveMQ stellt die \ac{cpu} Auslastung über die Prometheus Erweiterung unter dem Schlüssel \verb|com_hivemq_system_os_global_cpu_total_total| bereit.
-Die Prometheus Metriken kann man über einen in der Konfiguration angegebenen Endpunkt jederzeit über \ac{http} Abfragen. Standardmä{\ss}ig befindet sich der Endpunkt unter \verb|http://localhost:9399/metrics|.
-Quellcodeauszug \ref{code:prometheus-curl} zeigt die Abfrage der Metriken eines HiveMQ Brokers gefiltert nach \verb|cpu_total_total|. Der Datentyp dieser Metrik ist ein \textit{Gauge}, der einen einzelnen numerischen Wert darstellt.\cite{prometheusMetricTypesPrometheus} Der Wert beträgt in diesem Beispiel \verb|5.0| und bedeutet, dass die aktuelle \ac{cpu} Auslastung fünf Prozent beträgt.
+Quellcodeauszug \ref{code:prometheus-curl} zeigt die Abfrage der Prometheus Metriken eines HiveMQ Brokers gefiltert nach \verb|cpu_total_total|. Der Datentyp dieser Metrik ist ein \textit{Gauge}, der einen einzelnen numerischen Wert darstellt.\cite{prometheusMetricTypesPrometheus} Der Wert beträgt in diesem Beispiel 5.0 und bedeutet, dass die aktuelle \ac{cpu} Auslastung fünf Prozent beträgt.
 \begin{figure}
     \import{gen/}{prometheus-curl}
     \caption{Abfrage von Prometheus Metriken mit curl und grep in einem Terminal.}
     \label{code:prometheus-curl}
 \end{figure}
-Für die programmatische Auswertung von Prometheus Metriken stellt Prometheus mehrere Bibliotheken für verschiedene Programmiersprachen bereit. Darunter befindet sich ebenfalls eine Bibliothek für Golang. Das \verb|expfmt| Paket dieser Bibliothek ist für das Parsen der Metriken zuständig.\cite{ExpfmtPkgGo}
+\\
+Für die programmatische Auswertung von Prometheus Metriken werden Bibliotheken für verschiedene Programmiersprachen bereitgestellt. Darunter befindet sich ebenfalls eine Bibliothek für Golang. Das \verb|expfmt| Paket dieser Bibliothek ist für das Parsen der Metriken zuständig.\cite{ExpfmtPkgGo}
 Quellcodeauszug \ref{code:expfmt} zeigt ein Golang Programm, das periodisch und asynchron die Prometheus Metrik \verb|com_hivemq_system_os_global_cpu_total_total| von einem HiveMQ Broker unter der Adresse \verb|http://localhost:9399/metrics| abruft. Der Wert der Metrik kann alle Werte zwischen 0 (keine Auslastung) und 100 (volle Auslastung) annehmen. Er wird in der Variable \verb|value| als Gleitkommazahl gespeichert.
 \begin{figure}
     \import{gen/}{expfmt}
@@ -269,18 +270,15 @@ Quellcodeauszug \ref{code:expfmt} zeigt ein Golang Programm, das periodisch und 
     \label{code:expfmt}
 \end{figure}
 \\
-
-% TODO Abbildung
-Abbildung \ref{figure:} zeigt, dass der \ac{cpu} Wert eines Nodes innerhalb von Minuten um fünf bis zehn Prozen schwanken kann. Mögliche Ursachen sind zum Beispiel der Java Garbage Collector, eine kurzfristige Traffic Spitze oder ein Client-Takeover.
-Diese kurzfristigen Unterschiede der Auslastung dürfen nicht direkt zu einer Veränderung der Gewichtung des Nodes führen. Es ist möglich, dass die Auslastung eines Nodes in den letzten 10 Minuten im Durchschnitt geringer ist, als bei allen anderen im Cluster, aber zu dem Zeitpunkt, wenn ein neuer Client eine Verbindung mit dem Cluster aufbaut, die Auslastung des Nodes am höchsten ist, weil in diesem Moment ein Client mehrere Nachrichten veröffentlich hat, der dies aber nur halbstündlich tut. Wenn die Control Plane diese Auslastungsspitze sofort in die Gewichtung mit einberechnet, würde der neue Client nicht auf den Node mit der durchschnittlich geringsten Auslastung verbunden werden.
-Um den direkten Einfluss solcher Auslastungsspitzen zu vermeiden, werden Werte über einen bestimmten Zeitraum gesammelt und gemittelt. Der Mittelwert ist somit die durchschnittliche Arbeitslast eines Nodes in Prozent für Dauer \verb|x|.
+Die \ac{cpu} Auslastung eines Nodes kann durch diverse Faktoren zeitweise schwanken. Mögliche Ursachen sind zum Beispiel der Java Garbage Collector, eine kurzfristige Traffic Spitze oder ein Client-Takeover.
+Diese kurzfristigen Unterschiede der Auslastung dürfen nicht direkt zu einer Veränderung der Gewichtung des Nodes führen.
+Um den direkten Einfluss solcher Spitzen zu vermeiden, werden Werte über einen bestimmten Zeitraum gesammelt und gemittelt. Der Mittelwert ist somit die durchschnittliche Arbeitslast eines Nodes in Prozent für eine bestimmte Dauer.
 \\
-Als Zeitraum der zu mittelnden Werte wird die Dauer von einer Minute gewählt. Wenn die Abtastfrequenz der \ac{cpu} Werte fünf Sekunden beträgt, müssen die letzten \verb|60 / 5 = 12| Werte aufsummiert und durch die Anzahl der Werte, 12, geteilt werden.
-
-% TODO code snippet that measures median of x values
-
-Als finalen Schritt muss nun die durchschnittliche Arbeitslast in eine Gewichtung für Envoy konvertiert werden. Je grö{\ss}er der Wert der Gewichtung im Vergleich zu den Gewichtungen der anderen Nodes ist, je mehr Clients werden mit diesem Node verbunden. In Kapitel \ref{ss:weighted-rr} wurde die Berechnung bereits beschrieben. Demnach ist es nicht möglich die durchschnittliche Arbeitslast direkt als Gewichtung zu benutzen. Es würde ein gegenteiliger Effekt erzielt werden.
-Angenommen es gibt vier Nodes mit einer durchschnittlichen Auslastung nach Tabelle \ref{table:example-cluster-cpu}. Die freie Auslastung ergibt sich aus der Differenz von maximaler Auslastung (100) und durchschnittlicher Auslastung. Wenn man die die freie Auslastung als Gewichtung der Nodes wählt, verteilen sich neueh Clients wie folgt auf die Nodes:
+Anschlie{\ss}end muss die durchschnittliche Arbeitslast in eine Gewichtung für Envoy konvertiert werden. Je grö{\ss}er der Wert der Gewichtung im Vergleich zu den Gewichtungen der anderen Nodes ist, je mehr Clients werden mit diesem Node verbunden (siehe Kapitel \ref{ss:weighted-rr}). Demnach ist es nicht möglich die durchschnittliche Arbeitslast direkt als Gewichtung zu benutzen. Es würde ein gegenteiliger Effekt entstehen.
+\\
+Da Nodes mit grö{\ss}eren Gewichtungen mehr Clients erhalten, wird die freie \ac{cpu} Auslastung als Gewichtung der Nodes gewählt.
+Die freie Auslastung ergibt sich aus der Differenz von maximaler Auslastung (100) und durchschnittlicher Auslastung.
+Wenn man die freie Auslastung als Gewichtung der Nodes wählt, verteilen sich neue Clients bei einem Cluster aus Tabelle \ref{table:example-cluster-cpu} wie folgt auf die Nodes:
 \begin{itemize}
   \item \textbf{Node 1:}
     \begin{align}
@@ -321,8 +319,8 @@ Nodes mit einer höheren Auslastung, zum Beispiel Node 1, erhalten nun weniger n
 \caption{CPU Auslastung und Kapazitäten von Nodes eines Clusters über einen beliebigen Zeitraum}
 \label{table:example-cluster-cpu}
 \end{table}
-Um einen Weighted \ac{cpu} Round Robin Load Balancer zu validieren, wurden die Testszenarien aus Kapitel \ref{ss:test} ebenfallsausgeführt. Tabelle \ref{table:test-output} zeigt die Lastindikator der einzelnen Testszenarien verglichen mit einem Round Robin und Least Connection \ac{lb}. Abbildungen \ref{fig:s1-cpu}, \ref{fig:s2-cpu} und \ref{fig:s3-cpu} zeigen die zeitlichen Verläufe des Weighted \ac{cpu} Load Balancer bei den Testszenarien 1, 2 und 3.
-Insgesamt hat der Weighted Round Robin \ac{lb} besser abgeschnitten als der Least Connection \ac{lb} und genauso gut wie der Round Robin \ac{lb}.
+Um einen weighted \ac{cpu} round-robin \acl{lb} zu validieren, wurden die Testszenarien aus Kapitel \ref{ss:test} ebenfalls durchgeführt. Tabelle \ref{table:test-output} zeigt die Lastindikatoren der einzelnen Testszenarien verglichen mit einem round-robin und least connection \ac{lb}. Abbildungen \ref{fig:s1-cpu}, \ref{fig:s2-cpu} und \ref{fig:s3-cpu} zeigen die zeitlichen Verläufe des weighted \ac{cpu} Load Balancers bei den Testszenarien 1, 2 und 3.
+Insgesamt hat der weighted round-robin \ac{lb} besser abgeschnitten als der least connection \ac{lb} und genauso gut wie der round-robin \ac{lb}.
 \begin{figure}
     \centering
     \includegraphics[scale=0.8]{images/s1_cpu.png}
@@ -354,6 +352,7 @@ Insgesamt hat der Weighted Round Robin \ac{lb} besser abgeschnitten als der Leas
     Testszenario 2 & 16 & 50 & 12 \\
     \hline
     Testszenario 3 & 40 & 24 & 44 \\
+    \hline
     \hline
     Gesamt & 96 & 116 & 96 \\
     \hline
