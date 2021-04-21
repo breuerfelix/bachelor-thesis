@@ -1,0 +1,22 @@
+\section{Fazit und Ausblick}
+Das Ziel der vorliegenden Arbeit war die Analyse des \ac{mqtt} Protokolls mit Hinblick auf das \textit{kluge} Verteilen der Clients an HiveMQ Nodes und die Erstellung einer Prototyp Envoy Control Plane, die einige der analysierten Features implementiert.
+\\
+Die Vorbereitung auf diese Analyse bedurfte eine umfangreiche Einarbeitung in das \ac{mqtt} Protokoll um die Eigenheiten und verschiedenen Verhaltensmuster der Clients zu untersuchen. Aus diesen Untersuchungen sind beispielsweise die Testszenarien aus Kapitel \ref{ss:test} entstanden, die zeigen sollen, dass bestimmte Verhaltensmuster der Clients eine ungleiche Lastverteilung im Cluster erzeugen können. Bei der Implementierung dieser Szenarien ist aufgefallen, wie komplex und unterschiedlich die Verhaltensmuster sein können.
+Unterschiedliche Client Verhaltensmuster führen jedoch nicht grundsätzlich direkt zu einem Problem bei der Lastverteilung. Es ist die Kombination von unterschiedlichen Clients mit der Eigenschaft, dass \ac{mqtt} ein zustandsbehaftetes verbindungsorientiertes Protokoll ist.
+Der \acl{lb} kann nicht, wie zum Beispiel bei \ac{http}, einzelne Anfragen eines Clients an verschiedene Nodes schicken. Sobald ein Client verbunden ist, muss der Zielnode alle Anfragen des Clients bearbeiten, bis dieser die Verbindung beendet.
+In der Realität will man dieses Verhalten bei \ac{http} oftmals gezielt erzwingen, um beispielsweise schnellere Antwortzeiten durch Cache-Speicher zu erzielen. Bei \ac{http} kann der \acl{lb} jedoch Pakete transparent zum Client an einen anderen Node schicken, wenn zum Beispiel der bisherige Zielnode überlastet ist. Bei \ac{mqtt} hat der \acl{lb} gar keine Möglichkeit die Last eines Clients nach dem Verbindungsaufbau zu steuern.
+Dies untermauert die Relevanz der load balancing Entscheidung bei \ac{mqtt}.
+\\
+Aktuelle \acl{lb} wie Nginx, HAProxy und Envoy haben aufgrund der Popularität von \ac{http} viele Optimierungen 
+
+\begin{comment}
+- eigene meinung
+
+- client transparentes roaming
+- weighted cpu round robin ? worth it ?
+- es gibt sehr viele verschiedene client szenarien -> hivemq swarm -> programmable lb
+
+implementierung:
+- sticky session
+- mutex in der control plane
+\end{comment}

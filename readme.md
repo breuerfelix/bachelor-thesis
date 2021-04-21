@@ -1,12 +1,7 @@
-in email schreiben:
-- grafiken + position
-- einleitung + fazit
-- 5.2.5 überarbeiten
+- ssl erwähnen
 
 TODO bis zur ersten abgabe:
 - envoy kapitel ausführlicher schreiben
-- hab ich probleme ausführlich?
-- mqtt v5 quellenangabe
 
 TODO chrstian:
 - hardware lb mehr erklären -> performance ist nicht direkt schlechter
