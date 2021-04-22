@@ -39,14 +39,14 @@ In verteilten Systemen bietet ein solches Konzept eine einheitliche Abstraktion 
 \cite{domingusDistributedSystemsIntroduction2020}
 \begin{figure}
     \centering
-    \includegraphics[scale=0.5]{images/publish_subscribe.png}
+    \includegraphics[scale=0.33]{images/publish_subscribe.png}
     \caption{Publish and Subscribe Architektur}
     \label{fig:publish-subscribe}
 \end{figure}
 \\
 Im Kontext \ac{mqtt} werden Nachrichten in ein hierarchisch aufgebautes Topic klassifiziert.
 Ein oder mehrere \textit{Topic levels} werden mit einem Schrägstrich (\verb|/|) getrennt und Formen ein Topic. Ein Beispiel für ein Topic mit drei Topic levels ist: \verb|sensors/temperature/celcius|.
-Abbildung \ref{fig:publish-subscribe} zeigt einen Client, der auf das Thema \verb|temperature| Nachrichten veröffentlicht. Diese wird an zwei weitere Clients, die das Topic \verb|temperature| abonniert haben, durch den Broker weitergeleitet. Topics müssen auf einem Broker nicht explizit angelegt werden. Sobald ein Client auf einem Topic publiziert oder es abonniert, wird dieses automatisch angelegt.\cite{WhatMQTTDefinition}\\
+Abbildung \ref{fig:publish-subscribe} zeigt einen Client, der auf das Thema \verb|sensors/temperature| Nachrichten veröffentlicht. Diese wird an zwei weitere Clients, die das Topic \verb|sensors/temperature| abonniert haben, durch den Broker weitergeleitet. Topics müssen auf einem Broker nicht explizit angelegt werden. Sobald ein Client auf einem Topic publiziert oder es abonniert, wird dieses automatisch angelegt.\cite{WhatMQTTDefinition}\\
 Beim Abonnieren eines Topics können die Topic levels Wildcards enthalten. Bei Wildcards werden zwischen den folgenden zwei unterschieden:\cite{mqtt5Specification}
 \begin{itemize}
     \item Multi-level '\verb|#|': Schlie{\ss}t das Vorgänger- und alle nachfolgenden Topic levels mit ein.

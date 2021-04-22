@@ -7,7 +7,9 @@ Der \acl{lb} kann nicht, wie zum Beispiel bei \ac{http}, einzelne Anfragen eines
 In der Realität will man dieses Verhalten bei \ac{http} oftmals gezielt erzwingen, um beispielsweise schnellere Antwortzeiten durch Cache-Speicher zu erzielen. Bei \ac{http} kann der \acl{lb} jedoch Pakete transparent zum Client an einen anderen Node schicken, wenn zum Beispiel der bisherige Zielnode überlastet ist. Bei \ac{mqtt} hat der \acl{lb} gar keine Möglichkeit die Last eines Clients nach dem Verbindungsaufbau zu steuern.
 Dies untermauert die Relevanz der load balancing Entscheidung bei \ac{mqtt}.
 \\
-Aktuelle \acl{lb} wie Nginx, HAProxy und Envoy haben aufgrund der Popularität von \ac{http} viele Optimierungen 
+Der Ansatz des weighted \ac{cpu} round-robin load balancing Algorithmus hat für die durchgeführten Testszenarien nicht besser als der round-robin Algorithmus abgeschnitten. Aufgrund der dynamischen Ermittlung der Gewichtung kann dieser Ansatz in Zukunft auf den jeweiligen Anwendungsfall zugeschnitten werden.
+Metriken, wie beispielsweise die Anzahl der \ac{cpu} Kerne, die Regenerationsrate der Client-Credits oder die verwendete Netzwerkbandbreite des Nodes, können mit wenig Programmieraufwand Einfluss auf die Gewichtung der Nodes nehmen.
+Durch die Einführung einer Control Plane ist der \acl{lb} nicht nur konfigurierbar sondern programmierbar. Diese Eigenschaft macht den Einsatz von Envoy im Anwendungsfall \ac{mqtt} optimal, da jede \ac{iot}-Plattform durch das versatile \ac{mqtt} Protokoll anderen Lastverhalten schafft.
 
 \begin{comment}
 - eigene meinung
