@@ -21,6 +21,8 @@
 \usepackage{ragged2e}
 \usepackage{amsmath} % used for formulas
 
+%\usepackage{natbib}
+
 \usepackage[
     format = plain,
     justification = RaggedRight,
@@ -103,35 +105,6 @@
 \author{Felix Breuer}
 \begin{document}
 
-\begin{comment}
-roter faden:
-was ist iot ?
-was ist mqtt ?
-was ist load balancing ? und warum braucht man es ?
-
-warum ist load balancing in mqtt schwer ?
-was macht denn eigentlich ein smart lb?
-und wie hab ich das ganze implementiert ?
-wie gehts jetzt mit dem projekt weiter?
-
-% start TODO delete
-was macht ein smart lb ?
-Cluster discovery via DNS
-
-weighted round robin based on cpu
-- welche metriken hab ich mir angeschaut ?
-
-health checks -> mqtt connect, subscribe, publish, disconnect -> vielleicht metrik cluster node count?
-
-state machine
--> cluster healthy vs cluster unhealthy
--> sticky session based on clientid vs circuit breaking
-
-future work:
-- nur die cpu abfragen und nicht alle hivemq metriken
-- roaming clients
-\end{comment}
-
 \newpage
 % end
 
@@ -156,6 +129,7 @@ future work:
 
 % quellen
 \bibliographystyle{IEEEtran}
+%\bibliographystyle{acm}
 \bibliography{lib}
 \newpage
 

@@ -1,9 +1,4 @@
 \section{Technische Grundlagen} \label{s:basics}
-\begin{comment}
-TODO:
-- im folgenden bezieht sich Client auf MQTT Client
-\end{comment}
-
 Das folgende Kapitel erläutert die erforderlichen technologischen Grundlagen für das tiefere Verständnis des Themas der Thesis.
 Das \acs{mqtt} Protokoll wird in Kapitel \ref{s:mqtt} beschrieben.
 Kapitel \ref{s:hivemq-broker} handelt von dem HiveMQ Broker und geht insbesondere auf die Cluster-Mechanik des Brokers ein.
@@ -22,19 +17,17 @@ Es gibt derzeit zwei Versionen der MQTT Spezifikation: 3.1.1 und 5. Alle Referen
     \item Clients
     \item Broker
 \end{itemize}
-Clients sind alle Teilnehmer dieses Systems, die Nachrichten empfangen (\textit{Subscriber}) oder veröffentlichen (\textit{Publisher}) wollen. Um Nachrichten erfolgreich zu vermitteln, wird ein Broker als Mittelsmann verwendet.\cite{teamGettingStartedMQTT}
+Clients sind alle Teilnehmer dieses Systems, die Nachrichten empfangen (\textit{Subscriber}) oder veröffentlichen (\textit{Publisher}) wollen. Um Nachrichten erfolgreich zu vermitteln, wird ein Broker als Mittelsmann verwendet \cite{teamGettingStartedMQTT}.
 Jede Nachricht wird durch den Publisher in bestimmte Klassen kategorisiert. Der Publisher wei{\ss} nicht ob, oder wer, an dieser Nachricht interessiert ist und schickt die klassifizierte Nachricht an den Broker.
 Clients, die an bestimmten Nachrichten interessiert sind, müssen bei dem Broker eine Subscription erstellen und dabei eine Kategorie angeben.
 Somit kann der Broker eingehende kategorisierte Nachrichten an die entsprechenden Clients weiterleiten. Die Kategorie funktioniert wie ein Filter auf allen Nachrichten.
-Der Broker kann Nachrichten auch aufbewahren, sodass Clients, die zu einem späteren Zeitpunkt eine Kategorie abonnieren, ebenfalls die vergangenen Nachrichten erhalten.
-\cite{EverythingYouNeed}
-Durch dieses System entsteht eine Entkopplung der einzelnen Clients auf mehreren Ebenen.
+Der Broker kann Nachrichten auch aufbewahren, sodass Clients, die zu einem späteren Zeitpunkt eine Kategorie abonnieren, ebenfalls die vergangenen Nachrichten erhalten \cite{EverythingYouNeed}.
+Durch dieses System entsteht eine Entkopplung der einzelnen Clients auf mehreren Ebenen \cite{teamPublishSubscribeMQTT}.
 \begin{itemize}
-    \item \textbf{Räumliche Entkopplung:} Publisher und Subscriber der Nachricht müssen sich nicht kennen.
+    \item \textbf{Räumliche Entkopplung:} Publisher und Subscriber der Nachricht müssen sich nicht kennen. % TODO anderes wort für räumlich
     \item \textbf{Zeitliche Entkopplung:} Publisher und Subscriber müssen nicht zur selben Zeit aktiv sein.
     \item \textbf{Synchronisierungs Entkopplung:} Publisher und Subscriber müssen ihre Operationen beim Publizieren und Konsumieren nicht unterbrechen.
 \end{itemize}
-\cite{teamPublishSubscribeMQTT}
 In verteilten Systemen bietet ein solches Konzept eine einheitliche Abstraktion der Kommunikationsebene.
 \cite{domingusDistributedSystemsIntroduction2020}
 \begin{figure}
@@ -44,13 +37,14 @@ In verteilten Systemen bietet ein solches Konzept eine einheitliche Abstraktion 
     \label{fig:publish-subscribe}
 \end{figure}
 \\
-Im Kontext \ac{mqtt} werden Nachrichten in ein hierarchisch aufgebautes Topic klassifiziert.
-Ein oder mehrere \textit{Topic levels} werden mit einem Schrägstrich (\verb|/|) getrennt und Formen ein Topic. Ein Beispiel für ein Topic mit drei Topic levels ist: \verb|sensors/temperature/celcius|.
-Abbildung \ref{fig:publish-subscribe} zeigt einen Client, der auf das Thema \verb|sensors/temperature| Nachrichten veröffentlicht. Diese wird an zwei weitere Clients, die das Topic \verb|sensors/temperature| abonniert haben, durch den Broker weitergeleitet. Topics müssen auf einem Broker nicht explizit angelegt werden. Sobald ein Client auf einem Topic publiziert oder es abonniert, wird dieses automatisch angelegt.\cite{WhatMQTTDefinition}\\
-Beim Abonnieren eines Topics können die Topic levels Wildcards enthalten. Bei Wildcards werden zwischen den folgenden zwei unterschieden:\cite{mqtt5Specification}
+Im Kontext \ac{mqtt} werden Nachrichten in ein hierarchisch aufgebautes Topic klassifiziert, das mit einem oder mehreren \textit{Topic-levels} adressiert wird.
+Bei der Notation werden Topic-levels mit einem Schrägstrich (\verb|/|) getrennt: \verb|sensors/temperature/celcius|.
+Abbildung \ref{fig:publish-subscribe} zeigt einen Client, der auf das Topic \verb|sensors/temperature| Nachrichten veröffentlicht. Diese wird an zwei weitere Clients, die das Topic \verb|sensors/temperature| abonniert haben, durch den Broker weitergeleitet. Topics müssen auf einem Broker nicht explizit angelegt werden. Sobald ein Client auf einem Topic publiziert oder es abonniert, wird dieses automatisch angelegt.\cite{WhatMQTTDefinition}\\
+Beim Abonnieren können Clients ein exaktes Topic angeben oder mehrere Topics gleichzeitig abonnieren, indem sie Wildcards als Topic-levels verwenden.
+Bei Wildcards werden zwischen den folgenden zwei unterschieden \cite{teamMQTTTopicsBest}:
 \begin{itemize}
-    \item Multi-level '\verb|#|': Schlie{\ss}t das Vorgänger- und alle nachfolgenden Topic levels mit ein.
-    \item Single-level '\verb|+|': Schlie{\ss}t alle Topic levels auf einer einzigen Ebene mit ein.
+    \item Single-level '\verb|+|': Ersetzt ein Topic-level und abonniert alle Topics, die an der Stelle der Wildcard ein beliebiges Topic-level verwenden.
+    \item Multi-level '\verb|#|': Muss als letztes Topic-level verwendet werden und abonniert alle Topics, die an der Stelle der Wildcard und allen nachfolgenden Stellen ein beliebiges Topic-level verwenden.
 \end{itemize}
 Bei der folgenden Topic-Struktur
 \begin{itemize}
@@ -99,7 +93,7 @@ Als Beispiel dient ein Temperatursensor, der alle zehn Minuten seine Temperatur 
 \end{comment}
 
 \subsubsection{Paket Struktur} \label{s:packet-structure}
-\ac{mqtt} hat die Absicht ein leichtgewichtiges Protokoll zu sein. Tabelle \ref{table:mqtt-packet-structure} zeigt den Aufbau eines \ac{mqtt} Paketes. Der fixe Header ist zwei Byte gro{\ss} und muss in jedem Paket vorhanden sein. Basierend auf der Art des Paketes, das in dem fixen Header angegeben wird, sind zusätzlich ein variabler Header und weitere Daten möglich.\cite{mqtt5Specification}
+\ac{mqtt} hat die Absicht ein leichtgewichtiges Protokoll zu sein. Tabelle \ref{table:mqtt-packet-structure} zeigt den Aufbau eines \ac{mqtt} Paketes. Der fixe Header ist zwei Byte gro{\ss} und muss in jedem Paket vorhanden sein. Basierend auf der Art des Paketes, das in dem fixen Header angegeben wird, sind zusätzlich ein variabler Header und weitere Daten möglich \cite{mqtt5Specification}.
 \begin{table}[h!]
 \centering
 \renewcommand{\arraystretch}{1.5}
@@ -115,8 +109,7 @@ Als Beispiel dient ein Temperatursensor, der alle zehn Minuten seine Temperatur 
 \caption{Struktur eines \ac{mqtt} Paketes. Quelle: \cite{mqtt5Specification}}
 \label{table:mqtt-packet-structure}
 \end{table}
-Tabelle \ref{table:fixed-header} zeigt den detaillierten Aufbau des fixen Headers. Im ersten Byte werden Bit sieben bis vier für die spezifische Art des Paketes verwendet. Tabelle \ref{table:mqtt-packet-types} enhält eine Liste mit allen möglichen Pakettypen und deren Wert. Byte zwei gibt die restliche Paketlänge enkodiert als \textit{Variable Byte Integer} an.
-\cite{mqtt5Specification}
+Tabelle \ref{table:fixed-header} zeigt den detaillierten Aufbau des fixen Headers. Im ersten Byte werden Bit sieben bis vier für die spezifische Art des Paketes verwendet. Tabelle \ref{table:mqtt-packet-types} enhält eine Liste mit allen möglichen Pakettypen und deren Wert. Byte zwei gibt die restliche Paketlänge enkodiert als \textit{Variable Byte Integer} an \cite{mqtt5Specification}.
 Die Enkodierung eines \textit{Variable Byte Integer} wird in Kapitel 1.5.5 der \ac{mqtt} 5 Spezifikation \cite{mqtt5Specification} detailliert erklärt.
 \begin{table}[h!]
 \centering
@@ -189,7 +182,7 @@ Auf den variablen Header folgen die Daten (engl. \textit{Payload}) des \verb|CON
 \begin{enumerate}
     \item Clientkennung
     \item \textit{Will} Eigenschaften
-    \item \textit{Will} Thema
+    \item \textit{Will} Topic
     \item \textit{Will} Payload
     \item Benutzername
     \item Passwort
@@ -200,7 +193,7 @@ Die Clientkennung ist als einziges Feld nicht optional. Sie muss ein UTF-8 enkod
     \item a-z
     \item A-Z
 \end{itemize}
-Eine Clientkennung dient zur Identifikation des aktuellen Zustands des Clients und muss daher einzigartig vergeben sein. Ist bereits ein Client mit der gleichen Kennung mit dem Broker verbunden, wird die Verbindung des existierenden Clients getrennt und es findet ein \textit{Client takeover} statt (siehe \ref{s:client-takeover}).\cite{mqtt5Specification}
+Eine Clientkennung dient zur Identifikation des aktuellen Zustands des Clients und muss daher einzigartig vergeben sein. Ist bereits ein Client mit der gleichen Kennung mit dem Broker verbunden, wird die Verbindung des existierenden Clients getrennt und es findet ein \textit{Client takeover} statt (siehe \ref{s:client-takeover}).
 \begin{table}[h!]
 \centering
 \renewcommand{\arraystretch}{1.5}
@@ -244,14 +237,14 @@ Eine Clientkennung dient zur Identifikation des aktuellen Zustands des Clients u
 Der Broker muss eine \verb|CONNECT| Nachricht von einem Client mit einem \verb|CONNACK| Paket beantworten.\cite{mqtt5Specification}
 % TODO länge der eigenschaften kann nicht 0 sein oder ? wegen der clientid
 
-\subsubsection{Last Will Nachricht} \label{s:last-will}
-Ein Client kann bei der Verbindung mit einem Broker einen letzten Willen (engl. \textit{Last Will}) als Nachricht definieren. Diese Nachricht wird veröffentlicht, sobald die Verbindung zum Client unterbricht und dieser nicht innerhalb eines definierten Zeitraums seine Verbindung zum Broker wiederaufbauen kann.
-Im Fall einer protokollkonformen Terminierung der Verbindung, wird die Last Will Nachricht nicht veröffentlicht.
+\subsubsection{Last-Will Nachricht} \label{s:last-will}
+Ein Client kann bei der Verbindung mit einem Broker einen letzten Willen (engl. \textit{Last-Will}) als Nachricht definieren. Diese Nachricht wird veröffentlicht, sobald die Verbindung zum Client unterbricht und dieser nicht innerhalb eines definierten Zeitraums seine Verbindung zum Broker wiederaufbauen kann.
+Im Fall einer protokollkonformen Terminierung der Verbindung, wird die Last-Will Nachricht nicht veröffentlicht.
 \cite{soniSURVEYMQTTPROTOCOL}\\
-Die Last Will Nachricht kann in sicherheitsrelevanten Applikationen eingesetzt werden, um auf ungeplante Ausfälle von Clients zu reagieren.
+Die Last-Will Nachricht kann in sicherheitsrelevanten Applikationen eingesetzt werden, um auf ungeplante Ausfälle von Clients zu reagieren.
 
 \subsubsection{Shared Subscriptions} \label{s:shared-subsriptions}
-Mit der fünften Version von \ac{mqtt} wurden \textit{Shared Subscriptions} eingeführt, die das Teilen von Subscriptions unter Clients erlauben. Diese Clients werden in eine \textit{Shared Subscription Group} zusammengefasst. Bei einer normalen Subscription erhält jeder Client, der das gleiche Topic abonniert hat, eine Kopie der Nachricht. Bei einer \textit{Shared Subscription} erhält immer nur ein Client der \textit{Shared Subscription Group} die Nachricht in abwechselnder Reihenfolge. Dieser Mechanismus wird auch als \textit{Client load balancing} bezeichnet, da die Last eines Topics auf mehrere Subscriber verteilt wird.\cite{raschbichlerMQTTHowNew}
+Mit der fünften Version von \ac{mqtt} wurden \textit{Shared Subscriptions} eingeführt, die das Teilen von Subscriptions unter Clients erlauben. Diese Clients werden in eine \textit{Shared Subscription Group} zusammengefasst. Bei einer normalen Subscription erhält jeder Client, der das gleiche Topic abonniert hat, eine Kopie der Nachricht. Bei einer \textit{Shared Subscription} erhält immer nur ein Client der \textit{Shared Subscription Group} die Nachricht in abwechselnder Reihenfolge. Dieser Mechanismus wird auch als \textit{Client load balancing} bezeichnet, da die Last eines Topics auf mehrere Subscriber verteilt wird \cite{raschbichlerMQTTHowNew}.
 Shared Subscriptions verwenden Standard \ac{mqtt} Mechanismen. Jeder Client kann Teil einer Shared Subscription Group werden, indem er folgende Topic Struktur einhält: \verb|$share/GROUPID/TOPIC|.
 \begin{itemize}
     \item \verb|$share|: Statische shared Subscription Kennung
@@ -286,11 +279,11 @@ Um dies zu erreichen, tauschen alle Nodes eines Clusters Informationen über Cli
 \cite{HiveMQClusterHiveMQ}
 \\
 Durch das Zusammenschlie{\ss}en der HiveMQ Broker ensteht eine horizontale Skalierung. Wie in Kapitel \ref{s:domain} bereits erläutert, können sich im Anwendungsfall \ac{iot} mehrere Millionen Clients mit einem \ac{mqtt} Broker verbinden. Hierbei kann eine vertikale Skalierung an ihre Grenzen sto{\ss}en.
+\cite{HowScaleIT}
 \begin{itemize}
     \item \textbf{Vertikale Skalierung:} Fügt mehr Rechen- oder Speichereinheiten zu einem Server hinzu.
     \item \textbf{Horizontale Skalierung:} Fügt mehrere Server zu einer logischen Recheneinheit hinzu. Dabei kann die Arbeitslast auf die einzelnen Server verteilt werden.
 \end{itemize}
-\cite{HowScaleIT}
 Ein HiveMQ Broker in einem HiveMQ Cluster wird als ein HiveMQ Node (im Folgenden Node genannt) bezeichnet.
 Damit sich mehrere Nodes zu einem Cluster zusammenschlie{\ss}en muss jeder Node:
 \begin{itemize}
@@ -310,9 +303,12 @@ HiveMQ ist in der Lage die Clustergrö{\ss}e zur Laufzeit dynamisch anzupassen. 
 \cite{HiveMQClusterHiveMQ}
 
 \subsubsubsection{Überlastschutz} \label{sb:overload-protection}
-HiveMQ stellt einen eingebauten Überlastschutz (engl. \textit{Overload Protection}) für ein HiveMQ Cluster bereit. Jeder Node eines Clusters ist in der Lage die Rate der eingehenden Nachrichten zu reduzieren. Dieser Mechanismus erhöht die Stabilität des Clusters, indem gezielt Clients, die zu einer Überlast beitragen, gedrosselt werden.
-\cite{ClusterOverloadProtection}
-Dadurch kann sich das Cluster von einer Überlastsituation erholen, ohne die Service Qualität für Clients, die nicht der Überlastsituation beitragen, zu beeinträchtigen.
+HiveMQ stellt einen eingebauten Überlastschutz (engl. \textit{Overload Protection}) für ein HiveMQ Cluster bereit.
+Ein HiveMQ Node befindet sich in einer Überlastsituation, wenn in einem bestimmten Zeitraum mehr neue Aufgaben entstehen, als dieser abarbeiten kann. Aufgaben entstehen beispielsweise durch neue \ac{mqtt} Clients, eintreffende und ausgehende Nachrichten oder die Vergrö{\ss}erung des Clusters.
+Eine Ursache, warum ein Node anstehende Aufgaben nicht rechtzeitig abarbeiten kann, ist eine volle Auslastung ein oder mehrerer Ressourcen. Darunter zählen \ac{cpu}, Arbeitsspeicher und Speicherkapazität.
+\\
+Jeder Node eines Clusters ist in der Lage die Rate der eingehenden Nachrichten zu reduzieren. Dieser Mechanismus erhöht die Stabilität des Clusters, indem gezielt Publisher, die zu einer Überlast beitragen, gedrosselt werden \cite{ClusterOverloadProtection}.
+Dadurch kann sich das Cluster von einer Überlastsituation erholen, ohne die Servicequalität für Clients, die nicht an der Überlastsituation beitragen, zu beeinträchtigen.
 Jeder Node eines Clusters berechnet durchgehend einen individuellen \textit{Overload Protection Level} auf Basis der Menge aller:
 \begin{itemize}
     \item eingehenden \verb|PUBLISH| Nachrichten
@@ -326,6 +322,7 @@ Diese werden alle 200 Millisekunden um einen bestimmten Wert regeneriert, bis da
 \cite{ClusterOverloadProtection}
 \\
 Hat ein Client alle seine Credits verbraucht, wird \ac{tcp} Backpressure auf dem Socket des Clients angewandt, woraufhin dieser keine Nachrichten mehr veröffentlichen kann.
+% TODO backpressure erklären
 Überschreitet der Zeitraum, in dem \ac{tcp} Backpressure für einen Client angewandt wird, den konfigurierten Keep-Alive Wert der Verbindung, wird diese unterbrochen.
 \cite{ClusterOverloadProtection}
 
@@ -362,29 +359,25 @@ Der Broker beendet die existierende Verbindung und assoziiert die persistente Se
 \newpage
 
 \subsection{Load Balancing} \label{s:load-balancing}
-Load balancing wurde um 1990 als Unterstützung für horizontale Skalierung eingeführt, um Traffic auf Server-Infrastrukturen zu verteilen. Dadurch sollte eine erhöhte Verfügbarkeit der Services für Endnutzer erzielt werden.
-\cite{LoadBalancing101}
-Bei einer horizontalen Skalierung werden nicht die Ressourcen eines einzelnen Servers erweitert, wie bei der vertikalen Skalierung, sondern weitere Server bereitgestellt. Es gibt mehrere Gründe wann eine vertikale Skalierung an ihre Grenzen stö{\ss}t:
+Load balancing wurde um 1990 als Unterstützung für horizontale Skalierung eingeführt, um Traffic auf Server-Infrastrukturen zu verteilen. Dadurch sollte eine erhöhte Verfügbarkeit der Services für Endnutzer erzielt werden \cite{LoadBalancing101}.
+Bei einer horizontalen Skalierung werden nicht die Ressourcen eines einzelnen Servers erweitert, wie bei der vertikalen Skalierung, sondern weitere Server bereitgestellt. Es gibt mehrere Gründe wann eine vertikale Skalierung an ihre Grenzen stö{\ss}t \cite{bourkeServerLoadBalancing2001}:
 \begin{itemize}
     \item Der Server ist nicht mehr erweiterbar an \acs{cpu}, \acs{ram} oder Speicherplatz.
     \item Ein neustarten des Servers um eine vertikale Skalierung durchzuführen ist nicht möglich.
     \item Es muss eine Hochverfügbarkeit erzielt werden.
 \end{itemize}
-\cite{bourkeServerLoadBalancing2001}
 Ein \acl{lb} wird bei der horizontalen Skalierung den einzelnen Servern vorgeschaltet, um einkommenden Traffic basierend diverser load balancing Algorithmen an die entsprechenden Server zu verteilen.
 Je nach Algorithmus sorgt der \ac{lb} dadurch für ein gleimä{\ss}ges verteilen der Last auf das gesamte System. Es ist ebenfalls möglich ausgefallene Server zu detektieren und die Last auf verbleibende Server umzuleiten.
 \cite{LoadBalancing101}
 \\
-Load balancing kann Software- und Hardwareseitig betrieben werden. Als Hardware \ac{lb} wird oftmals ein OSI-Layer vier oder sieben Switch verwendet. Dabei müssen alle Server die Last erhalten sollen, direkt an den Hardware \ac{lb} angeschlossen werden.
-\cite{WasIstLoad2016}
-Software load balancing braucht, anders als Hardware load balancing, keine dedizierte Hardware und kann in jedem Server, Container oder jeder virtuellen Maschine eingesetzt werden.
-\cite{SoftwareLoadBalancing}
+Load balancing kann Software- und Hardwareseitig betrieben werden. Als Hardware \ac{lb} wird oftmals ein OSI-Layer vier oder sieben Switch verwendet. Dabei müssen alle Server die Last erhalten sollen, direkt an den Hardware \ac{lb} angeschlossen werden \cite{WasIstLoad2016}.
+Software load balancing braucht, anders als Hardware load balancing, keine dedizierte Hardware und kann in jedem Server, Container oder jeder virtuellen Maschine eingesetzt werden \cite{SoftwareLoadBalancing}.
 Dabei kann jegliche Funktionalität eines \acp{hlb} vollständig ersetzt und erweitert werden. Software load balancing bietet mehr flexibilität gegenüber Hardware load balancing auf Kosten von Performance.
 \cite{WhatLoadBalancer}
 \\
-Load balancing kann zwischen Layer vier bis sieben des \ac{osi}-Modells stattfinden.
-\cite{WhatLoadBalancer}
-Das \ac{osi}-Modell standardisiert die Kommunikation zwischen verschiedenen Computer Systemen in sieben Layern.
+Load balancing kann zwischen Layer vier bis sieben des \ac{osi}-Modells stattfinden \cite{WhatLoadBalancer}.
+Das \ac{osi}-Modell standardisiert die Kommunikation zwischen verschiedenen Computer Systemen in sieben Layern \cite{WhatOSIModel}.
+
 \begin{enumerate}
     \item Bitübertragungsschicht (engl. \textit{Physical Layer})
     \item Sicherrungsschicht (engl. \textit{Datalink Layer})
@@ -394,7 +387,6 @@ Das \ac{osi}-Modell standardisiert die Kommunikation zwischen verschiedenen Comp
     \item Darstellungsschicht (engl. \textit{Presentation Layer})
     \item Anwendungsschicht (engl. \textit{Application Layer})
 \end{enumerate}
-\cite{WhatOSIModel}
 \paragraph{Layer 4 Load Balancing}
 Der \ac{lb} lenkt den Traffic basierend von Infromationen des Network und Transport Layers. Darunter befinden sich \ac{tcp} und \ac{udp} Ports der Pakete sowieso Empfänger und Absender \ac{ip} Adressen. Layer vier \ac{lb} inspizieren für die Weiterleitung nicht die Daten des Paketes.
 \cite{WhatLoadBalancer}
