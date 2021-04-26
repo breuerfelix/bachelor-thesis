@@ -1,5 +1,41 @@
 - ssl erwähnen
 
+- client aware load balancing
+- wie entsteht die ungleiche lastverteilung
+- bei einem managed service weiß man nicht was die clients machen
+- zustandbehaftetest protokoll
+- clients können sich richtig / besser verhalten
+- verweis auf shared subscriptions
+- ausblick -> man könnte alle publish messages load balancen
+- ausblick connectionless
+- nachrichtenorientiert
+
+fazit:
+- konzeptuell multiplexing
+- load balancer ist eigentlich entkoppelt -> jetzt nicht mehr -> erst ist smart !
+- modernes load balancing
+- man kann auch probleme bei clients lösen -> aber nicht alles
+- load balancer unterstützt die steuerbarkeit
+
+- load balancer sind klassisch losgelöste teile
+- protokoll durchparsen
+- session roaming
+- stateless
+- smart load balancer ist ein integraler bestandteil -> nicht trennbar
+
+-> nicht nochmal erklären
+- durch saas hohe skalierung + entkopplung von clients und anbieter
+- kunde kriegt service und nicht instanz / installation
+
+
+grafana:
+- mittlere abweichung anstatt lastindikator
+- staircase bei connections
+- maximale quadratische abweichung
+- abweichung vom mittelwert in grafana angeben
+
+
+
 TODO bis zur ersten abgabe:
 - envoy kapitel ausführlicher schreiben
 

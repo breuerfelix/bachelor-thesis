@@ -8,7 +8,9 @@ Ein HiveMQ Cluster ist, wie in Kapitel \ref{s:hivemq-cluster} beschrieben, in de
 Eine statische Konfiguration der HiveMQ Nodes ist somit nicht möglich.
 
 \subsection{Langlebige TCP Verbindungen}
-In Kapitel \ref{s:mqtt} wurde erläutert, dass \ac{mqtt} langlebige \ac{tcp} Verbindungen benutzt, um den Datendurchsatz gering zu halten. Dadurch kann der Broker Nachrichten zum Client schicken, ohne dass dieser periodisch nach neuen Nachrichten fragen muss.
+% TODO evtl scherfälligkeit von tcp erwähnen
+In Kapitel \ref{s:mqtt} wurde erläutert, dass \ac{mqtt} langlebige \ac{tcp} Verbindungen benutzt, um den Kommunikationsaufwand gering zu halten.
+Dies ermöglicht das \textit{Push-Push} Prinzip, bei dem der Broker Nachrichten zum Client schicken kann, ohne dass dieser periodisch nach neuen Nachrichten fragen muss.
 Der Load Balancer muss aktive Clientverbindungen aufrecht halten, bis Clients diese terminieren.
 Aktualisierungen des Load Balancers oder dessen Konfiguration dürfen nicht zu einer Unterbrechung der aktiven Verbindungen führen.
 
@@ -28,7 +30,7 @@ Je nach Anwendungsfall verbinden sich \ac{mqtt} Clients auch über das Mobilfunk
 \end{comment}
 
 \subsection{Überlastschutz}
-In Kapitel \ref{sb:overload-protection} wurde die Overload Protection eines HiveMQ Brokers erläutert. Dies ermöglicht dem Broker die Verbindung individueller Clients, die viel Arbeitslast auf dem Broker erzeugen, zu unterbrechen. Falls der \ac{mqtt} Client sich \ac{mqtt} konform verhält, versucht dieser die Verbindung automatisch wiederherzustellen.
+In Kapitel \ref{sb:overload-protection} wurde der Überlastschutz eines HiveMQ Brokers erläutert. Dies ermöglicht dem Broker die Verbindung individueller Clients, die viel Arbeitslast auf dem Broker erzeugen, zu unterbrechen. Falls der \ac{mqtt} Client sich \ac{mqtt} konform verhält, versucht dieser die Verbindung automatisch wiederherzustellen.
 In diesem Fall darf der Load Balancer den Client nicht wieder mit demselben Node verbinden, da dieser Node mit dem Client erneut überlastet sein wird. Es muss ein Node mit einer geringerer Auslastung für diesen Client gefunden werden.
 \\
 Das Overload Protection Level gibt an, ob sich der HiveMQ Node in einer Überlast befindet. Der Load Balancer sollte den Node im Fall einer Überlast unterstützen, indem er keine neuen Clients mehr mit diesem Node verbindet.
@@ -37,8 +39,10 @@ Das Overload Protection Level gibt an, ob sich der HiveMQ Node in einer Überlas
 Es gibt viele verschiedene \ac{mqtt} Clients im Anwedungsfeld \ac{iot}. Manche sind beispielsweise Temperatursensoren, die alle zehn Minuten einen Integer Wert auf ein Topic veröffentlichen, andere sind Drehzahlsensoren, die alle 500 Millisekunden die aktuelle Drehzahl eines Motors zur Geschwindigkeitsermittlung veröffentlichen.
 Die Drehzahlsensoren verursachen durch die erhöhte Frequenz der Nachrichten mehr Traffic und Arbeitslast auf einem Broker als die Temperatursensoren.
 \\
-Da \ac{mqtt} ein Verbindungsorientiertes Protokoll ist, kann die load balancing Entscheidung nicht auf Paket-, sondern nur auf Verbindungsebene getroffen werden. Sobald eine Clientverbindung aufgebaut ist, werden alle Nachrichten des Clients immer an denselben Node weitergeleitet.
+Da \ac{mqtt} ein zustandbehaftetes und verbindungsorientiertes Protokoll ist, kann die load balancing Entscheidung nicht auf Paket-, sondern nur auf Verbindungsebene getroffen werden. Sobald eine Clientverbindung aufgebaut ist, werden alle Nachrichten des Clients immer an denselben Node weitergeleitet.
 Aus diesem Grund kann bei einem \textit{round-robin} oder \textit{least connection} load balancing Algorithmus das zuvor beschriebene Verhalten zu einer ungleichen Lastverteilung im Cluster führen.
+% TODO
+Die Einführung von \textit{Shared Subscriptions} (siehe Kapitel \ref{s:shared-subscriptions})
 \\
 Ein \ac{lb} für \ac{mqtt} muss in der Lage sein, die eingehenden Verbindungen basierend der derzeitigen Arbeitslast der einzelnen Nodes zu gewichten.
 

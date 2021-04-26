@@ -23,8 +23,9 @@ Clients, die an bestimmten Nachrichten interessiert sind, müssen bei dem Broker
 Somit kann der Broker eingehende kategorisierte Nachrichten an die entsprechenden Clients weiterleiten. Die Kategorie funktioniert wie ein Filter auf allen Nachrichten.
 Der Broker kann Nachrichten auch aufbewahren, sodass Clients, die zu einem späteren Zeitpunkt eine Kategorie abonnieren, ebenfalls die vergangenen Nachrichten erhalten \cite{EverythingYouNeed}.
 Durch dieses System entsteht eine Entkopplung der einzelnen Clients auf mehreren Ebenen \cite{teamPublishSubscribeMQTT}.
+% TODO vielleicht besseres wort für kommunikative / räumliche
 \begin{itemize}
-    \item \textbf{Räumliche Entkopplung:} Publisher und Subscriber der Nachricht müssen sich nicht kennen. % TODO anderes wort für räumlich
+    \item \textbf{Kommunikative Entkopplung:} Publisher und Subscriber der Nachricht müssen sich nicht kennen.
     \item \textbf{Zeitliche Entkopplung:} Publisher und Subscriber müssen nicht zur selben Zeit aktiv sein.
     \item \textbf{Synchronisierungs Entkopplung:} Publisher und Subscriber müssen ihre Operationen beim Publizieren und Konsumieren nicht unterbrechen.
 \end{itemize}
@@ -305,7 +306,7 @@ HiveMQ ist in der Lage die Clustergrö{\ss}e zur Laufzeit dynamisch anzupassen. 
 \subsubsubsection{Überlastschutz} \label{sb:overload-protection}
 HiveMQ stellt einen eingebauten Überlastschutz (engl. \textit{Overload Protection}) für ein HiveMQ Cluster bereit.
 Ein HiveMQ Node befindet sich in einer Überlastsituation, wenn in einem bestimmten Zeitraum mehr neue Aufgaben entstehen, als dieser abarbeiten kann. Aufgaben entstehen beispielsweise durch neue \ac{mqtt} Clients, eintreffende und ausgehende Nachrichten oder die Vergrö{\ss}erung des Clusters.
-Eine Ursache, warum ein Node anstehende Aufgaben nicht rechtzeitig abarbeiten kann, ist eine volle Auslastung ein oder mehrerer Ressourcen. Darunter zählen \ac{cpu}, Arbeitsspeicher und Speicherkapazität.
+Eine Ursache, warum ein Node anstehende Aufgaben nicht rechtzeitig abarbeiten kann, ist eine volle Auslastung ein oder mehrerer Ressourcen. Darunter zählen unteranderem \ac{cpu}, Arbeitsspeicher und Speicherkapazität.
 \\
 Jeder Node eines Clusters ist in der Lage die Rate der eingehenden Nachrichten zu reduzieren. Dieser Mechanismus erhöht die Stabilität des Clusters, indem gezielt Publisher, die zu einer Überlast beitragen, gedrosselt werden \cite{ClusterOverloadProtection}.
 Dadurch kann sich das Cluster von einer Überlastsituation erholen, ohne die Servicequalität für Clients, die nicht an der Überlastsituation beitragen, zu beeinträchtigen.
@@ -321,10 +322,11 @@ Für jede Veröffentlichung einer Nachricht werden die Credits des Clients reduz
 Diese werden alle 200 Millisekunden um einen bestimmten Wert regeneriert, bis das maximale Guthaben von 50,000 erreicht wurde. Der Regenerationswert richtet sich nach dem derzeitigen Overload Protection Level des Nodes, mit dem der Client verbunden ist.
 \cite{ClusterOverloadProtection}
 \\
-Hat ein Client alle seine Credits verbraucht, wird \ac{tcp} Backpressure auf dem Socket des Clients angewandt, woraufhin dieser keine Nachrichten mehr veröffentlichen kann.
-% TODO backpressure erklären
-Überschreitet der Zeitraum, in dem \ac{tcp} Backpressure für einen Client angewandt wird, den konfigurierten Keep-Alive Wert der Verbindung, wird diese unterbrochen.
-\cite{ClusterOverloadProtection}
+Hat ein Client alle seine Credits verbraucht, wird \ac{tcp} \textit{Back pressure} auf dem \ac{tcp} Socket des Clients angewandt, woraufhin dieser keine Nachrichten mehr veröffentlichen kann.
+Überschreitet der Zeitraum, in dem \ac{tcp} \textit{Back pressure} für einen Client angewandt wird, den konfigurierten \textit{keep-alive} Wert der Verbindung, wird diese unterbrochen \cite{ClusterOverloadProtection}.
+Um \ac{tcp} \textit{Back pressure} zu erzeugen, stoppt der HiveMQ Node das Lesen der Daten aus dem \ac{tcp} \textit{receive buffer} des Clients, was ein Verkleinern des \ac{tcp} \textit{receive window (rwnd)} zur Folge hat. Wird das \textit{receive window} null, kann der Client aufgrund des \ac{tcp} \textit{flow controls} keine neuen Daten mehr an den HiveMQ Node schicken \cite{TCPFlowControl}.
+Das \ac{mqtt} Protokoll hat für \ac{qos} null Nachrichten keine \textit{flow control} implementiert, da diese nach dem Prinzip \textit{fire and forget} abgeschickt werden.
+HiveMQ greift für das Drosseln der Nachrichten auf \ac{tcp} Mechaniken zurück, damit unteranderem auch keine neuen \ac{qos} null Nachrichten an den HiveMQ Node geschickt werden.
 
 \subsubsection{Persistente Session} \label{s:persistent-session}
 Um Nachrichten von einem \ac{mqtt} Broker zu erhalten, muss sich ein Client mit diesem verbinden und eine Subscription auf einem Topic erstellen. Alle Subscriptions die ein Client erstellt, werde mit der \ac{tcp} Verbindung des Clients assoziiert.
@@ -370,14 +372,15 @@ Ein \acl{lb} wird bei der horizontalen Skalierung den einzelnen Servern vorgesch
 Je nach Algorithmus sorgt der \ac{lb} dadurch für ein gleimä{\ss}ges verteilen der Last auf das gesamte System. Es ist ebenfalls möglich ausgefallene Server zu detektieren und die Last auf verbleibende Server umzuleiten.
 \cite{LoadBalancing101}
 \\
-Load balancing kann Software- und Hardwareseitig betrieben werden. Als Hardware \ac{lb} wird oftmals ein OSI-Layer vier oder sieben Switch verwendet. Dabei müssen alle Server die Last erhalten sollen, direkt an den Hardware \ac{lb} angeschlossen werden \cite{WasIstLoad2016}.
+Load balancing kann Software- und Hardwareseitig betrieben werden. Als Hardware \ac{lb} wird oftmals ein OSI-Layer vier oder sieben Switch verwendet \cite{WasIstLoad2016}.
 Software load balancing braucht, anders als Hardware load balancing, keine dedizierte Hardware und kann in jedem Server, Container oder jeder virtuellen Maschine eingesetzt werden \cite{SoftwareLoadBalancing}.
-Dabei kann jegliche Funktionalität eines \acp{hlb} vollständig ersetzt und erweitert werden. Software load balancing bietet mehr flexibilität gegenüber Hardware load balancing auf Kosten von Performance.
+Dabei kann jegliche Funktionalität eines \acp{hlb} vollständig ersetzt und erweitert werden.
+Ein \ac{hlb} hat typischerweise Einfluss auf die physische Architektur der Komponenten und ist nicht nur eine reine logsiche Einheit wie ein Software \ac{lb}.
+Software load balancing bietet mehr Flexibilität gegenüber Hardware load balancing auf Kosten von Performance.
 \cite{WhatLoadBalancer}
 \\
 Load balancing kann zwischen Layer vier bis sieben des \ac{osi}-Modells stattfinden \cite{WhatLoadBalancer}.
 Das \ac{osi}-Modell standardisiert die Kommunikation zwischen verschiedenen Computer Systemen in sieben Layern \cite{WhatOSIModel}.
-
 \begin{enumerate}
     \item Bitübertragungsschicht (engl. \textit{Physical Layer})
     \item Sicherrungsschicht (engl. \textit{Datalink Layer})
@@ -395,7 +398,7 @@ Der \ac{lb} lenkt den Traffic basierend von Infromationen des Network und Transp
 Ein Layer sieben \ac{lb} inspiziert die Daten des gesendeten Paketes. Dafür muss der \ac{lb} in der Lage sein das verwendetet Protokoll zu parsen. Es können komplexere Weiterleitungregeln als bei einen Layer vier \ac{lb} implementiert werden. Bei \ac{http} können beispielsweise Weiterleitungsentscheidungen basierend des \ac{http} Headers oder des \ac{http} Pfades getroffen werden.
 \cite{WhatLoadBalancer}
 \\
-In verteilten System, zum Beispiel einem HiveMQ Cluster, bieten \acl{lb} eine transparente Abstraktion für Clients. Der Client verbindet sich mit einem \ac{lb} und wird an einen HiveMQ Node weitergeleitet ohne die Server-Infrakstruktur des HiveMQ Clusters zu kennen. Für den Client macht es den Anschein, als würde der \ac{lb} eine einziger HiveMQ Broker sein, der seinen Service anbietet.
+In verteilten System, zum Beispiel einem HiveMQ Cluster, bieten \acl{lb} eine transparente Abstraktion für Clients. Der Client verbindet sich mit einem \ac{lb} und wird an einen HiveMQ Node weitergeleitet ohne die HiveMQ Cluster Topologie zu kennen. Für den Client macht es den Anschein, als würde der \ac{lb} eine einziger HiveMQ Broker sein, der seinen Service anbietet.
 
 \subsubsection{Load Balancing Algorithmen} \label{sb:lb-algo}
 Der \acl{lb} bestimmt anhand eines load balancing Algorithmus an welchen Server eine neue Anfrage verteilt wird.
@@ -419,22 +422,29 @@ Mögliche Daten sind Quell-, Ziel \ac{ip} Adresse, Port oder Domain Name. Durch 
 \cite{WhatLoadBalancer}
 
 \subsubsection{Envoy} \label{s:envoy}
-Envoy ist ein \ac{osi}-Layer sieben \acl{lb} und für gro{\ss}e moderne Service orientierte Architekturen von Lyft entwickelt worden.
+Envoy ist ein \ac{osi}-Layer sieben Proxy und für gro{\ss}e moderne Service orientierte Architekturen von Lyft entwickelt worden.
 Im September 2017 wurde Envoy an die \textit{Cloud Native Computing Foundation} gestiftet, die Cloud Projekte wie Kubernetes, Prometheus, containerd und Jaeger verwaltet.
 Der Envoy Quellcode wird öffentlich auf GitHub versioniert und hat stand April 2021 bereits 670 Kontributoren und 16.500 Sterne auf GitHub gesammelt. \cite{EnvoyproxyEnvoy2021}
 \\
-Der in C++ programmierte und hoch performante \ac{lb} Envoy stellt folgende abstrakte Features bereit:
+Der in C++ programmierte und hoch performante Envoy Proxy stellt folgende abstrakte Features bereit \cite{WhatEnvoyEnvoy}:
 \begin{itemize}
     \item \textbf{\acs{osi}-Layer 3/4 Filter:} Envoy erlaubt das Dazuschalten von \acs{tcp} oder \acs{udp} Filtern in die Netzwerk Pipeline. Filter wie zum Beispiel für MongoDB, Redis, \ac{tls} Authentifizierung wurden bereits in Envoy implementiert. Benutzerdefinierte Filter können direkt in C++ implementiert und eingebunden oder als \ac{wasm} Modul integriert werden.
     \item \textbf{\acs{http} \ac{osi}-Layer 7 Filter:} Aufgrund der Popularität von \ac{http} wurden diverse \ac{osi}-Layer sieben \ac{http} Filter in Envoy implementiert. Filter wie \textit{buffering}, \textit{routing} und \textit{rate-limiting} sind bereits in Envoy integriert und können über einen \ac{http} Connection Manager konfiguriert werden.
-    \item \textbf{Dynamische Konfiguration:} Envoy kann dynamisch über eine \textit{Data-Plane API} provisioniert werden. Dabei können Daten wie Cluster, \ac{http} Routen, Listener Sockets oder \ac{tls} Zertifikate dynamisch von einer externen Quelle bereitgestellt werden.
+    \item \textbf{Dynamische Konfiguration:} Envoy kann dynamisch über eine \textit{Data-Plane API} provisioniert werden. Dabei können Daten wie Cluster, \ac{http} Routen, Listener Sockets oder \ac{tls} Zertifikate von einer externen Quelle bereitgestellt werden.
     \item \textbf{Observeability:} Envoy verfolgt das Ziel transparete Netzwerke zu erschaffen. Um dies zu erreichen werden umfangreiche Statistiken bereitgestellt, die zum Beispiel mit \textit{statsd} aggregiert werden können.
 \end{itemize}
-\cite{WhatEnvoyEnvoy}
+Ein Proxy Server, wie beispielsweise Envoy, dient als Gateway zwischen Clients und Servern.
+Clients verbinden sich mit einem Proxy Server, der die Anfragen der Clients an einen Server weiterleitet, der diese bearbeiten kann. Es wird zwischen einem \textit{forward} und einem \textit{reverse} Proxy Server unterschieden \cite{WhatReverseProxy}:
+\begin{itemize}
+  \item \textbf{Forward Proxy:} Der Proxy Server versteckt die Informationen des Clients vor dem Server, der die Anfragen bearbeiten kann.
+  \item \textbf{Reverse Proxy:} Der Proxy Server versteckt den Server, der die Anfragen bearbeiten kann, vor dem Client.
+\end{itemize}
+Envoy kann als \textit{reverse proxy} \acl{lb} betrieben werden und verteilt Anfragen transparent zum Client an Nodes eines Clusters.
+\\
 Envoy wird unteranderem bei Slack \cite{MigratingMillionsConcurrent2021} als \acl{lb} für Websockets eingesetzt. Zudem findet Envoy Anwendung in \textit{service-meshes} als Edge Proxy bei Istio \cite{Istio} und Google Traffic Director \cite{TrafficDirectorGoogle}.
-
 \begin{comment}
 \subsubsubsection{Architecture}
+% TODO kapitel schreiben
 test
 \cite{datawireEnvoyInternalsDeep2018}
 
