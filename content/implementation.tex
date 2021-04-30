@@ -91,7 +91,7 @@ Sobald der Overload Protection Wert überschritten wurde, oder der \ac{mqtt} Hea
 \newpage
 
 \subsection{Einsatz}
-In Kapitel \ref{ss:control-plane} wurde der Einsatz des Envoy \acl{lb} in einem \ac{mqtt} Anwendungsfeld bereits eingeordnet. Abbildung \ref{fig:deployment-diagram} zeigt den Aufbau einer HiveMQ Cluster Installation mit einem Envoy \ac{lb} und einer Control Plane.
+In Kapitel \ref{ss:control-plane} wurde der Einsatz des Envoy \acl{lb} in einem \ac{mqtt} Anwendungsfeld bereits eingeordnet. Abbildung \ref{fig:deployment-diagram} zeigt den Aufbau einer HiveMQ Cluster Installation mit einem Envoy als \ac{lb} und einer Control Plane.
 \\
 \ac{mqtt} Clients bauen ihre Verbindung mit der Envoy Instanz auf, die das HiveMQ Cluster transparent zum Client abstrahiert. Die Envoy Instanz erhält seine Konfiguration von der Control Plane und entscheidet auf dessen Grundlagen, mit welchem HiveMQ Node ein neuer Client verbunden wird. Die Control Plane ruft periodisch die aktuellen Metriken aller HiveMQ Nodes des Clusters ab. Anhand der Metriken werden Health Status und Gewichtung der einzelnen Nodes bestimmt.
 \begin{figure}
@@ -103,19 +103,8 @@ In Kapitel \ref{ss:control-plane} wurde der Einsatz des Envoy \acl{lb} in einem 
 \\
 Bei der in Abbildung \ref{fig:deployment-diagram} gezeigten Architektur müssen weder HiveMQ Nodes, noch Control Plane, für die \ac{mqtt} Clients erreichbar sein. Control Plane und Envoy müssen Netzwerkverbindungen mit allen Nodes des HiveMQ Clusters aufbauen können.
 \\
-Da sich bei der Control Plane mehrere Envoy Instanzen registrieren können, kann anstatt einer Envoy Instanz auch ein Envoy Cluster eingesetzt werden. Dabei wird ein Cloud Load Balancer vor das Envoy Cluster geschaltet, um dieses für die \ac{mqtt} Clients zu abstrahieren. Da jeder Envoy seine Konfiguration von der Control Plane erhält, wird in jeder Envoy Instanz dieselbe load balancing Entscheidung getroffen. Durch die Clusterfähigkeit der Envoy Instanzen ist diese Installation, wie das HiveMQ Cluster, horizontal skalierbar.
+Es können sich mehrere Envoy Instanzen bei einer Control Plane registrieren.
+Um die einzelnen Envoy Instanzen für die \ac{mqtt} Clients zu abstrahieren, wird ihnen ein Cloud \acl{lb} vorgeschaltet.
+Da jeder Envoy seine Konfiguration von der Control Plane erhält, wird in jeder Envoy Instanz dieselbe load balancing Entscheidung getroffen.
+Eine solche Installation ist, wie ein HiveMQ Cluster, horizontal skalierbar.
 \newpage
-
-\begin{comment}
-- Describe the realization of your concepts, in case you have actually developed some-thing.
-- Elaborate on the software architecture of your tool, in case you have developed one. Use nested UML packages, components, and interfaces in a component diagram.
-- If applicable, show the deploymentof your tool in a production environment. Use UML's deployment diagram notation.
-- It must be clear from the architecture, what your thesis contributes and what it takes for granted like existing systems, code bases, libraries and frameworks. For example, you can decorate the components in a UML component diagram that you have implemented and those that you just used.
-- Do not delve into ordinary details by, e.g., intensively describing a "p lain old Java-object (POJO)" in all its dreary getter-setter-details. Instead pick some interesting details and de-scribe them, e.g.,
-  - if   you made extensive use of a certain design pattern, describe a single concrete appli-cation of it using, e.g., UML class diagrams or
-  - if your work involves a complicated conversation pattern or protocol, explained it using a UML sequence diagram, state chart, activity diagram and the like or
-  - if you have developed a central and canny algorithm, you may even show its implemen-tation in, e.g., Java code.
-- Show how the result of your work actually looks like. In case of a tool, provide some screenshots together with some explanatory text.
-- Describe the quantity of your work, e.g., in terms of lines of code or classes etc. Please just count your own hand-crafted code but not previously existing, imported or generated code.
-- Describe the quality of your work, e.g., if you have developed a large web application, run some performance tests, depicts results and draw conclusions from them.
-\end{comment}

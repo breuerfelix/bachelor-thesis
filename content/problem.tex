@@ -19,15 +19,10 @@ Wie in Kapitel \ref{s:persistent-session} beschrieben können Clients eine persi
 Dieser Prozess findet bei einem Broker im Arbeitsspeicher statt.
 Dort muss zu den existierenden persistierten Daten der dazugehörige \ac{tcp} Socket ausgetauscht werden.
 Wenn der Client die Verbindung mit einem anderen Node des HiveMQ Cluster wiederaufbaut, ist ein Client Takeover komplexer.
-In diesem Szenario muss der Node, auf dem der Client verbunden war, alle persistierten Daten an den neuen Node übermitteln.
-Wenn der Client über einen längeren Zeitraum nicht verbunden war, können sich viele Daten anhäufen.
+In diesem Szenario müssen die persistierten Daten des Clients im Cluster synchronisiert werden.
+Je mehr Daten für die Synchronisation anfallen, desto aufwändiger ist der Client Takeover.
 \\
 Im Optimallfall wird der neue Client mit demselben Node verbunden, mit dem er zuvor verbunden war, um interne Kommunikation und Latenzen beim Verbindungsaufbau zu verringern.
-\begin{comment}
-Um einen Client immer zum selben Node zu verbinden werden bei anderen Protokollen wie \ac{http} zum Beispiel Cookies verwendet. Die Cookies werden von dem Load Balancer ausgelesen und enthalten Informationen zu welchem Node der Client als letztes verbunden war. Das \ac{mqtt} Protokoll unterstützt keinen Mechanismus, der wie \ac{http} Cookies funktioniert.
-Eine weitere Option einen Client immer zum selben Node zu verbinden ist consistent hashing, wie in Kapitel \ref{sb:lb-algo} beschrieben. Dabei werden Layer vier Informationen des Clients ausgelesen, wie zum Beispiel die \ac{ip} Adresse, und gehasht. Anhand des Hashes wird anschlie{\ss}end der Node bestimmt, zu welchem der Client verbunden wird. Solange sich keine der gehashten Informationen ändert, wird der Client immer an den selben Node weitergeleitet.
-Je nach Anwendungsfall verbinden sich \ac{mqtt} Clients auch über das Mobilfunknetz. Durch den ständigen Standortwechsel wird zwangsweise ebenfalls der Mobilfunkmast gewechselt. Es wird nicht garantiert, dass der LKW immer die selbe \ac{ip} behält. \verb|MAGLEV| würde somit bei einem Verbindungsabbruch den Client an einen neuen Node weiterleiten.
-\end{comment}
 
 \subsection{Überlastschutz}
 In Kapitel \ref{sb:overload-protection} wurde der Überlastschutz eines HiveMQ Brokers erläutert. Dies ermöglicht dem Broker die Verbindung individueller Clients, die viel Arbeitslast auf dem Broker erzeugen, zu unterbrechen. Falls der \ac{mqtt} Client sich \ac{mqtt} konform verhält, versucht dieser die Verbindung automatisch wiederherzustellen.
@@ -36,26 +31,14 @@ In diesem Fall darf der Load Balancer den Client nicht wieder mit demselben Node
 Das Overload Protection Level gibt an, ob sich der HiveMQ Node in einer Überlast befindet. Der Load Balancer sollte den Node im Fall einer Überlast unterstützen, indem er keine neuen Clients mehr mit diesem Node verbindet.
 
 \subsection{Ungleiche Lastverteilung} \label{sp:load}
-Es gibt viele verschiedene \ac{mqtt} Clients im Anwedungsfeld \ac{iot}. Manche sind beispielsweise Temperatursensoren, die alle zehn Minuten einen Integer Wert auf ein Topic veröffentlichen, andere sind Drehzahlsensoren, die alle 500 Millisekunden die aktuelle Drehzahl eines Motors zur Geschwindigkeitsermittlung veröffentlichen.
+Es gibt viele verschiedene \ac{mqtt} Clients im Anwedungsfeld \ac{iot}. Manche sind beispielsweise Temperatursensoren, die alle zehn Minuten einen Wert auf ein Topic veröffentlichen, andere sind Drehzahlsensoren, die alle 500 Millisekunden die aktuelle Drehzahl eines Motors zur Geschwindigkeitsermittlung veröffentlichen.
 Die Drehzahlsensoren verursachen durch die erhöhte Frequenz der Nachrichten mehr Traffic und Arbeitslast auf einem Broker als die Temperatursensoren.
 \\
-Da \ac{mqtt} ein zustandbehaftetes und verbindungsorientiertes Protokoll ist, kann die load balancing Entscheidung nicht auf Paket-, sondern nur auf Verbindungsebene getroffen werden. Sobald eine Clientverbindung aufgebaut ist, werden alle Nachrichten des Clients immer an denselben Node weitergeleitet.
+Da \ac{mqtt} ein zustandsbehaftetes und verbindungsorientiertes Protokoll ist, kann die load balancing Entscheidung nicht auf Paket-, sondern nur auf Verbindungsebene getroffen werden. Sobald eine Clientverbindung aufgebaut ist, werden alle Nachrichten des Clients immer an denselben Node weitergeleitet.
 Aus diesem Grund kann bei einem \textit{round-robin} oder \textit{least connection} load balancing Algorithmus das zuvor beschriebene Verhalten zu einer ungleichen Lastverteilung im Cluster führen.
-% TODO
-Die Einführung von \textit{Shared Subscriptions} (siehe Kapitel \ref{s:shared-subscriptions})
+Clientseitiges load balancing, wie zum Beispiel mit \textit{Shared Subscriptions} (siehe Kapitel \ref{s:shared-subscriptions}) oder dem Verteilen von ausgehenden Nachrichten des Clients auf mehrere \ac{tcp} Verbindungen zu einem HiveMQ Cluster, ist nicht immer möglich. Wenn ein HiveMQ Cluster als \textit{Software as a Service} angeboten wird, hat der Betreiber keinen direkten Einfluss auf die \ac{mqtt} Clients, die sich mit dem Cluster verbinden.
+% TODO eventuell minimierung der client verbindungen weil Kommunikationsarm ?
 \\
 Ein \ac{lb} für \ac{mqtt} muss in der Lage sein, die eingehenden Verbindungen basierend der derzeitigen Arbeitslast der einzelnen Nodes zu gewichten.
 
-\begin{comment}
-\ac{mqtt} Clients haben keine Grenze an Topics die sie abonnieren können. Mit einer Wildcard Subscription ist es sogar möglich, alle Topics die auf einem Broker existieren mit einer Subscription zu abonnieren: \verb|#|. Ein Client, der eine solche Subscription hat, verursacht mehr Traffic und Arbeitslast auf einem Broker als ein Client, der alle zehn Minuten einen Integer Wert auf dem Topic \verb|sensors/temperature| veröffentlicht.
-Wie in Kapitel \ref{s:domain} erläutert sind im Anwendungsfeld \ac{iot} die beschriebenen Clients keine seltenheit.
-% TODO muss ich das begründen?
-\end{comment}
-
 \newpage
-
-\begin{comment}
-- Describe insufficiencies your project or thesis aims at. Example: "The automated parts of the claim handling process are susceptible to changes. Each change requires lots of man-ual steps in order to deploy these changes into production."
-- Do not take the term "problem" too literal. Sometimes, your project or thesis just aims at im-proving a good status quo or pursues new waysand opportunities that arise due to new technological advances or trends. In this case, describe the status quo and where the op-portunities for improvement are.
-- Exemplify things! Describe the problem / status quo by means of a specific scenario with concrete steps, concrete input and output data, etc., supported by expressive figures. Do not be afraid that the reader might think that your solution just works for that particular sce-nario. In general, readers can abstract from concrete details much easier that to envisionconcrete scenarios by interpreting overly generic, vague, meandering text passages. (More-over, writing in vague terms also leaves the impression that the writer either did not under-stand the problem for him- or herself or tries to blow up mundane issues.)
-\end{comment}
