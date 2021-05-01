@@ -9,10 +9,10 @@ Abschlie{\ss}end wird die Funktionalität eines Load Balancers am Beispiel von E
 \ac{mqtt} wurde im Jahr 2013 von der \ac{oasis} als Open Source standardisiert und wird heutzutage von vielen gro{\ss}en \ac{iot} Plattformen wie AWS IoT und Sparkplug unterstützt.
 \cite{WhatMQTTDefinition}\\
 Es gibt derzeit zwei Versionen der MQTT Spezifikation: 3.1.1 und 5. Alle Referenzen, falls nicht explizit gekennzeichnet, beziehen sich auf die aktuelle Version 5 des Protokolls.\\
-\ac{mqtt} ist ein OSI-Layer sieben \textit{Publish and Subscribe} Protkoll, das auf \acs{tcp} / \acs{ip} aufsetzt. Anders als das Request / Response Paradigma bei \acs{http} ist \ac{mqtt} eventgesteuert und erlaubt Servern, Nachrichten direkt an Clients zu schicken. Somit müssen Clients nicht periodisch nach neuen Nachrichten fragen. Zusammen mit einem fixen Paket-Header von nur zwei Byte sorgen diese Eigenschaften für einen geringen Datendurchsatz im Netzwerk.\cite{WhatMQTTDefinition}
+\ac{mqtt} ist ein OSI-Layer sieben \textit{Publish und Subscribe} Protkoll, das auf \acs{tcp} / \acs{ip} aufsetzt. Anders als das Request / Response Paradigma bei \acs{http} ist \ac{mqtt} eventgesteuert und erlaubt Servern, Nachrichten direkt an Clients zu schicken. Somit müssen Clients nicht periodisch nach neuen Nachrichten fragen. Zusammen mit einem fixen Paket-Header von nur zwei Byte sorgen diese Eigenschaften für einen geringen Datendurchsatz im Netzwerk.\cite{WhatMQTTDefinition}
 
-\subsubsection{Publish and Subscribe} \label{s:publish-subscribe}
-\ac{mqtt} nutzt das \textit{Publish and Subscribe} Kommunikationsschema, das eine Struktur bietet, um Nachrichten entkoppelt zwischen Clients auszutauschen. In diesem Schema gibt es zwei unterschiedliche Systeme:
+\subsubsection{Publish und Subscribe} \label{s:publish-subscribe}
+\ac{mqtt} nutzt das \textit{Publish und Subscribe} Kommunikationsschema, das eine Struktur bietet, um Nachrichten entkoppelt zwischen Clients auszutauschen. In diesem Schema gibt es zwei unterschiedliche Systeme:
 \begin{itemize}
     \item Clients
     \item Broker
@@ -33,7 +33,7 @@ In verteilten Systemen bietet ein solches Konzept eine einheitliche Abstraktion 
 \begin{figure}
     \centering
     \includegraphics[scale=0.33]{images/publish_subscribe.png}
-    \caption{Publish and Subscribe Architektur}
+    \caption{Es wird eine Publish und Subscribe Architektur dargestellt. Nachrichten werden über einen Broker auf dem Topic \textit{sensors/temperature} ausgetauscht.}
     \label{fig:publish-subscribe}
 \end{figure}
 \\
@@ -106,7 +106,7 @@ Als Beispiel dient ein Temperatursensor, der alle zehn Minuten seine Temperatur 
     Daten des Pakets, optional \\
     \hline
 \end{tabular}
-\caption{Struktur eines \ac{mqtt} Paketes. Quelle: \cite{mqtt5Specification}}
+\caption{Zeigt die Struktur eines \ac{mqtt} Paketes. Quelle: \cite{mqtt5Specification}}
 \label{table:mqtt-packet-structure}
 \end{table}
 Tabelle \ref{table:fixed-header} zeigt den detaillierten Aufbau des fixen Headers. Im ersten Byte werden Bit sieben bis vier für die spezifische Art des Paketes verwendet. Tabelle \ref{table:mqtt-packet-types} enhält eine Liste mit allen möglichen Pakettypen und deren Wert. Byte zwei gibt die restliche Paketlänge enkodiert als \textit{Variable Byte Integer} an \cite{mqtt5Specification}.
@@ -124,7 +124,7 @@ Die Enkodierung eines \textit{Variable Byte Integer} wird in Kapitel 1.5.5 der \
     Byte 2 & \multicolumn{8}{c|}{Restliche Paketlänge} \\
     \hline
 \end{tabularx}
-\caption{Aufbau des fixen \ac{mqtt} Headers. Quelle: \cite{mqtt5Specification}}
+\caption{Zeigt den Aufbau und die Belegung der Bits des fixen \ac{mqtt} Headers. Quelle: \cite{mqtt5Specification}}
 \label{table:fixed-header}
 \end{table}
 
@@ -169,7 +169,7 @@ Die Enkodierung eines \textit{Variable Byte Integer} wird in Kapitel 1.5.5 der \
     AUTH & 15 \\
     \hline
 \end{tabular}
-\caption{Verfügbare \ac{mqtt} Paketarten und deren Wert. Quelle: \cite{mqtt5Specification}}
+\caption{Listet alle verfügbaren \ac{mqtt} Paketarten auf. Der Wert ist die Identifikation der Paketart im fixen Header. Quelle: \cite{mqtt5Specification}}
 \label{table:mqtt-packet-types}
 \end{table}
 
@@ -231,7 +231,7 @@ Eine Clientkennung dient zur Identifikation des aktuellen Zustands des Clients u
     Byte 11 & Länge der Eigenschaften & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
     \hline
 \end{tabularx}
-\caption{Beispielhaftes \ac{mqtt} CONNECT Paket. Quelle: \cite{mqtt5Specification}}
+\caption{Zeigt ein beispielhaftes \ac{mqtt} CONNECT Paket. Quelle: \cite{mqtt5Specification}}
 \label{table:mqtt-connect-packet-variable-header}
 \end{table}
 Der Broker muss eine \verb|CONNECT| Nachricht von einem Client mit einem \verb|CONNACK| Paket beantworten.\cite{mqtt5Specification}

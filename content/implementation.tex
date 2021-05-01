@@ -20,7 +20,7 @@ Die Control Plane besteht aus den in Abbildung \ref{fig:component-diagram} darge
 \begin{figure}
     \centering
     \includegraphics[scale=0.5]{gen/component-diagram.png}
-    \caption{UML Komponentendiagramm der Control Plane}
+    \caption{Die Abbildung zeigt das UML Komponentendiagramm der entwickelten Control Plane. Die Komponenten des Paketes \textit{github.com/breuerfelix/mqtt-control-plane} wurden im Rahmen der vorliegenden Thesis programmiert.}
     \label{fig:component-diagram}
 \end{figure}
 Abbildung \ref{fig:class-diagram} zeigt die Cluster und Node Strukturen in einem UML Klassendiagramm.
@@ -32,7 +32,7 @@ Abbildung \ref{fig:class-diagram} zeigt die Cluster und Node Strukturen in einem
 \begin{figure}
     \centering
     \includegraphics[scale=0.6]{gen/class.png}
-    \caption{UML Klassendiagramm der Control Plane}
+    \caption{Die Abbildung zeigt das UML Klassendiagramm der entwickelten Control Plane.}
     \label{fig:class-diagram}
 \end{figure}
 
@@ -69,7 +69,7 @@ Zeile 8 - 17 berechnen die durchschnittliche \ac{cpu} Auslastung aller gespeiche
 Zeile 19 - 34 bestimmen die Gewichtung der Nodes basierend der zuvor berechneten Durchschnittsauslastung. Die Metrik der \ac{cpu} Auslastung kann einen Maximalwert von 100 erreichen. Da die freie \ac{cpu} Auslastung für die Gewichtung verwendet wird, wird die Durchschnittsauslastung von der maximalen Auslastung abgezogen, um die freie Auslastung zu erhalten. Bevor das Ergebnis als Gewichtung gesetzt wird, muss überprüft werden, ob dieses \verb|NaN| oder kleiner als eins ist, da dies die kleinste erlaubte Gewichtung in Envoy ist.
 \begin{figure}
     \import{gen/}{weighted-cpu}
-    \caption{Algorithmus um die Gewichtung der HiveMQ Nodes basierend der CPU Auslastung zu bestimmen}
+    \caption{Der Quellcodeauszug zeigt einen Algorithmus in Golang um die Gewichtungen von HiveMQ Nodes basierend ihrer CPU Auslastungen zu bestimmen.}
     \label{code:weighted-cpu}
 \end{figure}
 
@@ -85,7 +85,7 @@ Der Überlastschutz aus Kapitel \ref{ss:circuit-breaking} ist in der Metrics Kom
 Sobald der Overload Protection Wert überschritten wurde, oder der \ac{mqtt} Health Check aus Kapitel \ref{si:health-check} fehlgeschlagen ist, darf der HiveMQ Node nicht mehr als \verb|HEALTHY| gekennzeichnet werden. Zeile 18 - 22 setzen den Health Status erst auf \verb|HEALTHY| sobald beide Bedingungen erfüllt sind.
 \begin{figure}
     \import{gen/}{circuit-breaking}
-    \caption{Algorithmus der den Health Status eines HiveMQ Nodes basierend der Overload Protection Metrik bestimmt}
+    \caption{Der Quellcodeauszug zeigt einen Algorithmus in Golang, der den Health Status eines HiveMQ Nodes basierend der Overload Protection Prometheus Metrik bestimmt.}
     \label{code:circuit-breaking}
 \end{figure}
 \newpage
@@ -97,7 +97,7 @@ In Kapitel \ref{ss:control-plane} wurde der Einsatz des Envoy \acl{lb} in einem 
 \begin{figure}
     \centering
     \includegraphics[scale=0.6]{gen/deployment.png}
-    \caption{UML Einsatzdiagramm}
+    \caption{Die Abbildung zeigt das UML Einsatzdiagramm der in der vorliegenden Arbeit entwickelten Control Plane.}
     \label{fig:deployment-diagram}
 \end{figure}
 \\

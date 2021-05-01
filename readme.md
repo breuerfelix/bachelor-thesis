@@ -1,8 +1,9 @@
 TODO:
+- neue grafiken erstellen
 - weighted cpu -> einleitung warum ??
 - überlastschutz kapitel
-- tabellen / bildunterschriften
 - aufsplitten fazit ausblick
+- quellen überprüfen / seitenangabe bei quellen
 
 christian korrektur:
 - cpu als auslastung für die arbeitslast eines nodes

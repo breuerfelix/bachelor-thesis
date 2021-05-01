@@ -1,4 +1,4 @@
-\section{Fazit und Ausblick}
+\section{Ausblick}
 Das Ziel der vorliegenden Arbeit war die Analyse des \ac{mqtt} Protokolls mit Hinblick auf das \textit{kluge} Verteilen der Clients an HiveMQ Nodes und die Erstellung einer Prototyp Envoy Control Plane, die einige der analysierten Features implementiert.
 \\
 Die Vorbereitung auf diese Analyse bedurfte eine umfangreiche Einarbeitung in das \ac{mqtt} Protokoll um die Eigenheiten und verschiedenen Verhaltensmuster der Clients zu untersuchen.
@@ -17,6 +17,8 @@ HiveMQ hat im Jahr 2020 eine Masterthesis angefertigt, in der das transparente U
 \\
 Die in dieser Thesis erarbeiteten Features unterscheiden einen entkoppelten \acl{lb} von einem \textit{klugen} \acl{lb}, der ein integraler Bestandteil des Ökosystems ist. Er versteht das Protokoll, aggregiert Informationen der Nodes und kann somit reaktive load balancing Entscheidungen treffen. Der Load Balancer wird zu einem \textit{Smart Device} im \textit{Internet of Things}. (oder ... einer \textit{Internet of Things} Plattform ? besser?)
 % TODO
+
+\section{Fazit}
 
 \begin{comment}
 Aus diesen Untersuchungen sind beispielsweise die Testszenarien aus Kapitel \ref{ss:test} entstanden, die zeigen sollen, dass bestimmte Verhaltensmuster der Clients eine ungleiche Lastverteilung im Cluster erzeugen können. Bei der Implementierung dieser Szenarien ist aufgefallen, wie komplex und unterschiedlich die Verhaltensmuster sein können.

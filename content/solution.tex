@@ -34,13 +34,13 @@ Die Strict \ac{dns} Methode kann auf Änderungen dieser Zonen reagieren und dyna
 Der Quellcodeauszug \ref{code:envoy-strict-dns} zeigt eine Envoy Clusterkonfiguration, die den \ac{dns} Namen\newline \verb|example.cluster.internal| auflöst und neue Verbindungen auf alle Einträge an den Port \verb|1883| verteilt.
 \begin{figure}
     \import{gen/}{envoy-strict-dns}
-    \caption{Envoy Strict \ac{dns} Konfiguration}
+    \caption{Es wird eine statische Envoy Cluster Konfiguration gezeigt, die alle Nodes mit der Strict \ac{dns} Methode ermittelt.}
     \label{code:envoy-strict-dns}
 \end{figure}
 Die \textit{HiveMQ DNS Cluster Discovery Extension} \cite{HiveMQExtensionDNS} muss auf allen Nodes installiert sein. Der Quellcodeauszug \ref{code:hivemq-dnsdiscovery} zeigt eine Konfigurationsdatei der Erweiterung, die das Cluster aus allen Einträgen des \ac{dns} Namens \verb|example.cluster.internal| bildet.
 \begin{figure}
     \import{gen/}{dnsdiscovery}
-    \caption{HiveMQ \ac{dns} Cluster Discovery Konfiguration}
+    \caption{Dies ist eine HiveMQ \ac{dns} Cluster Discovery Konfigurationsdatei, die alle 30 Sekunden die Domain \textit{example.cluster.internal} auflöst.}
     \label{code:hivemq-dnsdiscovery}
 \end{figure}
 
@@ -178,14 +178,14 @@ Tabelle \ref{table:example-cluster-weight} zeigt drei Nodes mit ihren Gewichtung
     Node 3 & 5 & 20\% \\
     \hline
 \end{tabular}
-\caption{Nodes mit ihren Gewichtungen und berechnetem Prozensatz aller Clients}
+\caption{Die Tabelle zeigt drei Nodes eines Clusters und ihren Gewichtungen bei einem weighted round-robin load balancing Algorithmus des Envoys. Die Spalte \textit{Prozent Traffic} gibt an, mit welcher Wahrscheinlichkeit ein neuer Client mit diesem Node verbunden wird.}
 \label{table:example-cluster-weight}
 \end{table}
 \\
 Der Quellcodeauszug \ref{code:envoy-cluster-weight} zeigt eine statische Envoy Konfiguration, um ein Cluster aus drei Nodes zu formen mit den Gewichtungen aus Tabelle \ref{table:example-cluster-weight}.
 \begin{figure}
     \import{gen/}{envoy-weighted-round-robin}
-    \caption{Envoy weighted Round-robin Konfiguration}
+    \caption{Es wird eine statische Envoy Cluster Konfiguration gezeigt, bei der neue Clientverbindungen basierend dem weighted round-robin load balancing Algorithmus verteilt werden.}
     \label{code:envoy-cluster-weight}
 \end{figure}
 \\
@@ -204,7 +204,7 @@ Für den Anwendungsfall mehrerer Envoy Instanzen ist das dynamische Verteilen mi
 Quellcodeauszug \ref{code:envoy-control-plane} zeigt eine statische Konfigurationsdatei, um sich bei einer Control Plane zu registrieren die unter \verb|example.controlplane.internal:18000| erreichbar ist.
 \begin{figure}
     \import{gen/}{envoy-control-plane}
-    \caption{Statische Envoy Konfiguration um sich mit einer Control Plane zu verbinden}
+    \caption{Der Quellcodeauszug zeigt eine statische Envoy Konfiguration, um eine gRPC Verbindung mit einer Control Plane unter der Adresse \textit{example.controlplane.internal:18000} aufzubauen.}
     \label{code:envoy-control-plane}
 \end{figure}
 Die Konfigurationsdatei ist in drei Teile unterteilt:
@@ -230,7 +230,7 @@ Anstatt den Envoy Instanzen einen Domain Namen mitzuteilen und diesen auflösen 
 \begin{figure}
     \centering
     \includegraphics[scale=0.36]{images/control-plane-architecture.png}
-    \caption{Architektur eines Envoy Load Balancers konfiguriert von einer Control Plane mit einem HiveMQ Cluster und MQTT Clients}
+    \caption{Die Abbildung zeigt die Architektur eines Envoy Load Balancers konfiguriert von einer Control Plane mit einem HiveMQ Cluster und MQTT Clients. Verbindungspfeile zwischen den einzelnen Komponenten sind Netzwerkverbindungen.}
     \label{fig:control-plane-architecture}
 \end{figure}
 
@@ -243,7 +243,7 @@ Cloudumgebungen wie Kubernetes haben in der Regel eigene \ac{dns} Services insta
 Quellcodeauszug \ref{code:dns-resolve-net} zeige die Auflösung aller \ac{ip} Adressen eines Domain Namens in Golang mit der Standard \verb|net| Bibliothek. Da die Funktion \verb|refreshDNS| als Go Routine gestartet wird, muss die \verb|main| Funktion nicht auf die Terminierung der \verb|refreshDNS| Funktion warten. Die \verb|refreshDNS| Funktion erneuert die \ac{ip} Adressen periodisch in gegebenem Intervall.
 \begin{figure}
     \import{gen/}{dns-resolve-net}
-    \caption{\ac{ip} Adressen Auflösung eines Domain Namens in Golang}
+    \caption{Der Quellcodeauszug zeigt die Auflösung aller \ac{ip} Adressen für einen gegebenen Domain namen in Golang.}
     \label{code:dns-resolve-net}
 \end{figure}
 
@@ -260,7 +260,7 @@ Die Control Plane muss periodisch und asynchron die aktuelle \ac{cpu} Auslastung
 Quellcodeauszug \ref{code:prometheus-curl} zeigt die Abfrage der Prometheus Metriken eines HiveMQ Brokers gefiltert nach \verb|cpu_total_total|. Der Datentyp dieser Metrik ist ein \textit{Gauge}, der einen einzelnen numerischen Wert darstellt.\cite{prometheusMetricTypesPrometheus} Der Wert beträgt in diesem Beispiel 5.0 und bedeutet, dass die aktuelle \ac{cpu} Auslastung fünf Prozent beträgt.
 \begin{figure}
     \import{gen/}{prometheus-curl}
-    \caption{Abfrage von Prometheus Metriken mit curl und grep in einem Terminal.}
+    \caption{Zeile 1 zeigt einen \textit{curl} Aufruf in einem Terminal, der Prometheus Metriken von einem lokalen HiveMQ Broker abfragt. Nachfolgend wird die Ausgabe mit einem \textit{grep} Befehl nach \textit{cpu\_total\_total} gefiltert. Zeile 3 bis 7 zeigen die Ausgabe im Terminal.}
     \label{code:prometheus-curl}
 \end{figure}
 \\
@@ -268,7 +268,7 @@ Für die programmatische Auswertung von Prometheus Metriken werden Bibliotheken 
 Quellcodeauszug \ref{code:expfmt} zeigt ein Golang Programm, das periodisch und asynchron die Prometheus Metrik \verb|com_hivemq_system_os_global_cpu_total_total| von einem HiveMQ Broker unter der Adresse \verb|http://localhost:9399/metrics| abruft. Der Wert der Metrik kann alle Werte zwischen 0 (keine Auslastung) und 100 (volle Auslastung) annehmen. Er wird in der Variable \verb|value| als Gleitkommazahl gespeichert.
 \begin{figure}
     \import{gen/}{expfmt}
-    \caption{Abfragen und parsen von Prometheus Metriken in Golang mit \textit{expfmt} und \textit{net/http}.}
+    \caption{Der Quellcodeauszug zeigt wie man in Golang Prometheus Metriken mit \textit{expfmt} und \textit{net/http} abfragen und parsen kann.}
     \label{code:expfmt}
 \end{figure}
 \\
@@ -393,7 +393,7 @@ Tabelle \ref{table:overload-protection-metrics} gibt eine Übersicht der Metrike
     \verb|com.hivemq.overload-| \verb|protection.clients.| \verb|backpressure-active| & Anzahl der Clients, die durch eine Overload Protection \ac{tcp} Backpressure haben \\
     \hline
 \end{tabularx}
-\caption{HiveMQ Metriken, die eine Auskunft über die Overload Protection des Brokers geben}
+\caption{Die Tabelle zeigt HiveMQ Metriken, die in einer Beziehung zu dem Overload Protection Level stehen.}
 \label{table:overload-protection-metrics}
 \end{table}
 \\
@@ -409,17 +409,13 @@ Die Überlastsituation wurde nur von Clientverbindungen erzeugt. Durch \ac{tcp} 
 \begin{figure}
     \centering
     \includegraphics[scale=0.8]{images/overload-protection.png}
-    \caption{HiveMQ Cluster das Client TCP Backpressure anwendet}
+    \caption{Die Abbildung zeigt Prometheus Metriken, die mit Grafana dargestellt werden, von einem HiveMQ Cluster bestehend aus drei Nodes. Bei den \ac{mqtt} Clients, die mit dem Cluster verbunden sind, wird von dem Broker \ac{tcp} backpressure angewendet, da diese zu viele Nachrichten veröffentlichen.}
     \label{fig:overload-protection}
 \end{figure}
 Um Envoy zu instruieren keine neuen Clients mit einem sich in Überlastsituation befindenden HiveMQ Node zu verbinden, wird der \textit{Health Status} des Nodes entsprechend gesetzt.
 Der Wert ist entweder \verb|HEALTHY| oder \verb|UNHEALTHY|. Dieser Zustand kann über die Control Plane für jeden Node individuell gesetzt werden.
 \cite{HealthCheckEnvoy}
 Die Funktionalität des \textit{Health Status} eines Nodes wird in Kapitel \ref{ss:health-check} detailliert betrachtet.
-\begin{comment}
-\\
-In der Control Plane werden nun asynchron und periodisch alle zwei Sekunden die Prometheus Metriken wie in Kapitel \ref{ss:weighted-cpu} beschrieben von allen Nodes des Clusters abgerufen. Sobald die Metrik \verb|com.hivemq.supervision.overload.protection.level| einen Wert von über fünf erreicht, wird der Health Status des Nodes auf \verb|UNHEALTHY| gesetzt. Der Load Balancer verbindet nun keine neuen Clients mehr mit diesem Node. Sobald der Wert wieder unter fünf sinkt, wird der Status auf \verb|HEALTHY| gesetzt und es können wieder neue Clients mit dem Node verbunden werden.
-\end{comment}
 
 \subsubsection{Health Check} \label{ss:health-check}
 Nodes eines Clusters in Envoy haben einen Gesundheitszustand (engl. \textit{Health Status}) der angibt, ob ein Node neue Clientverbindungen erhalten kann.
@@ -434,22 +430,9 @@ Zudem kann ein Zeitfenster definiert werden, in dem ein Health Check erfolgreich
 \begin{figure}
     \centering
     \includegraphics[scale=0.5]{gen/health-check.png}
-    \caption{UML Ablaufdiagramm eines MQTT Health Checks}
+    \caption{Die Grafik zeigt ein UML Ablaufdiagramm des in Kapitel \ref{ss:health-check} erläuterten \ac{mqtt} Health Checks.}
     \label{fig:health-check-sequence}
 \end{figure}
-
-\begin{comment}
-Sobald die \ac{dns} Cluster Discovery aus Kapitel \ref{ss:dns-discovery} einen neuen Node entdeckt hat, muss überprüft werden, ob der Node bereits dem Cluster beigetreten ist. Bei der \ac{dns} Cluster Discovery besteht die Möglichkeit, dass die Control Plane einen anderen \ac{dns} Server benutzt als die HiveMQ Nodes. Wenn zum Zeitpunkt des Startes des neuen Nodes die \ac{ip} Adresse des Nodes noch nicht in der \ac{dns} Registry aller Nodes eingetragen ist, dann startet dieser Node als eigenständiger Broker und ist nicht Teil des Clusters.
-Alle Clients die mit diesem Broker verbunden werden, können nicht mit den Clients aus dem Cluster kommunizieren. Dies führt zu einem Datenleck, da zum Beispiel Nachrichten, die auf dem Cluster auf dem Topic \verb|sensors| veröffentlicht werden, nicht an Clients weitergeleitet werden, die auf dem einzelnen Broker das Topic \verb|sensors| abonniert haben.
-Der Load Balancer darf erst Clients mit einem neuen Node verbinden, wenn dieser Teil des Clusters ist.
-\\
-Die Prometheus Metrik des HiveMQ Brokers \verb|com.hivemq.cluster.nodes.count| gibt an, wie viele Nodes Teil des HiveMQ Clusters sind. Mit Hilfe dieser Metrik lässt sich also feststellen, ob die Grö{\ss}e des Cluster mit der Anzahl der entdeckten Nodes übereinstimmt. Angenommen es gibt ein HiveMQ Cluster bestehend aus drei Nodes. Nun entdeckt die \ac{dns} Cluster Discovery einen vierten Node und fragt bei allen vier Nodes die Metrik \verb|com.hivemq.cluster.nodes.count| ab. Wenn der Wert der Metrik bei den bisherigen Nodes \verb|3| ist und bei dem neu entdeckten Node \verb|1|, dann ist der neue Node nicht Teil des Clusters und der Load Balancer darf keine Clients mit dem Node verbinden. Wenn die Werte aller Nodes \verb|4| sind, kann der Load Balancer davon ausgehen, das der Node Teil des Clusters ist.
-% TODO golang code ? oder vielleicht auch nicht! einfach in der implementierung zeigen
-\\
-Ein Nachteil dieser Methode ist, dass jeder Node auch Teil eines anderen Clusters sein könnte. Angenommen es gibt vier HiveMQ Cluster bestehend aus je vier Nodes. Ein beliebiger Node eines jeden Clusters wird in die Domain eingetragen. Die Metrik \verb|com.hivemq.cluster.nodes.count| würde nun bei allen Nodes den Wert \verb|4| liefern. Für die Control Plane ist nun jeder Node Teil des selben Clusters, obwohl dies nicht der Fall ist. HiveMQ bietet keine Möglichkeit abzufragen, ob Nodes Teil des selben Clusters sind.
-\\
-Wenn die \ac{dns} Cluster Discovery einen neuen Node entdeckt hat, der noch nicht Teil des Cluster ist, ist davon auszugehen, dass dieser Node noch in der Cluster aufgenommen wird. Der Prozess, bei dem ein neuer Node in ein bestehendes HiveMQ Cluster aufgenommen wird, hei{\ss}t \textit{Cluster Join}. Je nachdem wie viele Client Queues auf dem Cluster angelegt sind, kann der Cluster Join entweder einige Sekunden bis hin zu fünfzehn Minuten dauern. In dieser Zeit muss der Load Balancer diesen Node als \verb|UNHEALTHY| markieren und erst auf \verb|HEALTHY| setzen, wenn der Wert der Cluster Node Metrik bei allen Nodes übereinstimmt und der Anzahl der Nodes entspricht.
-\end{comment}
 
 \subsubsection{Aktualisierung der Konfiguration}
 Um Aktualisierungen wie Health Status, Gewichtung oder Anzahl der Nodes an eine Envoy Instanz zu schicken, werden versionierte Momentaufnahmen (engl. \textit{Snapshots}) von einem Zustand der Konfiguration erstellt. Wenn die Version des Snapshots auf dem Envoy eine andere Version ist als die Version des aktuellen Snapshots auf der Control Plane, liefert die Control Plane den aktuellen Snapshot an die Envoy Instanz aus.
@@ -467,7 +450,7 @@ Die Reihenfolge, in der die Nodes in der Liste für die Hash Funktion vorkommen,
 Es können niemals zwei HiveMQ Nodes dieselbe \ac{ip} Adresse und den selben Port haben. Beide Werte als String vereint können verglichen werden, um bei gleichbleibenden Nodes dieselbe Reihenfolge in einer Liste einzuhalten.
 \begin{figure}
     \import{gen/}{snapshot-versioning}
-    \caption{Generierung einer Snapshot Version basierend auf HiveMQ Node Eigenschaften}
+    \caption{Der Quellcodeauszug zeigt die Generierung einer Envoy Snapshot Version basierend der HiveMQ Node Eigenschaften Hostname, Port, Gewichtung und Health Status in Golang.}
     \label{code:snapshot-versioning}
 \end{figure}
 \\
@@ -498,12 +481,12 @@ Das Dekodieren der \ac{mqtt} Pakete in Golang wurde bereits von der Eclipse \ac{
 Der Quellcodeauszug \ref{code:mqtt-connect-decode} zeigt einen Auszug aus der Datei \verb|packets/connect.go| des Repositories und dekodiert ein \ac{mqtt} \verb|CONNECT| Paket. Die Fehlerabhandlung wurde für bessere Lesbarkeit entfernt. Quellcodeauszug \ref{code:mqtt-connect-struct} zeigt die Struktur eines \verb|CONNECT| Paketes basierend der in Kapiel \ref{s:mqtt-connect} beschriebenen Felder.
 \begin{figure}
     \import{gen/}{mqtt-connect-struct}
-    \caption{Golang Struktur des MQTT CONNECT Paketes. Quelle: \cite{EclipsePahoMqtt2021}}
+    \caption{Es wird eine Golang Struktur gezeigt, die alle Daten eines \ac{mqtt} CONNECT Paketes beinhalten kann. Quelle: \cite{EclipsePahoMqtt2021}}
     \label{code:mqtt-connect-struct}
 \end{figure}
 \begin{figure}
     \import{gen/}{mqtt-connect-decode}
-    \caption{Dekodieren eines MQTT CONNECT Paketes in Golang. Quelle: \cite{EclipsePahoMqtt2021}}
+    \caption{Der Quellcodeauszug zeigt eine Golang Funktion, die ein \ac{mqtt} CONNECT Paket dekodiert. Quelle: \cite{EclipsePahoMqtt2021}}
     \label{code:mqtt-connect-decode}
 \end{figure}
 \\
