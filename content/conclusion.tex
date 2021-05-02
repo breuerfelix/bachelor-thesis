@@ -1,4 +1,14 @@
 \section{Ausblick}
+In der entwickelten Control Plane wurden nicht alle der erarbeiteten 
+Das Parsen des \ac{mqtt} \verb|CONNECT| Paketes um eine \textit{Session Affinity} basierend der Clientkennung zu realisieren, wurde in der entwickelten Control Plane nicht implementiert.
+Wenn Envoy anstelle des \verb|CONNECT| Paketes das gesamte \ac{mqtt} Protokoll parst, können neben der \textit{Session Affinity} noch weitere protokollspezifische load balancing Entscheidungen getroffen werden.
+Denkbar ist ein paketspezifisches load balancing aller \verb|PUBLISH| Pakete unter Berücksichtigung der Topic Aliasse der Clients. Dabei würde Envoy eine dedizierte Verbindung mit allen Nodes des Clusters aufbauen und kann darüber eingehende \verb|PUBLISH| Nachrichten einzeln an die Nodes verteilen.
+\\
+HiveMQ hat im Jahr 2020 eine Masterthesis angefertigt, in der das transparente Umziehen eines Clients auf einen anderen Node eines Clusters untersucht wurde. Im Zusammenspiel mit der entwickelten Control Plane können gezielt \ac{mqtt} Clients, die eine hohe Last auf einem Node verursachen, transparent mit einem besser geeigneten Node verbunden werden.
+\\
+Die in dieser Thesis erarbeiteten Features unterscheiden einen entkoppelten \acl{lb} von einem \textit{klugen} \acl{lb}, der ein integraler Bestandteil des Ökosystems ist. Er versteht das Protokoll, aggregiert Informationen der Nodes und kann somit reaktive load balancing Entscheidungen treffen. Der Load Balancer wird zu einem \textit{Smart Device} im \textit{Internet of Things}. (oder ... einer \textit{Internet of Things} Plattform ? besser?)
+
+\section{Fazit}
 Das Ziel der vorliegenden Arbeit war die Analyse des \ac{mqtt} Protokolls mit Hinblick auf das \textit{kluge} Verteilen der Clients an HiveMQ Nodes und die Erstellung einer Prototyp Envoy Control Plane, die einige der analysierten Features implementiert.
 \\
 Die Vorbereitung auf diese Analyse bedurfte eine umfangreiche Einarbeitung in das \ac{mqtt} Protokoll um die Eigenheiten und verschiedenen Verhaltensmuster der Clients zu untersuchen.
@@ -8,17 +18,6 @@ Metriken, wie beispielsweise die Anzahl der \ac{cpu} Kerne, die Regenerationsrat
 Diese Eigenschaft macht den Einsatz von Envoy im Anwendungsfall \ac{mqtt} optimal, da jede \ac{iot}-Plattform durch das versatile \ac{mqtt} Protokoll ein individuelles Lastverhalten schafft.
 Während der Bearbeitung der vorliegenden Arbeit wurde HiveMQ Swarm von HiveMQ veröffentlicht. Dieses Tool ermöglicht das Definieren von Client Verhaltensmustern um eine HiveMQ Cluster Installation für einen gegebenen Use-Case zu testen.
 Mit HiveMQ Swarm kann iterativ eine Control Plane erweitert und für den eigenen Use-Case optimiert, sowie getestet werden.
-\\
-Das Parsen des \ac{mqtt} \verb|CONNECT| Paketes um eine \textit{Session Affinity} basierend der Clientkennung zu realisieren, wurde in der entwickelten Control Plane nicht implementiert.
-Wenn Envoy anstelle des \verb|CONNECT| Paketes das gesamte \ac{mqtt} Protokoll parst, können neben der \textit{Session Affinity} noch weitere protokollspezifische load balancing Entscheidungen getroffen werden.
-Denkbar ist ein paketspezifisches load balancing aller \verb|PUBLISH| Pakete unter Berücksichtigung der Topic Aliasse der Clients. Dabei würde Envoy eine dedizierte Verbindung mit allen Nodes des Clusters aufbauen und kann darüber eingehende \verb|PUBLISH| Nachrichten einzeln an die Nodes verteilen.
-\\
-HiveMQ hat im Jahr 2020 eine Masterthesis angefertigt, in der das transparente Umziehen eines Clients auf einen anderen Node eines Clusters untersucht wurde. Im Zusammenspiel mit der entwickelten Control Plane können gezielt \ac{mqtt} Clients, die eine hohe Last auf einem Node verursachen, transparent mit einem besser geeigneten Node verbunden werden.
-\\
-Die in dieser Thesis erarbeiteten Features unterscheiden einen entkoppelten \acl{lb} von einem \textit{klugen} \acl{lb}, der ein integraler Bestandteil des Ökosystems ist. Er versteht das Protokoll, aggregiert Informationen der Nodes und kann somit reaktive load balancing Entscheidungen treffen. Der Load Balancer wird zu einem \textit{Smart Device} im \textit{Internet of Things}. (oder ... einer \textit{Internet of Things} Plattform ? besser?)
-% TODO
-
-\section{Fazit}
 
 \begin{comment}
 Aus diesen Untersuchungen sind beispielsweise die Testszenarien aus Kapitel \ref{ss:test} entstanden, die zeigen sollen, dass bestimmte Verhaltensmuster der Clients eine ungleiche Lastverteilung im Cluster erzeugen können. Bei der Implementierung dieser Szenarien ist aufgefallen, wie komplex und unterschiedlich die Verhaltensmuster sein können.
