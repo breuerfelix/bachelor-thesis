@@ -48,9 +48,14 @@ Die \textit{HiveMQ DNS Cluster Discovery Extension} \cite{HiveMQExtensionDNS} mu
 In Kapitel \ref{sp:load} wurde erläutert, dass in einem HiveMQ Cluster eine ungleiche Lastverteilung durch die verschiedenen Verhaltensweisen der Clients auftreten kann.
 In dem Fall, dass ein Node eine höhere Belastung als ein anderer Node aufweist, möchte man die Verteilung neuer Clients an die entstandene Situation anpassen. Es sollen mehr Clients an Nodes mit geringerer Belastung verbunden werden.
 Durch den weighted round-robin load balancing Algorithmus kann die Verteilung neuer Clients angepasst werden. Individuelle Gewichtungen pro Node bestimmen die Wahrscheinlichkeit, mit der ein neuer Client mit einem Node verbunden wird.
+\\
+Für die Bestimmung der Gewichtungen des weighted round-robin load balancing Algorithmus müssen geeigenete Kriterien gefunden werden, die die Auslastungen der einzelnen Nodes widerspiegeln.
+Mögliche Indikatoren bieten Systemressourcen wie \ac{cpu}, Arbeitsspeicher, Fesplattenspeicher und Netzwerkbandbreite.
+Im Rahmen der vorliegenden Arbeit wird untersucht, wie sich ein weighted round-robin load balancing Algorithmus, basierend der \ac{cpu} Auslastungen der einzelnen Nodes, auf den Betrieb des Clusters im Vergleich zu einem round-robin und least connection load balancing Algorithmus auswirkt.
+%Die \ac{cpu} Auslastung bietet einen abstrakten Summenindikator für die Arbeitslast eines Nodes und wird 
 
 \subsubsection{Testszenarien} \label{ss:test}
-Um Algorithmen zur Bestimmung von Gewichtungen der Nodes bei einem weighted round-robin Algorithmus zu evaluieren, werden Testszenarien entworfen, die eine ungleiche Lastverteilung in einem HiveMQ Cluster erzeugen.
+Um den round-robin, least connection und weighted round-robin load balancing Algorithmus in Bezug auf die gleichmä{\ss}ige Verteilung der Last in einem HiveMQ Cluster zu vergleichen, werden Testszenarien entworfen, die eine ungleiche Lastverteilung in einem HiveMQ Cluster erzeugen.
 
 \begin{itemize}
   \item \textbf{Szenario 1:} In \textit{Bare Metal} Deployments sind die Server Kapazitäten an die verfügbare Hardware geknüpft. Somit besteht die Möglichkeit, dass ein Cluster aus unterschiedlich dimensionierten Nodes besteht. In Szenario eins besteht das HiveMQ Cluster aus zwei Nodes mit acht \ac{cpu} Kernen und acht \ac{gb} \ac{ram} und einem Node mit vier \ac{cpu} Kernen und acht \ac{gb} \ac{ram}. Im Verlauf von zehn Minuten werden sich 5.000 Clients mit ähnlichem Verhalten mit dem Cluster verbinden und Nachrichten veröffentlichen sowie Topics abonnieren.
@@ -69,21 +74,11 @@ Szenario zwei wird in folgende Phasen untergliedert:
 \end{itemize}
 Szenario drei hat dieselben Phasen wie Szenario zwei in unterschiedlicher Reihenfolge. Phase drei wird mit Phase fünf und sechs getauscht.
 \\
-Alle Szenarien werden mit einem round-robin und least connection load balancing Algorithmus ausgeführt, um die Last der einzelnen Nodes zu untersuchen. Die \ac{cpu} Auslastung des Nodes wird als Lastindikator verwendet. Zur Veranschaulichung der einzelnen Phasen wird neben der \ac{cpu} Auslastung auch die aktuelle Anzahl der Clients pro Node visualisiert.
-Alle Metriken werden periodisch mit Prometheus erfasst und mit Grafana visualisiert.
+Alle Szenarien werden mit einem round-robin und least connection load balancing Algorithmus ausgeführt, um die Last der einzelnen Nodes zu untersuchen.
+Zur Veranschaulichung der Testszenarien werden die \ac{cpu} Auslastung und die aktuelle Anzahl der \ac{mqtt} Clients pro Node mit Grafana visualisiert. Die Metriken werden alle zwei Sekunden mit Prometheus erfasst.
 \\
-Um einen Indikator für die Verteilung der Auslastung im Cluster zu erstellen, werden die Beträge der Differenz der \ac{cpu} Auslastung aller Nodes zueinander addiert. Je grö{\ss}er das Ergebnis, desto ungleichmä{\ss}iger ist die Last verteilt.
-Bei einem Cluster aus drei Nodes mit den \ac{cpu} Auslastungen 50, 20 und 30 beträgt der berechnete Indikator:
-\begin{align}
-    |Node 1 - Node 2| + |Node 1 - Node 3| + |Node 2 - Node 3| & = Lastindikator
-    \\
-    |50 - 20| + |50 - 30| + |20 - 30| & = 60
-\end{align}
-Im Vergleich hat ein Cluster mit den \ac{cpu} Auslastungen 23, 30 und 18 folgenden Indikator:
-\begin{align}
-   |23 - 30| + |23 - 18| + |30 - 18| = 24
-\end{align}
-Durch diesen Indikator, folgend Lastindikator genannt, kann die Lastverteilung von Clustern der selben Topolgie verglichen werden.
+Die Standardabweichung der \ac{cpu} Auslastungen dient als Indikator für die gleichmä{\ss}ige Verteilung der Last im Cluster. Je kleiner der Wert der Standardabweichung ist, desto gleichmä{\ss}iger ist die Last verteilt.
+Die Standardabweichung ist die Quadratwurzel der Varianz und somit ein Ma{\ss} für die Streubreite von Werten um deren Mittelwert in der gleichen Ma{\ss}einheit.\cite[S.~72]{buchterElementareStochastikEinfuhrung2005}. Die Standardabweichung wird mit dem arithmetischem Mittelwert der \ac{cpu} Auslastungen mit den Prometheus Funktionen \verb|stddev| und \verb|avg| berechnet.
 
 \paragraph{Szenario 1}
 Abbildung \ref{fig:s1-rr} und \ref{fig:s1-lc} zeigen den zeitlichen Verlauf von Testszenario eins für einen round-robin und least connection \acl{lb}.
@@ -252,12 +247,10 @@ Die Testszenarien aus Kapitel \ref{ss:test} zeigen, dass es bei \ac{mqtt} viele 
 Eine \ac{tcp} Verbindung bei \ac{mqtt} korreliert nicht mit der verursachten Arbeitslast auf dem Broker. In Szenario zwei haben 300 Publisher doppelt so viel Last erzeugt wie 3000 Subscriber und 1000 Publisher zusammen.
 Nur anhand der Anzahl aktiver Verbindungen pro Node kann im Fall \ac{mqtt} keine optimale load balancing Entscheidung getroffen werden.
 \\
-In Kapitel \ref{ss:test} wurde bereits die \ac{cpu} Auslastung als Indikator für die Arbeitslast eines Nodes gewählt. Die \ac{cpu} Auslastung ergibt sich aus der Anzahl der Anweisungen, die eine \ac{cpu} in bestimmter Zeit ausführt.
-HiveMQ stellt die aktuelle \ac{cpu} Auslastung über die Prometheus Metriken zur Verfügung. Der \acl{lb} muss die Gewichtung der einzelnen Nodes anhand dieser Metriken bestimmen, damit Nodes mit geringerer Auslastung mehr Clients erhalten. Somit kann verbindungsunabhängig eine gleichmä{\ss}ige Verteilung der Last im Cluster erfolgen.
-\\
 Über eine Control Plane kann die Gewichtung einzelner Nodes eines Cluster im Envoy dynamisch angepasst werden.
 Die Control Plane muss periodisch und asynchron die aktuelle \ac{cpu} Auslastung eines jeden Nodes abfragen und darauf basierend die Nodes gewichten.
-Quellcodeauszug \ref{code:prometheus-curl} zeigt die Abfrage der Prometheus Metriken eines HiveMQ Brokers gefiltert nach \verb|cpu_total_total|. Der Datentyp dieser Metrik ist ein \textit{Gauge}, der einen einzelnen numerischen Wert darstellt.\cite{prometheusMetricTypesPrometheus} Der Wert beträgt in diesem Beispiel 5.0 und bedeutet, dass die aktuelle \ac{cpu} Auslastung fünf Prozent beträgt.
+HiveMQ stellt die aktuelle \ac{cpu} Auslastung über die Prometheus Metriken zur Verfügung, die einen Wertebereich zwischen 0 und 100 hat. Die Metrik ist über alle \ac{cpu} Kerne gemittelt.
+Quellcodeauszug \ref{code:prometheus-curl} zeigt die Abfrage der Prometheus Metriken eines HiveMQ Brokers gefiltert nach \verb|cpu_total_total|. Der Datentyp dieser Metrik ist ein \textit{Gauge}, der einen einzelnen numerischen Wert darstellt.\cite{prometheusMetricTypesPrometheus} Der Wert beträgt in diesem Beispiel 5.0 und bedeutet, dass die aktuelle \ac{cpu} Auslastung über alle \ac{cpu} Kerne gemittelt fünf Prozent beträgt.
 \begin{figure}
     \import{gen/}{prometheus-curl}
     \caption{Zeile 1 zeigt einen \textit{curl} Aufruf in einem Terminal, der Prometheus Metriken von einem lokalen HiveMQ Broker abfragt. Nachfolgend wird die Ausgabe mit einem \textit{grep} Befehl nach \textit{cpu\_total\_total} gefiltert. Zeile 3 bis 7 zeigen die Ausgabe im Terminal.}
@@ -321,8 +314,12 @@ Nodes mit einer höheren Auslastung, zum Beispiel Node 1, erhalten nun weniger n
 \caption{CPU Auslastung und Kapazitäten von Nodes eines Clusters über einen beliebigen Zeitraum}
 \label{table:example-cluster-cpu}
 \end{table}
-Um einen weighted \ac{cpu} round-robin \acl{lb} zu validieren, wurden die Testszenarien aus Kapitel \ref{ss:test} ebenfalls durchgeführt. Tabelle \ref{table:test-output} zeigt die Lastindikatoren der einzelnen Testszenarien verglichen mit einem round-robin und least connection \ac{lb}. Abbildungen \ref{fig:s1-cpu}, \ref{fig:s2-cpu} und \ref{fig:s3-cpu} zeigen die zeitlichen Verläufe des weighted \ac{cpu} Load Balancers bei den Testszenarien 1, 2 und 3.
-Insgesamt hat der weighted round-robin \ac{lb} besser abgeschnitten als der least connection \ac{lb} und genauso gut wie der round-robin \ac{lb}.
+Um einen weighted \ac{cpu} round-robin \acl{lb} zu validieren, wurden die Testszenarien aus Kapitel \ref{ss:test} ebenfalls durchgeführt.
+Tabelle \ref{table:test-output} zeigt die Standardabweichung der einzelnen Testszenarien verglichen mit einem round-robin und least connection load balancing Algorithmus.
+Es wurden die Werte der Standardabweichung gewählt, nachdem alle \ac{mqtt} Clients aus den Testszenarien sich mit dem Cluster verbunden haben.
+Abbildungen \ref{fig:s1-cpu}, \ref{fig:s2-cpu} und \ref{fig:s3-cpu} zeigen die zeitlichen Verläufe des weighted \ac{cpu} \aclp{lb} bei den Testszenarien eins, zwei und drei.
+\\
+Insgesamt hat der weighted round-robin \ac{lb} besser abgeschnitten als der least connection \ac{lb} und genauso gut wie der round-robin \ac{lb}. Die unterschiedlichen Lastverteilungen zwischen den load balancing Algorithmen kommen durch die unterschiedlichen Testszenarien zustanden. Diese wurden basierend der Schwachstellen von round-robin und least connection in Bezug auf \ac{mqtt} ausgelegt um zu untersuchen, ob ein weighted round-robin load balancing Algorithmus basierend der \ac{cpu} Auslastung generell eine bessere Lastverteilung bietet.
 \begin{figure}
     \centering
     \includegraphics[scale=0.8]{images/s1_cpu.png}
@@ -359,10 +356,9 @@ Insgesamt hat der weighted round-robin \ac{lb} besser abgeschnitten als der leas
     Gesamt & 96 & 116 & 96 \\
     \hline
 \end{tabular}
-\caption{Lastindikatorentabelle der Testszenarien aus Kapitel \ref{ss:test}}
+\caption{Die Tabelle zeigt die Standardabweichungen der Testszenarien aus Kapitel \ref{ss:test} und des weighted round-robing load balancing Algorithmus.}
 \label{table:test-output}
 \end{table}
-% TODO warum sind die abweichungen zwischen den algorithmen so gro{\ss} ?
 
 \subsubsection{Überlastschutz} \label{ss:circuit-breaking}
 Wie in Kapitel \ref{ss:weighted-cpu} beschrieben, kann das Lastverhalten von \ac{mqtt} Clients während der Laufzeit stark variieren. Da ein Client zur Laufzeit nicht mit einem anderen Node verbunden werden kann, kann es bei dem Verändern des Lastverhaltens von Clients zu einer Überlastsituation eines Nodes kommen.
@@ -384,13 +380,13 @@ Tabelle \ref{table:overload-protection-metrics} gibt eine Übersicht der Metrike
     \textbf{Metrik} & \textbf{Beschreibung} \\
     \hline
     \hline
-    \verb|com.hivemq.supervision.| \verb|overload.protection.level| & Aktueller \textit{Overload Protection Level} zwischen 1 und 10 \\
+    \verb|com.hivemq.supervision.| \verb|overload.protection.level| & Aktueller \textit{Overload Protection Level} zwischen 1 und 10. \\
     \hline
-    \verb|com.hivemq.overload-| \verb|protection.credits.| \verb|per-tick| & Anzahl der Credits, die ein Client alle 200 Millisekunden erhält \\
+    \verb|com.hivemq.overload-| \verb|protection.credits.| \verb|per-tick| & Anzahl der Credits, die ein Client alle 200 Millisekunden regeneriert. \\
     \hline
-    \verb|com.hivemq.overload-| \verb|protection.clients.| \verb|average-credits| & Durchschnittliche Anzahl der Credits aller Clients \\
+    \verb|com.hivemq.overload-| \verb|protection.clients.| \verb|average-credits| & Durchschnittliche Anzahl der Credits aller Clients. \\
     \hline
-    \verb|com.hivemq.overload-| \verb|protection.clients.| \verb|backpressure-active| & Anzahl der Clients, die durch eine Overload Protection \ac{tcp} Backpressure haben \\
+    \verb|com.hivemq.overload-| \verb|protection.clients.| \verb|backpressure-active| & Anzahl der Clients, die durch eine Overload Protection \ac{tcp} Backpressure haben. \\
     \hline
 \end{tabularx}
 \caption{Die Tabelle zeigt HiveMQ Metriken, die in einer Beziehung zu dem Overload Protection Level stehen.}
@@ -403,8 +399,12 @@ Damit das maximale Überlastlevel möglichst nicht erreicht wird, kann der \acl{
 Ein hohes Überlastlevel kann kurzfristig durch Events wie das Beitreten eines neuen Nodes in ein Cluster auftreten. Dabei werden einige Client Queues auf den neuen Node repliziert, was zeitweise die Nodes, auf denen die Queues liegen, stark beansprucht. Daher ist es wichtig, dass der \ac{lb} auf solche Events schnell reagiert und keine neuen Clients mehr mit den betroffenen Nodes verbindet.
 Um dies zu gewährleisten, sollte eine geringe Abtastfrequenz der Prometheus Metriken gewählt werden.
 \\
-Eine in Abbildung \ref{fig:overload-protection} gezeigte Überlastsituation verursacht einen maximalen Überlastschutzlevel von 1,5.
-Die Überlastsituation wurde nur von Clientverbindungen erzeugt. Durch \ac{tcp} Backpressure kann der Broker eine solche Überlastsituation gut verarbeiten, ohne die Verbindung der Clients von dem Broker zu unterbrechen. Wenn ein neuer Node in das Cluster aufgenommen wird, kann das Überlastlevel auf bis zu zehn ansteigen. Um nur in einer extremen Situation keine neuen Clientverbindungen zuzulassen, kann der Schwellenwert für den Überlastschutz auf vier gesetzt werden.
+Eine in Abbildung \ref{fig:overload-protection} gezeigte Überlastsituation verursacht einen maximalen Überlastlevel von 1,5.
+Die Überlastsituation wurde nur von Clientverbindungen erzeugt. Durch \ac{tcp} Backpressure kann der Broker eine solche Überlastsituation gut verarbeiten, ohne die Verbindung der Clients von dem Broker zu unterbrechen.
+Diese Methode wird auch als \textit{load shedding} bezeichnet. Dabei wird der angebotene Service für einige Clients reduziert, um das Gesamtsystem aufrechtzuerhalten.
+Da der HiveMQ Broker eine solche Methode implementiert hat, muss der \acl{lb} in diesem Szenario nicht intervinieren.
+Wenn ein neuer Node in das Cluster aufgenommen wird, kann das Überlastlevel auf bis zu zehn ansteigen.
+Um nur in einer extremen Situation keine neuen Clientverbindungen zuzulassen, kann der Schwellenwert für den Überlastschutz auf vier gesetzt werden.
 \\
 \begin{figure}
     \centering
@@ -413,7 +413,8 @@ Die Überlastsituation wurde nur von Clientverbindungen erzeugt. Durch \ac{tcp} 
     \label{fig:overload-protection}
 \end{figure}
 Um Envoy zu instruieren keine neuen Clients mit einem sich in Überlastsituation befindenden HiveMQ Node zu verbinden, wird der \textit{Health Status} des Nodes entsprechend gesetzt.
-Der Wert ist entweder \verb|HEALTHY| oder \verb|UNHEALTHY|. Dieser Zustand kann über die Control Plane für jeden Node individuell gesetzt werden.
+Der Wert ist entweder \verb|HEALTHY| oder \verb|UNHEALTHY|.
+Dieser Zustand kann über die Control Plane für jeden Node individuell gesetzt werden.
 \cite{HealthCheckEnvoy}
 Die Funktionalität des \textit{Health Status} eines Nodes wird in Kapitel \ref{ss:health-check} detailliert betrachtet.
 

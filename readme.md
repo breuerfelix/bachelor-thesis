@@ -1,44 +1,26 @@
+- komprimierbare oder erschöpfbare ressourcen sind egal beim regeln -> ich kann ja genauso die erschöpfbaren ressourcen regeln
+-> ist wichtig beim circuit breaking
+- hivemq macht in ihren testszenarien oft: alle clients verbinden -> testen ... weighted = sinnlos
+
 TODO:
 - neue grafiken erstellen
-- weighted cpu -> einleitung warum ??
-- überlastschutz kapitel
 - aufsplitten fazit ausblick
+- korrekturen einarbeiten
 - quellen überprüfen / seitenangabe bei quellen
+- überlastschutz kapitel
+- envoy architecture
+- split brain erwähnen bei cluster discovery
 
-christian korrektur:
-- cpu als auslastung für die arbeitslast eines nodes
-- unmoderiert in das thema cpu round robin
-- ist mqtt cpu bound?
-- universalmetrik ist cpu
-- wegen dem versatilen protokoll mqtt
-
-- cpu ist komprimierbar
-- komprimierbar = regelbar
-- netzwerkinterface / io ops / cpu -> komprimierbar
-
-- disk space ist erschöpfbar
-- ram ist erschöpfbar
-
-- mqtt ist in den meisten fällen cpu bound -> auslastung der cpu ist ein guter summenindikator
-- was bietet sich zum regeln an
-- cpu cycles sind dynamische ressourcen
--> abstrahiert die einzelnen use cases
-
-
-
+überlastschutz bearbeiten:
+- ist circuit breaking das richtige wort ?
 - circuit breaking -> ich muss vorher schon regeln sonst schädige ich die verbundenen clients
-
 - begriff circuit breaking nennen
-- load shedding benennen -> lastabwurf
 - ist health status wirklich das was ich bei circuit breaking machen will ?
-
+- welche ressourcen kann man sich angucken?
 
 - prototypische
-
 - ausblick dann fazit
-
 - fazit nurnoch persönliche worte
-
 - klug im sinne von integriert
 - eher was die arbeit festgestellt hat
 
@@ -68,43 +50,15 @@ abstract:
 
 debriefing mit hivemq
 
-# roadmap
-
-- refactor code
-- better table / image descriptions
-- weighted cpu überarbeiten
-- envoy architecture
-- mamas überarbeitung einarbeiten
-
-## grafana
-- mittlere abweichung anstatt lastindikator
-- staircase bei connections
-- maximale quadratische abweichung
-- abweichung vom mittelwert in grafana angeben
-- grafiken überarbeiten
-- panel -> repeat option
-- slow start -> ramp up
-- hivemq kann das implementieren
-- ist ein operatives ding -> kann metriken berücksichtigen
-
 ## letzter check
 - zahlen 0 - 12 ausgeschrieben, runde zahlen auch ausschreiben
 - quellen überarbeiten -> firmen, online magazine
 - fragezeichen quellen?
 
-## überarbeiten?
-
-- clientseitiges load balancing
-
-cluster discovery:
-- distributed system hat das problem split brain
-- splitbrain is nicht mein problem, das wird durch mqtt health check gelöst, muss der hivemq lösen
-
 ## wichtige formale fragen
 
 - Überschriften auf english oder deutsch?
 - titel der arbeit, englisch oder deutsch?
-- muss die caption am anfang groß geschrieben und mit einem punkt beendet werden?
 
 ## fragen an inovex
 
