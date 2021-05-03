@@ -14,9 +14,9 @@ Grafiken:
 - hivemq macht in ihren testszenarien oft: alle clients verbinden -> testen ... weighted = sinnlos
 
 TODO:
-- fazit schreiben
 - abstract schreiben
 - korrekturen einarbeiten
+- bilder an die richtigen stellen
 - quellen überprüfen / seitenangabe bei quellen
 - überlastschutz kapitel
 - envoy architecture

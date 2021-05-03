@@ -1,24 +1,25 @@
 \section{Ausblick}
-In der entwickelten Control Plane wurden nicht alle der erarbeiteten \textit{klugen} Features, beispielsweise das Parsen des \ac{mqtt} \verb|CONNECT| Paketes um eine \textit{Session Affinity} basierend der Clientkennung zu realisieren, implementiert.
+In der entwickelten Control Plane wurden nicht alle der erarbeiteten \textit{klugen} Features, beispielsweise das Parsen des \ac{mqtt} \verb|CONNECT| Paketes, um eine \textit{Session Affinity} basierend der Clientkennung zu realisieren, implementiert.
 Wenn Envoy zukünftig das gesamte \ac{mqtt} Protokoll parst, können neben der \textit{Session Affinity} noch weitere protokollspezifische load balancing Entscheidungen getroffen werden.
 Denkbar ist ein paketspezifisches load balancing aller \verb|PUBLISH| Pakete unter Berücksichtigung der Topic Aliasse der Clients. Dabei würde Envoy eine dedizierte Verbindung mit allen Nodes des Clusters aufbauen und kann darüber eingehende \verb|PUBLISH| Nachrichten einzeln an die Nodes verteilen.
 Mit der fünften Version des \ac{mqtt} Protokolls wurden \textit{user properties} eingefügt, die es Benutzern erlauben, beliebige Daten als \textit{key-value} Paare an \ac{mqtt} Pakete anzuhängen \cite{raschbichlerMQTTHowNewa}.
-Dieses Feature ermöglicht Load Balancern ein- und ausgehende Nachrichten mit nützlichen Informationen anzureichern.
+Dies ermöglicht Load Balancern ein- und ausgehende Nachrichten mit nützlichen Informationen anzureichern.
 \\
-Während der Bearbeitung der vorliegenden Arbeit wurde HiveMQ Swarm \cite{teamHiveMQSwarmFind} von HiveMQ veröffentlicht. Dieses Tool ermöglicht das Definieren von Client Verhaltensmustern um eine HiveMQ Cluster Installation für einen gegebenen Use-Case zu testen.
+Während der Bearbeitung der vorliegenden Arbeit wurde HiveMQ Swarm \cite{teamHiveMQSwarmFind} von HiveMQ veröffentlicht. Mit diesem Tool können Client Verhaltensmuster definiert werden, um eine HiveMQ Cluster Installation für einen gegebenen Use-Case zu testen.
 Mit HiveMQ Swarm kann iterativ eine Control Plane erweitert und für den eigenen Use-Case optimiert, sowie getestet werden.
 \\
-HiveMQ hat im Jahr 2020 eine Masterthesis angefertigt, in der das transparente Umziehen eines Clients auf einen anderen Node eines Clusters untersucht wurde. Im Zusammenspiel mit der entwickelten Control Plane können gezielt \ac{mqtt} Clients, die eine hohe Last auf einem Node verursachen, transparent mit einem besser geeigneten Node verbunden werden.
+Zudem hat HiveMQ hat im Jahr 2020 eine Masterthesis angefertigt, in der das transparente Umziehen eines Clients auf einen anderen Node des Clusters untersucht wurde. Im Zusammenspiel mit der entwickelten Control Plane können gezielt \ac{mqtt} Clients, die eine hohe Last auf einem Node verursachen, transparent mit einem besser geeigneten Node verbunden werden.
+\newpage
 
 \section{Fazit}
 Das Ziel der vorliegenden Arbeit war die Analyse des \ac{mqtt} Protokolls mit Hinblick auf das \textit{kluge} Verteilen der Clients an HiveMQ Nodes und die Erstellung einer Envoy Control Plane, die einige der analysierten Features implementiert.
 \\
 Die Vorbereitung auf diese Analyse bedurfte eine umfangreiche Einarbeitung in das \ac{mqtt} Protokoll, um die Eigenheiten und verschiedenen Verhaltensmuster der Clients zu untersuchen.
-Trotz der in den letzten Jahren stetisch steigenden Verwendung des Protokolls, unteranderem bei gro{\ss}en Cloud Anbietern wie Amazon Web Services und Microsoft Azure, gibt es öffentlich wenige Informationen zu einem Betrieb von \ac{mqtt} Brokern.
-Auch der Support des \ac{mqtt} Protokolls in Proxies wie Nginx, HAProxy oder Envoy ist noch nicht gegeben. Dort ist es bereits möglich Protokoll \textit{sniffing} für Redis, MongoDB oder Postgres zu betreiben.
-Der Mangel an Ressourcen des Ökosystems load balancing \ac{mqtt} könnte durch die Kommerzialisierung im Bereich \ac{iiot} zu begründen sein.
+Trotz der in den letzten Jahren stetig steigenden Verwendung des Protokolls, unteranderem bei gro{\ss}en Cloud Anbietern wie Amazon Web Services und Microsoft Azure, gibt es öffentlich wenige Informationen zu dem Betrieb von \ac{mqtt} Brokern.
+Auch der Support des \ac{mqtt} Protokolls in Proxies wie Nginx, HAProxy oder Envoy ist noch nicht gegeben. Dort ist es bereits möglich Protokoll \textit{sniffing} für Redis, MongoDB oder Postgres zu betreiben, um eine ausführliche Analayse des Traffics durchzuführen.
+Der Mangel an Ressourcen des Ökosystems \textit{load balancing \ac{mqtt}} könnte durch die Kommerzialisierung im Bereich \ac{iiot} zu begründen sein.
 \\
-Um \ac{iot}-Plattformen zu optimieren, müssen entkoppelte Load Balancer ein integraler Bestandteil des \ac{iot} Ökosystems werden. Sie müssen das Protokoll verstehen, Informationen der Plattform aggregieren und reaktive load balancing Entscheidungen treffen können. Nur so kann in Zukunft der Traffic von Milliarden \ac{iot} Geräten optimal verteilt werden.
+Um \ac{iot}-Plattformen zu optimieren, müssen entkoppelte Load Balancer ein integraler Bestandteil des \ac{iot}-Ökosystems werden. Sie müssen das Protokoll verstehen, Informationen der Plattform aggregieren und reaktive load balancing Entscheidungen treffen können. Nur so kann in Zukunft der Traffic von Milliarden \ac{iot}-Geräten optimal verteilt werden.
 Der Load Balancer muss zu einem \textit{Smart Device} im \textit{Internet of Things} werden.
 
 \begin{comment}
