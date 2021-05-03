@@ -4,19 +4,18 @@ Grafiken:
 16:20 - 16:40 = szenario 1, weighted cpu
 19:22 - 19:30 = szenario 2, least conn
 19:32 - 19:40 = szenario 2, round robin
-= szenario 2, weighted cpu
+11:47 - 11:59 = szenario 2, weighted cpu
 19:45 - 20:20 = szenario 3, round robin
-= szenario 3, least conn
-= szenario 3, weighted cpu
-
+12:55 - = szenario 3, least conn
+12:00 - 12:40 = szenario 3, weighted cpu
 
 - komprimierbare oder erschöpfbare ressourcen sind egal beim regeln -> ich kann ja genauso die erschöpfbaren ressourcen regeln
 -> ist wichtig beim circuit breaking
 - hivemq macht in ihren testszenarien oft: alle clients verbinden -> testen ... weighted = sinnlos
 
 TODO:
-- neue grafiken erstellen
-- aufsplitten fazit ausblick
+- fazit schreiben
+- abstract schreiben
 - korrekturen einarbeiten
 - quellen überprüfen / seitenangabe bei quellen
 - überlastschutz kapitel
