@@ -9,6 +9,36 @@ Grafiken:
 12:55 - = szenario 3, least conn
 12:00 - 12:40 = szenario 3, weighted cpu
 
+- least connection kann mehr berücksichtigen
+- rückkopplung zwischen broker und load balancer
+
+- operative prozesse -> neuer client auf neuen node -> kann der LB gut unterstützen -> transparentes neuverteilen
+
+- besserer erster satz
+- positiver
+- echten anwendungsfälle
+- fundamental neue mechanismen -> publish
+- hängt von dem anwedungsfall
+- vorteilhafte entscheidungen treffen
+- erforschen
+
+- erlaubt anderen kommunikationsmuster einzuführen -> mqtt konform nach draußen -> müsste man zeigen
+-> selling point: 
+
+- abschnitt für bahnbrechende geschichten
+- swarm -> testwerkzeug -> benchmark tool
+- grundidee transparent client
+
+fazit:
+- vor ausblick
+- der mangel an ressourcen
+- trotz der
+
+- müssen die typischerweise entkoppelt betriebenen
+- des iot brokers
+- in zukunft raus
+- Bei millionen von geräten ist das erforderlich
+
 - komprimierbare oder erschöpfbare ressourcen sind egal beim regeln -> ich kann ja genauso die erschöpfbaren ressourcen regeln
 -> ist wichtig beim circuit breaking
 - hivemq macht in ihren testszenarien oft: alle clients verbinden -> testen ... weighted = sinnlos

@@ -1,43 +1,46 @@
 \section{Einleitung}
 \subsection{Motivation und Zielsetzung}
-Das Internet der Dinge (engl. \textit{\ac{iot}}) verändert die Art der Interaktion von Mensch und Umwelt. Dabei werden physische Objekte mit Sensoren und Mikrochips ausgestattet, um Daten an dedizierte \ac{iot} Plattformen zu senden. Diese kategorisieren, filtern und werten die Daten aus, wodurch ein besseres Vertändnis von Prozessen und deren Interaktion zueinander erlangt wird.
+Das Internet der Dinge (engl. \textit{\acf{iot}}) verändert die Art der Interaktion von Menschen mit ihrer Umwelt. Physische Objekte werden mit Sensoren und Mikrochips ausgestattet, um Daten an dedizierte \ac{iot}-Plattformen zu übermitteln. Diese kategorisieren, filtern und werten die Daten aus. Bei diesem Vorgang wird ein besseres Verständnis von Prozessen und deren Interaktion zueinander gewonnen.
 \\
-Durch das \acl{iot} können Menschen ihre Gesundheit mit Armbändern beobachten und frühzeitig bewusst auf Veränderungen reagieren. Bauteile von Maschinen können mit Sensoren ausgestattet werden, um kontinuierlich ihre Funktionalität zu überprüfen. Bei Anzeichen, die einen möglichen Ausfall des Bauteils andeuten, werden automatisch Techniker für eine präventive Wartung angefordert.
+Durch das \acl{iot} können beispielsweise Menschen ihre Gesundheit mit Armbändern beobachten und frühzeitig bewusst auf Veränderungen ihres Körpers reagieren. Bauteile von Maschinen werden mit Sensoren ausgestattet, um kontinuierlich die Funktionalität zu überprüfen. Bei Anzeichen, die auf einen möglichen Ausfall des Bauteils hinweisen, werden automatisch Techniker:innen für eine präventive Wartung angefordert.
 \\
-Aufgrund des stetigen Ausbaus mobiler Netzwerke steigt die Anzahl potentieller \ac{iot}-Geräte täglich. Damit die Kommunikation von den Geräten untereinander und mit den datenverarbeitenden Services reibungslos stattfindet, müssen die \ac{iot}-Plattformen empfangene Daten möglichst in Echtzeit verarbeiten.
+Aufgrund des stetigen Ausbaus mobiler Netzwerke steigt die Anzahl potenzieller \ac{iot}-Geräte nahezu täglich. Damit die Kommunikation der Geräte untereinander sowie mit den datenverarbeitenden Services reibungslos stattfindet, müssen die \ac{iot}-Plattformen empfangene Daten möglichst in Echtzeit verarbeiten.
 Um einen effizienten Nachrichtenaustausch zu ermöglichen, wurde das \ac{mqtt} Protokoll entworfen.
-Dieses ist eventgesteuert und verwendet das \textit{Publish und Subscribe} Kommunikationsschema.
+Es ist eventgesteuert und verwendet das \textit{Publish und Subscribe} Kommunikationsschema.
 Bei diesem Protokoll können \ac{iot}-Geräte und Services, sogenannte Clients, Nachrichten über einen \ac{mqtt} Broker austauschen.
-Damit ein Broker auch bei mehreren Millionen Geräten alle Nachrichten schnell und ausfallsicher verarbeiten kann, können Broker, wie zum Beispiel der HiveMQ Broker, ein Cluster formen. Dabei bilden mehrere HiveMQ Broker ein HiveMQ Cluster, das eine logische Einheit für Clients bildet.
+Damit ein Broker auch bei mehreren Millionen Geräten alle Nachrichten schnell und ausfallsicher verarbeiten kann, formen Broker, wie zum Beispiel der HiveMQ Broker, ein Cluster. Dabei bilden mehrere HiveMQ Broker ein HiveMQ Cluster, das eine logische Einheit für Clients bildet.
 \\
 Load Balancer abstrahieren die einzelnen Nodes eines Clusters für Clients.
-Dabei wird ein Load Balancer den Nodes vorgeschaltet und empfängt eintreffende Clientverbindungen, um diese basierend unterschiedlichen load balancing Algorithmen an die Nodes weiterzuleiten.
+Dabei wird den Nodes ein \acl{lb} vorgeschaltet, der eintreffende Clientverbindungen empfängt, um diese basierend auf unterschiedlichen load balancing Algorithmen an die Nodes weiterzuleiten.
 Bei der Wahl des Zielnodes für einen bestimmten Client kann der Load Balancer diverse Merkmale in Betracht ziehen und somit beispielsweise die Servicequalität für Clients oder die gleichmä{\ss}ige Verteilung der Last auf alle Nodes des Clusters begünstigen.
 \\
-Das \ac{http} wird verwendet, wenn ein Webbrowser eine Internetseite aufruft. Aufgrund der Popularität des Protokolls können viele Load Balancer \ac{http} optimierte load balancing Entscheidungen treffen.
+Das \ac{http} wird verwendet, sobald ein Webbrowser eine Internetseite aufruft. Aufgrund der Popularität des Protokolls können viele Load Balancer \ac{http} optimierte load balancing Entscheidungen treffen.
 Für das \ac{mqtt} Protokoll gibt es trotz des \acl{iot} Booms noch keine protokollbezogenen Optimierungen.
 In der vorliegenden Arbeit wird untersucht, wie ein Load Balancer \textit{kluge} load balancing Entscheidungen für eingehende \ac{mqtt} Clientverbindungen an HiveMQ Nodes treffen kann.
 \\
-Envoy ist ein Load Balancer, der dynamisch von einer Control Plane konfiguriert werden kann. Zudem können anwendungsspezifische Netzwerkfilter programmiert und in die Pipeline eingebunden werden. Diese Features ermöglichen eine individuelle Anpassung des Load Balancers an einen gegebenen Anwedungsfall. Neben der Analyse von \ac{mqtt} load balancing Kriterien, werden diese in der vorliegenden Arbeit in einem Prototyp einer Envoy Control Plane implementiert.
+Envoy ist ein Load Balancer, der dynamisch von einer Control Plane konfiguriert werden kann.
+Zudem können anwendungsspezifische Netzwerkfilter programmiert und in die Pipeline eingebunden werden.
+Diese Features ermöglichen eine individuelle Anpassung des Load Balancers an einen gegebenen Anwendungsfall.
+Neben der Analyse von \ac{mqtt} load balancing Kriterien, werden sie ebenfalls in der vorliegenden Arbeit in einer Envoy Control Plane implementiert.
 
 \subsection{Unternehmen}
 Die vorliegende Arbeit wird bei der Firma inovex GmbH im Team IT-Engineering \& Operations angefertigt.
 Inovex ist ein innovations- und qualitätsgetriebenes IT-Projekthaus mit dem Leistungsschwerpunkt \textit{Digitale Transformation}.
 Es unterstützt Unternehmen bei der Digitalisierung und Agilisierung ihres Kerngeschäfts und bei der Realisierung von neuen digitalen \textit{Use Cases}.
-Das aktuelle Lösungsangebot umfasst Application Development (Web Platforms, Mobile Apps, Edge \& Embedded), Data Management \& Analytics (Business Intelligence, Big Data, Search, Data Science, Artificial Intelligence) und die Entwicklung von skalierbaren IT Infrastructures (IT Engineering, Cloud Services), auf denen die digitalen Lösungen im DevOps-Modus betrieben werden.
+Das aktuelle Lösungsangebot umfasst Application Development (Web Platforms, Mobile Apps, Edge \& Embedded), Data Management \& Analytics (Business Intelligence, Big Data, Search, Data Science, Artificial Intelligence) und die Entwicklung von skalierbaren IT Infrastrukturen (IT Engineering, Cloud Services), auf denen die digitalen Lösungen im DevOps-Modus betrieben werden.
 Zudem modernisiert inovex vorhandene Lösungen (Replatforming), härtet Systeme gegen Angriffe von au{\ss}en (Security) und vermittelt ihr Wissen durch Trainings und Workshops (inovex Academy).
-Im Jahr 2021 beschäftigte inovex 395 Mitarbeitende an sieben Standorten: Karslruhe, Köln, München, Hamburg, Stuttgart, Pforzheim und Münster.
+Im Jahr 2021 beschäftigte die inovex GmbH 395 Mitarbeitende an sieben Standorten: Karslruhe, Köln, München, Hamburg, Stuttgart, Pforzheim und Münster.
 \\
 Im Team \textit{\ac{ito}} entstehen Cloud-Plattformen, die entweder komplett als Private Cloud oder als hybride Cloud im Zusammenspiel mit den gro{\ss}en Public Clouds (Amazon, Google, Microsoft) realisiert werden.
-Durch die wachsende Nachfrage von \acs{iot} Projekten befasst sich das Team \ac{ito} zunehmend mit dem Ökosystem \acl{iot}, dessen Infrastruktur sowie mit betrieblichen Aspekten.
-Durch die im Jahr 2020 entstandene Partnerschaft mit HiveMQ und der Einführung von \ac{iot} als strategisches Thema bei inovex, wurde ein Raum für Forschung, Weiterbildung und Durchführung von Arbeiten in diesem Ökosystem geschaffen.
+Durch die wachsende Nachfrage von \acs{iot}-Projekten befasst sich das Team \ac{ito} zunehmend mit dem \acl{iot} Ökosystem, dessen Infrastruktur sowie mit betrieblichen Aspekten.
+Durch die im Jahr 2020 entstandene Partnerschaft mit HiveMQ und der Einführung von \ac{iot} als strategisches Thema bei inovex, wurde ein Raum für Forschung, Weiterbildung und die Durchführung von Arbeiten in diesem Ökosystem geschaffen.
 
 \subsection{Aufbau der Arbeit}
 Die vorliegende Arbeit beginnt mit einem ausführlichen Grundlagenteil in Kapitel \ref{s:basics}. Dabei werden zunächst die Funktionsweise und Eigenheiten des \ac{mqtt} Protokolls erläutert.
-Grundlagen wie das \textit{Publish und Subscribe} Kommunikationsschema aus Kapitel \ref{s:publish-subscribe} sind Vorraussetzungen für das Verständnis der in Kapitel \ref{s:hivemq-cluster} beschriebenen Clusterfähigkeit des HiveMQ \acs{mqtt} Brokers.
-Die technischen Grundlagen werden mit einem Überblick über Load Balancer abgeschlossen.
+Grundlagen wie das \textit{Publish und Subscribe} Kommunikationsschema aus Kapitel \ref{s:publish-subscribe} sind Voraussetzungen für das Verständnis der in Kapitel \ref{s:hivemq-cluster} beschriebenen Clusterfähigkeit des HiveMQ \acs{mqtt} Brokers.
+Die technischen Grundlagen werden komplettiert mit einem Überblick über Load Balancer.
 Kapitel \ref{s:problem} beschreibt Problemstellungen beim Verteilen von \ac{mqtt} Clients an ein Broker-Cluster durch einen Load Balancer.
-Diese werden anschlie{\ss}end von Kapitel \ref{s:solution} aufgegriffen und mit Hinblick auf einen dynamischen load balancing Algorithmus analysiert. Dabei wird besonders auf die gleichmä{\ss}ige Verteilung der Last auf alle Nodes eines HiveMQ Clusters und die Sicherstellung der Servicequalität für die \ac{mqtt} Clients geachtet.
+Diese werden in Kapitel \ref{s:solution} erläutert und mit Hinblick auf einen dynamischen load balancing Algorithmus analysiert. Dabei wird besonders auf die gleichmä{\ss}ige Verteilung der Last auf alle Nodes eines HiveMQ Clusters und die Sicherstellung der Servicequalität für die \ac{mqtt} Clients geachtet.
 Abschlie{\ss}end wird der Aufbau einer Control Plane für das \textit{kluge} Verteilen von \ac{mqtt} Clients in Kapitel \ref{s:implementation} dargestellt.
 
 \newpage
