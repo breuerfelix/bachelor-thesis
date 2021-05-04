@@ -5,16 +5,16 @@ Kapitel \ref{ss:load-distribution} untersucht die Lastverteilung in einem HiveMQ
 Abschlie{\ss}end wird in Kapitel \ref{ss:sticky-session} die Problemstellung der persistenten Client Sessions (siehe Kapitel \ref{sp:persistent-session}) behandelt.
 
 \subsection{Cluster Discovery} \label{ss:cluster-discovery}
-HiveMQ hat mehrere Mechanismen um die individuellen Nodes zu entdecken, die in das Cluster aufgenommen werden sollen (siehe \ref{s:hivemq-cluster}).
-Ein \acl{lb} muss in der Lage sein, das HiveMQ Cluster auf derselben Datenbasis wie HiveMQ zu formen.
-Wenn der \ac{lb} eine andere Datenbasis benutzen würde, dann könnte die Topologie des HiveMQ Clusters im \ac{lb} von der tatsächlichen Topologie abweichen.\\
-Envoy verfügt über folgende Möglichkeiten Nodes eines Clusters zu bestimmen:
+HiveMQ verfügt über mehrere Mechanismen zur Idenfifikation von individuellen Nodes, die in das Cluster aufgenommen werden sollen (siehe \ref{s:hivemq-cluster}).
+Ein \acl{lb} muss fähig sein, das HiveMQ Cluster auf derselben Datenbasis wie HiveMQ zu formen.
+Wenn der \ac{lb} eine andere Datenbasis benutzt, könnte die Topologie des HiveMQ Clusters im \ac{lb} von der tatsächlichen Topologie abweichen.\\
+Envoy verfügt über folgende Möglichkeiten, Nodes eines Clusters zu bestimmen:
 \begin{itemize}
   \item \textbf{Static:} Alle Nodes eines Clusters werden statisch in die Envoy Konfiguration eingetragen.
   \item \textbf{Strict \ac{dns}:} Envoy löst periodisch und asynchron einen konfigurierten \ac{dns} Namen auf. Jede eingetragene \ac{ip} Adresse wird zu einem Node des Clusters. Falls ein Node entfernt wird, werden keine neuen Clients mehr mit diesem Node verbunden. Mit der Variable \verb|dns_refresh_rate| kann die Frequenz, in welcher der \ac{dns} Eintrag abgefragt wird, bestimmt werden.
   \item \textbf{Logical \ac{dns}:} Ähnlich wie bei Strict \ac{dns} löst Envoy einen konfigurierten \ac{dns} Namen auf. Bei jeder neuen eingehenden Verbindung wird der \ac{dns} Name erneut aufgelöst und die erste \ac{ip} Adresse als Ziel der neuen Verbindung genommen.
   \item \textbf{Original Destination:} Envoy leitet eingehende Verbindungen anhand der \textit{Redirect Metadata} weiter. Eingehende Verbindungen müssen dafür mit einem \textit{iptables REDIRECT}, \textit{TPROXY target} oder \textit{Proxy Protocol} an Envoy weitergeleitet werden.
-  \item \textbf{Endpoint Discovery Service:} Envoy ruft die Nodes eines Cluster bei einem \textit{xDS Management Server} ab. Es werden Java und Golang Bibliotheken angeboten um einen Management Server für Envoy zu programmieren und bereitzustellen. Somit ist es möglich eine komplexe Service Discovery zu implementieren.
+  \item \textbf{Endpoint Discovery Service:} Envoy ruft die Nodes eines Clusters bei einem \textit{xDS Management Server} ab. Es werden Java und Golang Bibliotheken angeboten, um einen Management Server für Envoy zu programmieren und bereitzustellen. Somit ist es möglich, eine komplexe Service Discovery zu implementieren.
 \end{itemize}
 \cite{ServiceDiscoveryEnvoy}
 In Kapitel \ref{s:hivemq-cluster} wurden folgende Methoden der HiveMQ Cluster Discovery erläutert:
@@ -24,9 +24,9 @@ In Kapitel \ref{s:hivemq-cluster} wurden folgende Methoden der HiveMQ Cluster Di
   \item broadcast
   \item extension
 \end{itemize}
-Envoy und HiveMQ stellen eine statische Cluster Discovery zur Verfügung. Diese Methode ist für Cloud- oder Containerumgebungen nicht optimal, da sie keine Möglichkeit bietet die Cluster Topologie dynamisch zu verändern. Container Management Umgebungen, wie zum Beispiel Kubernetes, erlauben dynamische Vorgänge wie das Skalieren der Replika-Sets oder Rolling-Updates. Eine statische Clusterkonfiguration schlie{\ss}t den Einsatz dieser oder ähnlichen dynamischen Vorgängen aus.\\
+Envoy und HiveMQ stellen eine statische Cluster Discovery zur Verfügung. Diese Methode ist für Cloud- oder Containerumgebungen suboptimal, da sie keine dynamische Veränderung der Cluster Topologie zulässt. Container Management Umgebungen, wie zum Beispiel Kubernetes, erlauben dynamische Vorgänge wie das Skalieren der Replika-Sets oder Rolling-Updates. Eine statische Clusterkonfiguration schlie{\ss}t den Einsatz dieser oder ähnlichen dynamischen Vorgängen aus.\\
 Eine weitere gemeinsame Cluster Discovery Methode ist Strict \ac{dns}. HiveMQ hat diese Methode nicht in der Standardversion eingebaut, stellt für diesen Anwendungsfall aber eine frei zugängliche Erweiterung bereit.
-Bei Strict \ac{dns} werden periodisch alle Einträge zu einem gegebenen \ac{dns} Eintrag abgefragt und als Nodes des Cluster anerkannt. Die Frequenz der Abfrage kann in Envoy mit der Variable \verb|dns_refresh_rate| bestimmt werden. In der HiveMQ Erweiterung ist die Einstellung der Frequenz derzeit noch nicht möglich. Ein Issue \cite{AllowConfigurationDiscovery} und ein Pull Request \cite{ExponentialBackoffGeneral} wurden bereits zu diesem Feature auf GitHub erstellt.
+Bei Strict \ac{dns} werden periodisch alle Einträge zu einem gegebenen \ac{dns} Eintrag abgefragt und als Nodes des Clusters anerkannt. Die Frequenz der Abfrage wird in Envoy mit der Variable \verb|dns_refresh_rate| bestimmt. In der HiveMQ Erweiterung ist die Einstellung der Frequenz derzeit noch nicht möglich. Ein Issue \cite{AllowConfigurationDiscovery} und ein Pull Request \cite{ExponentialBackoffGeneral} wurden bereits zu diesem Feature auf GitHub erstellt.
 \\
 Anders als bei der statischen Clusterkonfiguration, ist bei der Strict \ac{dns} Methode eine dynamische Änderung der Nodes möglich. In Cloudumgebungen wie Kubernetes werden \ac{dns} Zonen dynamisch von Plugins wie \textit{CoreDNS} verwaltet.\cite{DNSServicesPods}
 Die Strict \ac{dns} Methode kann auf Änderungen dieser Zonen reagieren und dynamisch die Topologie des HiveMQ Clusters anpassen.
@@ -57,8 +57,8 @@ Im Rahmen der vorliegenden Arbeit wird untersucht, wie sich ein weighted round-r
 Um den round-robin, least connection und weighted round-robin load balancing Algorithmus in Bezug auf die gleichmä{\ss}ige Verteilung der Last in einem HiveMQ Cluster zu vergleichen, werden Testszenarien entworfen, die eine ungleiche Lastverteilung in einem HiveMQ Cluster erzeugen.
 
 \begin{itemize}
-  \item \textbf{Szenario 1:} In \textit{Bare Metal} Deployments sind die Server Kapazitäten an die verfügbare Hardware geknüpft. Somit besteht die Möglichkeit, dass ein Cluster aus unterschiedlich dimensionierten Nodes besteht. In Szenario eins besteht das HiveMQ Cluster aus zwei Nodes mit acht \ac{cpu} Kernen und acht \ac{gb} \ac{ram} und einem Node mit vier \ac{cpu} Kernen und acht \ac{gb} \ac{ram}. Im Verlauf von zehn Minuten werden sich 5.000 Clients mit ähnlichem Verhalten mit dem Cluster verbinden und Nachrichten veröffentlichen sowie Topics abonnieren.
-  \item \textbf{Szenario 2:} Eine dynamische Topologieänderung des HiveMQ Cluster kann durch mehrere Aktionen ausgelöst werden. Dazu zählen Rolling Upgrades oder Skalierungen des Clusters aufgrund Überdimensionierung oder aufgebrauchter Ressourcen. In diesem Szenario wird ein zwei Node Cluster mit jeweils acht \ac{cpu} Kernen und acht \ac{gb} \ac{ram} pro Node mit einem neuen Node mit selben Dimensionen zur Laufzeit erweitert. Vor der Erweiterung sind 3.000 leichtgewichtige Clients mit dem Cluster verbunden. Nach der Erweiterung des Clusters verbinden sich 600 leistungsstarke Clients.
+  \item \textbf{Szenario 1:} In \textit{Bare Metal} Deployments sind die Server Kapazitäten an die verfügbare Hardware geknüpft. Somit besteht die Möglichkeit, dass ein Cluster aus unterschiedlich dimensionierten Nodes besteht. In Szenario eins besteht das HiveMQ Cluster aus zwei Nodes mit acht \ac{cpu} Kernen und acht \ac{gb} \ac{ram} sowie einem Node mit vier \ac{cpu} Kernen und acht \ac{gb} \ac{ram}. Im Verlauf von zehn Minuten werden sich 5.000 Clients mit ähnlichem Verhalten mit dem Cluster verbinden und Nachrichten veröffentlichen sowie Topics abonnieren.
+  \item \textbf{Szenario 2:} Eine dynamische Topologieänderung des HiveMQ Cluster kann durch mehrere Aktionen ausgelöst werden. Dazu zählen Rolling Upgrades oder Skalierungen des Clusters aufgrund Überdimensionierung oder aufgebrauchter Ressourcen. In diesem Szenario wird ein zwei Node Cluster mit jeweils acht \ac{cpu} Kernen und acht \ac{gb} \ac{ram} pro Node mit einem neuen Node mit selben Dimensionen zur Laufzeit erweitert. Vor der Erweiterung sind 3.000 leichtgewichtige Clients mit dem Cluster verbunden. Nach der Erweiterung des Clusters verbinden sich zusätzlich 600 leistungsstarke Clients.
   \item \textbf{Szenario 3:} Die Dimensionen des Clusters sind dieselben wie in Szenario zwei. In diesem Szenario verbinden sich die leistungsstarken Clients vor der Erweiterung und die leichtgewichtigen Clients nach der Erweiterung des Clusters.
 \end{itemize}
 
@@ -68,7 +68,7 @@ Szenario zwei wird in folgende Phasen untergliedert:
   \item \textbf{Phase 2:} Verbinden von 3.000 Subscribern, die zufällig 10 von 1000 Topics abonnieren wobei jedes Topic mindestens einmal abonniert wird.
   \item \textbf{Phase 3:} Verbinden von 2.000 Publishern. Jeder Publisher veröffentlicht zufällig alle 500 - 2.000 Millisekunden eine Nachricht mit der Payload \verb|Hello World|, einem zufälligen \ac{qos} Level auf ein zufälliges Topic.
   \item \textbf{Phase 4:} Ein dritter Node (Node drei) mit acht \ac{cpu} Kernen und acht \ac{gb} \ac{ram} tritt dem HiveMQ Cluster bei.
-  \item \textbf{Phase 5:} Es verbinden sich 300 Publisher. Jeder Publisher veröffentlicht Nachrichten wie in Phase drei beschrieben, jedoch zufällig alle 15 - 25 Millisekunden.
+  \item \textbf{Phase 5:} Es verbinden sich 300 Publisher. Jeder Publisher veröffentlicht Nachrichten wie in Phase drei beschrieben, jedoch zufällig alle 15 bis 25 Millisekunden.
   \item \textbf{Phase 6:} Es verbinden sich 300 Publisher. Jeder Publisher veröffentlicht Nachrichten wie in Phase vier beschrieben.
 \end{itemize}
 Szenario drei hat dieselben Phasen wie Szenario zwei in unterschiedlicher Reihenfolge. Phase drei wird mit Phase fünf und sechs getauscht.
@@ -81,8 +81,8 @@ Die Standardabweichung ist die Quadratwurzel der Varianz und somit ein Ma{\ss} f
 
 \paragraph{Szenario 1}
 Abbildung \ref{fig:s1-rr} und \ref{fig:s1-lc} zeigen den zeitlichen Verlauf von Testszenario eins für einen round-robin und least connection \acl{lb}.
-Der round-robin und least connection \ac{lb} verhalten sich in diesem Szenario ähnlich. Alle Clients werden gleichmä{\ss}ig auf die Nodes verteilt.
-Da die Clients ein ähnliches Verhalten aufweisen, entsteht auf jedem Node eine gleiche Belastung. Node drei hat nur die Hälfte der \ac{cpu} Kerne zur Verfügung wie Node eins und zwei und ist daher nicht in der Lage die Last so schnell abzuarbeiten wie Node eins oder zwei. Somit entsteht ein ungleiches Lastverhalten im Cluster.
+Beide verhalten sich in diesem Szenario ähnlich. Alle Clients werden gleichmä{\ss}ig auf die Nodes verteilt.
+Da die Clients ein ähnliches Verhalten aufweisen, entsteht auf jedem Node eine gleiche Belastung. Node drei hat nur die Hälfte der \ac{cpu} Kerne zur Verfügung wie Node eins und zwei und ist daher nicht in der Lage, die Last so schnell abzuarbeiten wie Node eins oder zwei. Somit entsteht ein ungleiches Lastverhalten im Cluster.
 \begin{figure}
     \centering
     \includegraphics[scale=0.8]{images/s1_lc.png}
@@ -99,7 +99,8 @@ Da die Clients ein ähnliches Verhalten aufweisen, entsteht auf jedem Node eine 
 \paragraph{Szenario 2 - Least Connection}
 Abbildung \ref{fig:s2-lc} zeigt den zeitlichen Verlauf von Testszenario zwei bei einem least connection \ac{lb}.
 Nach Abschluss von Phase sechs hat dieses Szenario eine Standardabweichung von zehn Prozent.
-Die Last auf dem Cluster ungleich verteilt da Node drei doppelt so sehr ausgelastet wie Node eins und Node zwei. Dieses Ungleichgewicht wird durch Phase sechs verstärkt. Auf Node eins und Node zwei sind jeweils 3500 Clients verbunden auf Node drei hingegen nur 300 Clients. Der least connection Load Balancer verteilt nun alle Clients aus Phase sechs auch auf Node drei. Trotz der nun noch höheren Auslastung auf Node drei würden die nächsten 2900 Clients ebenfalls mit Node drei verbunden werden.
+Die Last auf dem Cluster ist ungleich verteilt, da Node drei doppelt so sehr ausgelastet ist wie Node eins und Node zwei.
+Dieses Ungleichgewicht wird durch Phase sechs verstärkt. Auf Node eins und Node zwei sind jeweils 3500 Clients verbunden auf Node drei hingegen nur 300 Clients. Der least connection Load Balancer verteilt nun alle Clients aus Phase sechs auch auf Node drei. Trotz der noch höheren Auslastung auf Node drei würden die nächsten 2900 Clients ebenfalls mit Node drei verbunden werden.
 \begin{figure}
     \centering
     \includegraphics[scale=0.8]{images/s2_lc.png}
@@ -110,8 +111,9 @@ Die Last auf dem Cluster ungleich verteilt da Node drei doppelt so sehr ausgelas
 \paragraph{Szenario 2 - Round Robin}
 Abbildung \ref{fig:s2-rr} zeigt den zeitlichen Verlauf von Testszenario zwei bei einem round-robin \ac{lb}.
 Nach Abschluss von Phase sechs hat dieses Szenario eine Standardabweichung von drei Prozent.
-Nach Phase fünf und sechs ist die Last auf dem Cluster im wesentlichen gleichmä{\ss}ig verteilt. Node eins und zwei sind um den Betrag der Clients aus Phase zwei und drei stärker belastet. Diese sind jedoch leichtgewichtige Clients und erzeugen demnach nicht viel Last auf den Nodes.
-Der round-robin Algorithmus verteilt alle Clients gleichmä{\ss}ig auf dem Cluster. Daher werden nach dem Beitreten von Node drei in Phase vier nicht alle neuen Clients auf den neuen Node verteilt wie bei dem least connection Algorithmus.
+Nach Phase fünf und sechs ist die Last auf dem Cluster im wesentlichen gleichmä{\ss}ig verteilt. Node eins und zwei sind um die Anzahl der Clients aus Phase zwei und drei stärker belastet. Diese sind jedoch leichtgewichtige Clients und erzeugen demnach nicht viel Last auf den Nodes.
+Der round-robin Algorithmus verteilt alle Clients gleichmä{\ss}ig auf dem Cluster.
+Daher werden nach dem Beitreten von Node drei in Phase vier nicht wie bei dem least connection Algorithmus alle neuen Clients auf den neuen Node verteilt.
 \begin{figure}
     \centering
     \includegraphics[scale=0.8]{images/s2_rr.png}
@@ -143,15 +145,19 @@ Die Clients aus Phase drei und vier werden nur auf Node eins und zwei verteilt, 
 \end{figure}
 
 \subsubsection{Weighted Round Robin} \label{ss:weighted-rr}
-Kapitel \ref{ss:test} zeigt, dass ein least connection \acl{lb} in Szenario drei und ein round-robin \ac{lb} in Szenario zwei, die Last gleichmä{\ss}ig verteilen kann. Bei den anderen Szenarien befindet sich das Cluster anschlie{\ss}end in einem ungleichen Lastverhältnis. Da \ac{mqtt} auf langlebigen \ac{tcp} Verbindungen basiert, wird sich dieses Lastverhältnis nicht verändern, bis die Clients ihre Verbindung neu aufbauen oder ihr Verhalten verändern.
-Der \ac{lb} muss dynamisch auf ein bestimmtes Client-Verhalten reagieren und Clients basierend der Arbeitslast der einzelnen Nodes verteilen.
+Kapitel \ref{ss:test} zeigt, dass ein least connection \acl{lb} in Szenario drei und ein round-robin \ac{lb} in Szenario zwei die Last gleichmä{\ss}ig verteilen kann.
+Bei den anderen Szenarien befindet sich das Cluster anschlie{\ss}end in einem ungleichen Lastverhältnis.
+Da \ac{mqtt} auf langlebigen \ac{tcp} Verbindungen basiert, wird sich dieses Lastverhältnis nicht verändern, bis die Clients ihre Verbindung neu aufbauen oder ihr Verhalten verändern.
+Der \ac{lb} muss dynamisch auf ein bestimmtes Client-Verhalten reagieren und Clients basierend auf der Arbeitslast der einzelnen Nodes verteilen.
 \\
 Bei dem weighted round-robin load balancing Algorithmus wird jedem Node eines Clusters eine Gewichtung zugeordnet. Die Gewichtung des Nodes bestimmt die Wahrscheinlichkeit, mit der ein neuer Client mit einem Node verbunden wird.
-Um mehr Clients an Nodes mit geringerer Auslastung zu verbinden, muss die derzeitige Auslastung direkten Einfluss auf die Gewichtung des Nodes haben.
+Um mehr Clients mit Nodes von geringerer Auslastung zu verbinden, muss die derzeitige Auslastung direkten Einfluss auf die Gewichtung des Nodes haben.
 Diese Mechanik wird bereits bei anderen Protokollen wie \ac{http} eingesetzt.
 Eine load balancing Entscheidung bei \ac{mqtt} ist jedoch relevanter als bei Protokollen wie \ac{http}, weil die Entscheidung für die Dauer der Verbindung nicht mehr verändert werden kann. Da \ac{mqtt} von langlebigen \ac{tcp} Verbindungen profitiert, kann der \ac{lb} die Last eines bestimmten Clients nach dem Verbindungsaufbau nicht mehr steuern.
 \\
-Envoy hat mehrere load balancing Algorithmen, unter anderem weighted round-robin, implementiert. Jedem Node eines Cluster wird eine Gewichtung in Form eines Integer Wertes zugeordnet. Je grö{\ss}er der Wert im Verhältnis zu allen anderen Nodes des Cluster ist, desto höher ist die Wahrscheinlichkeit mit der ein neuer Client mit dem Node verbunden wird. Der Wert der Gewichtung muss grö{\ss}er als eins sein und die Werte aller Nodes addiert dürfen nicht grö{\ss}er als 4294967295 sein.
+Envoy hat mehrere load balancing Algorithmen, unter anderem weighted round-robin, implementiert.
+Jedem Node eines Clusters wird eine Gewichtung in Form eines Integer Wertes zugeordnet.
+Je grö{\ss}er der Wert im Verhältnis zu allen anderen Nodes des Clusters ist, desto höher ist die Wahrscheinlichkeit, dass ein neuer Client mit dem Node verbunden wird. Der Wert der Gewichtung muss grö{\ss}er als eins und die Werte aller Nodes addiert dürfen nicht grö{\ss}er als 4294967295 sein.
 Um den Prozentsatz zu berechnen, wie viele Clients mit einem individuellen Node verbunden werden, teilt Envoy die Gewichtung des jeweiligen Nodes durch die Summe der Gewichtungen aller Nodes und multipliziert das Ergebnis mit 100.
 \cite{SupportedLoadBalancers}
 \\
@@ -185,14 +191,14 @@ Der Quellcodeauszug \ref{code:envoy-cluster-weight} zeigt eine statische Envoy K
 Die Problematik bei der statischen Konfiguration aus Quellcodeauszug \ref{code:envoy-cluster-weight} ist, dass man die Nodes inklusiver Gewichtung statisch und manuell in der Konfigurationsdatei angeben muss. Eine dynamische Cluster Discovery wie in Kapitel \ref{ss:cluster-discovery} beschrieben ist nicht mehr möglich.
 Neben der statischen Konfigurationsdatei bietet Envoy zwei Mechanismen für eine dynamische Konfiguration an.
 \begin{itemize}
-  \item \textbf{Dynamisch via Dateisystem:} Envoy liest Konfigurationsdateien, die das xDS Protokoll implementiert haben, vom Dateisystem ein. Wenn sich die Dateien auf dem Dateisystem ändern, aktualisiert Envoy automatisch seine Konfiguration.
+  \item \textbf{Dynamisch via Dateisystem:} Envoy liest Konfigurationsdateien, die das xDS Protokoll implementiert haben, vom Dateisystem ein. Wenn sich die Dateien in dem Dateisystem ändern, aktualisiert Envoy automatisch seine Konfiguration.
     \cite{ConfigurationDynamicFilesystem}
   \item \textbf{Dynamisch via Control Plane:} Envoy holt sich seine Konfiguration dynamisch von einer Control Plane ab. Eine Control Plane ist ein \ac{api} Server, der Konfigurationen an Envoy Instanzen schickt. Die Schnittstelle um Konfigurationen zwischen Envoy und Control Plane auszutauschen ist in der \textit{Data-Plane API} (siehe \cite{EnvoyproxyDataplaneapi2021}) dokumentiert.
     \cite{ConfigurationDynamicControl}
 \end{itemize}
 Die dynamische Konfiguration via Dateisystem ist gut für einzelne Envoy Instanzen, da keine individuelle Control Plane programmiert werden muss.
 Möchte man jedoch mehrere Envoy Instanzen mit derselben Konfiguration betreiben, muss bei einer Aktualisierung der Konfiguration die neue Datei auf die Dateisysteme aller Envoys verteilt werden.
-Für den Anwendungsfall mehrerer Envoy Instanzen ist das dynamische Verteilen mit einer Control Plane besser geeignet. Jeder Envoy wird mit einer statischen Konfigurationsdatei konfiguriert, in der die Adresse der Control Plane eingetragen ist. Sobald eine Envoy Instanz startet, registriert sich diese an der Control Plane und erhält seine Konfiguration. Das Verteilen von Konfigurationsaktualisierungen an die Envoy Instanzen wird nun von der Control Plane übernommen.
+Für den Anwendungsfall mehrerer Envoy Instanzen ist das dynamische Verteilen mit einer Control Plane besser geeignet. Jeder Envoy wird mit einer statischen Datei konfiguriert, in der die Adresse der Control Plane eingetragen ist. Sobald eine Envoy Instanz startet, registriert sich diese an der Control Plane und erhält seine Konfiguration. Das Verteilen von Konfigurationsaktualisierungen an die Envoy Instanzen wird nun von der Control Plane übernommen.
 \\
 Quellcodeauszug \ref{code:envoy-control-plane} zeigt eine statische Konfigurationsdatei, um sich bei einer Control Plane zu registrieren die unter \verb|example.controlplane.internal:18000| erreichbar ist.
 \begin{figure}
@@ -200,13 +206,13 @@ Quellcodeauszug \ref{code:envoy-control-plane} zeigt eine statische Konfiguratio
     \caption{Der Quellcodeauszug zeigt eine statische Envoy Konfiguration, um eine gRPC Verbindung mit einer Control Plane unter der Adresse \textit{example.controlplane.internal:18000} aufzubauen.}
     \label{code:envoy-control-plane}
 \end{figure}
-Die Konfigurationsdatei ist in drei Teile unterteilt:
+Die Konfigurationsdatei ist in drei Teile gegliedert:
 \begin{itemize}
-  \item \verb|node:| Identifikation der Envoy Instanz bei der Control Plane. Eine Control Plane ist in der Lage verschiedene Konfigurationen zu verwalten. Durch \verb|node.id| kann die Envoy Instanz einer Konfiguration zugeordnet werden.
+  \item \verb|node:| Identifikation der Envoy Instanz bei der Control Plane. Eine Control Plane kann verschiedene Konfigurationen verwalten. Durch \verb|node.id| kann die Envoy Instanz einer Konfiguration zugeordnet werden.
   \item \verb|dynamic_resources:| Gibt die Quelle der dynamischen Provisionierung an. Im Quellcodeauszug \ref{code:envoy-control-plane} wird eine \verb|gRPC| \ac{api} Namens \verb|xds_cluster| verwendet.
   \item \verb|static_resources:| Es wird die Quelle für eine dynamische Provisionierung definiert. Im Quellcodeauszug \ref{code:envoy-control-plane} wird eine Quelle Namens \verb|xds_cluster| definiert. Diese Quelle wird in \verb|dynamic_resources| referenziert.
 \end{itemize}
-Eine Control Plane kann in jeder Programmiersprache entwickelt werden und muss nur die Spezifikationen der Data-Plane API \cite{EnvoyproxyDataplaneapi2021} berücksichtigen. Um den Einstieg für Entwickler zu erleichtern, stellt Envoy Bibliotheken für Java und Golang bereit, die eine Abstraktion der Data-Plane \ac{api} bieten.
+Eine Control Plane kann in jeder Programmiersprache entwickelt werden und muss lediglich die Spezifikationen der Data-Plane API \cite{EnvoyproxyDataplaneapi2021} berücksichtigen. Um den Einstieg für Entwickler zu erleichtern, stellt Envoy Bibliotheken für Java und Golang bereit, die eine Abstraktion der Data-Plane \ac{api} bieten.
 \\
 Um eine horizontale Skalierung der Envoy Instanzen zu ermöglichen, wird im Rahmen der Thesis eine dynamische Konfiguration via Control Plane in Golang entwickelt.
 
@@ -228,12 +234,12 @@ Anstatt den Envoy Instanzen einen Domain Namen mitzuteilen und diesen auflösen 
 \end{figure}
 
 \subsubsection{DNS Cluster Discovery} \label{ss:dns-discovery}
-Die Implementierung der HiveMQ Cluster Discovery in der Control Plane muss sich Konzeptuell der \ac{dns} Cluster Discovery von der HiveMQ Erweiterung anlehnen. Wie schon in Kapitel \ref{ss:cluster-discovery} beschrieben, würde sonst die Topolgie des HiveMQ Clusters im Envoy von der tatsächlichen Topologie divergieren.
+Die Implementierung der HiveMQ Cluster Discovery in der Control Plane muss sich konzeptuell der \ac{dns} Cluster Discovery von der HiveMQ Erweiterung anlehnen. Wie schon in Kapitel \ref{ss:cluster-discovery} beschrieben würde sonst die Topolgie des HiveMQ Clusters im Envoy von der tatsächlichen Topologie divergieren.
 \\
-Die Control Plane muss asynchron und periodisch einen gegebenen Domain Namen auflösen und alle hinterlegten \ac{ip} Adressen als Nodes eines HiveMQ Clusters eintragen. Das Intervall der periodischen Auflösung sollte sehr gering gehalten werden, um auf Topologieänderungen schnell reagieren zu können.
+Die Control Plane muss asynchron und periodisch einen gegebenen Domain Namen auflösen und alle hinterlegten \ac{ip} Adressen als Nodes eines HiveMQ Clusters eintragen. Das Intervall der periodischen Auflösung sollte sehr gering gehalten sein, um auf Topologieänderungen schnell reagieren zu können.
 Cloudumgebungen wie Kubernetes haben in der Regel eigene \ac{dns} Services installiert, die eine hohe Abfragerate verarbeiten können.
 \\
-Quellcodeauszug \ref{code:dns-resolve-net} zeige die Auflösung aller \ac{ip} Adressen eines Domain Namens in Golang mit der Standard \verb|net| Bibliothek. Da die Funktion \verb|refreshDNS| als Go Routine gestartet wird, muss die \verb|main| Funktion nicht auf die Terminierung der \verb|refreshDNS| Funktion warten. Die \verb|refreshDNS| Funktion erneuert die \ac{ip} Adressen periodisch in gegebenem Intervall.
+Quellcodeauszug \ref{code:dns-resolve-net} zeigt die Auflösung aller \ac{ip} Adressen eines Domain Namens in Golang mit der Standard \verb|net| Bibliothek. Da die Funktion \verb|refreshDNS| als Go Routine gestartet wird, muss die \verb|main| Funktion nicht auf die Terminierung der \verb|refreshDNS| Funktion warten. Die \verb|refreshDNS| Funktion erneuert die \ac{ip} Adressen periodisch in gegebenem Intervall.
 \begin{figure}
     \import{gen/}{dns-resolve-net}
     \caption{Der Quellcodeauszug zeigt die Auflösung aller \ac{ip} Adressen für einen gegebenen Domain namen in Golang.}
@@ -241,7 +247,8 @@ Quellcodeauszug \ref{code:dns-resolve-net} zeige die Auflösung aller \ac{ip} Ad
 \end{figure}
 
 \subsubsection{Weighted CPU Round Robin} \label{ss:weighted-cpu}
-Die Testszenarien aus Kapitel \ref{ss:test} zeigen, dass es bei \ac{mqtt} viele verschiedene Client Verhaltensmuster gibt. Zudem kann ein Client sein Verhalten zur Laufzeit verändern und der \acl{lb} ist nicht mehr in der Lage diesen Client mit einem anderen Node zu verbinden.
+Die Testszenarien aus Kapitel \ref{ss:test} zeigen, dass es bei \ac{mqtt} viele verschiedene Client Verhaltensmuster gibt. Zudem kann ein Client sein Verhalten zur Laufzeit verändern.
+Folglich kann der \acl{lb} diesen Client nicht mehr mit einem anderen Node verbinden.
 Eine \ac{tcp} Verbindung bei \ac{mqtt} korreliert nicht mit der verursachten Arbeitslast auf dem Broker. In Szenario zwei haben 300 Publisher doppelt so viel Last erzeugt wie 3000 Subscriber und 1000 Publisher zusammen.
 Nur anhand der Anzahl aktiver Verbindungen pro Node kann im Fall \ac{mqtt} keine optimale load balancing Entscheidung getroffen werden.
 \\
@@ -255,7 +262,8 @@ Quellcodeauszug \ref{code:prometheus-curl} zeigt die Abfrage der Prometheus Metr
     \label{code:prometheus-curl}
 \end{figure}
 \\
-Für die programmatische Auswertung von Prometheus Metriken werden Bibliotheken für verschiedene Programmiersprachen bereitgestellt. Darunter befindet sich ebenfalls eine Bibliothek für Golang. Das \verb|expfmt| Paket dieser Bibliothek ist für das Parsen der Metriken zuständig.\cite{ExpfmtPkgGo}
+Für die programmatische Auswertung von Prometheus Metriken werden Bibliotheken für verschiedene Programmiersprachen bereitgestellt, so auch für Golang.
+Das \verb|expfmt| Paket dieser Bibliothek ist für das Parsen der Metriken zuständig \cite{ExpfmtPkgGo}.
 Quellcodeauszug \ref{code:expfmt} zeigt ein Golang Programm, das periodisch und asynchron die Prometheus Metrik \verb|com_hivemq_system_os_global_cpu_total_total| von einem HiveMQ Broker unter der Adresse \verb|http://localhost:9399/metrics| abruft. Der Wert der Metrik kann alle Werte zwischen 0 (keine Auslastung) und 100 (volle Auslastung) annehmen. Er wird in der Variable \verb|value| als Gleitkommazahl gespeichert.
 \begin{figure}
     \import{gen/}{expfmt}
@@ -265,9 +273,11 @@ Quellcodeauszug \ref{code:expfmt} zeigt ein Golang Programm, das periodisch und 
 \\
 Die \ac{cpu} Auslastung eines Nodes kann durch diverse Faktoren zeitweise schwanken. Mögliche Ursachen sind zum Beispiel der Java Garbage Collector, eine kurzfristige Traffic Spitze oder ein Client-Takeover.
 Diese kurzfristigen Unterschiede der Auslastung dürfen nicht direkt zu einer Veränderung der Gewichtung des Nodes führen.
-Um den direkten Einfluss solcher Spitzen zu vermeiden, werden Werte über einen bestimmten Zeitraum gesammelt und gemittelt. Der Mittelwert ist somit die durchschnittliche Arbeitslast eines Nodes in Prozent für eine bestimmte Dauer.
+Um den direkten Einfluss solcher Spitzen zu vermeiden, werden Werte über einen bestimmten Zeitraum gesammelt und gemittelt. Der Mittelwert ist die durchschnittliche Arbeitslast eines Nodes in Prozent für eine bestimmte Dauer.
 \\
-Anschlie{\ss}end muss die durchschnittliche Arbeitslast in eine Gewichtung für Envoy konvertiert werden. Je grö{\ss}er der Wert der Gewichtung im Vergleich zu den Gewichtungen der anderen Nodes ist, je mehr Clients werden mit diesem Node verbunden (siehe Kapitel \ref{ss:weighted-rr}). Demnach ist es nicht möglich die durchschnittliche Arbeitslast direkt als Gewichtung zu benutzen. Es würde ein gegenteiliger Effekt entstehen.
+Anschlie{\ss}end wird die durchschnittliche Arbeitslast in eine Gewichtung für Envoy konvertiert.
+Je grö{\ss}er der Wert der Gewichtung im Vergleich zu den Gewichtungen der anderen Nodes ist, desto mehr Clients werden mit diesem Node verbunden (siehe Kapitel \ref{ss:weighted-rr}).
+Demnach ist es nicht möglich die durchschnittliche Arbeitslast direkt als Gewichtung zu benutzen. Es würde ein gegenteiliger Effekt entstehen.
 \\
 Da Nodes mit grö{\ss}eren Gewichtungen mehr Clients erhalten, wird die freie \ac{cpu} Auslastung als Gewichtung der Nodes gewählt.
 Die freie Auslastung ergibt sich aus der Differenz von maximaler Auslastung (100) und durchschnittlicher Auslastung.
@@ -361,16 +371,17 @@ Die unterschiedlichen Lastverteilungen zwischen den load balancing Algorithmen k
 
 \subsubsection{Überlastschutz} \label{ss:circuit-breaking}
 Wie in Kapitel \ref{ss:weighted-cpu} beschrieben, kann das Lastverhalten von \ac{mqtt} Clients während der Laufzeit stark variieren. Da ein Client zur Laufzeit nicht mit einem anderen Node verbunden werden kann, kann es bei dem Verändern des Lastverhaltens von Clients zu einer Überlastsituation eines Nodes kommen.
-Ein HiveMQ Broker hat mehrere Möglichkeiten sich vor einer solchen Überlastsituation zu schützen (siehe Kapitel \ref{sb:overload-protection}).
+Ein HiveMQ Broker hat mehrere Möglichkeiten, sich vor einer solchen Überlastsituation zu schützen (siehe Kapitel \ref{sb:overload-protection}).
 Im ersten Schritt wendet der Broker \ac{tcp} Backpressure auf individuelle Clientverbindungen an, um den Paketfluss zu verzögern.
 Falls durch diese Mechanik eine Lastspitze nicht unter Kontrolle gebracht werden kann, wird die Verbindung von Clients unterbrochen, die ihre Credits aufgebraucht haben.
 Dadurch werden gezielt Clients vom Broker getrennt, die zu viel Arbeitslast für den Broker verursachen.
-Durch die Trennung dieser Clients gibt es keine Serviceeinschränkungen für alle anderen Clients, die mit dem Broker verbunden sind. Andernfalls kann es zu Paketverzögerungen oder Paketverlusten auf einem Broker kommen.
+Durch die Trennung dieser Clients gibt es keine Serviceeinschränkungen für alle anderen Clients, die mit dem Broker verbunden sind.
+Sonst käme es zu Paketverzögerungen oder Paketverlusten auf einem Broker.
 \\
 Wenn sich ein Node eines Clusters in einer Überlastsituation befindet, ist es wichtig, dass der Load Balancer keine neuen Clients mehr mit diesem Node verbindet.
-Über die Prometheus Schnittstelle der HiveMQ Nodes können diverse Metriken über den Zustand eines Nodes abgefragt werden.
+Über die Prometheus Schnittstelle der HiveMQ Nodes werden diverse Metriken über den Zustand eines Nodes abgefragt.
 Eine Liste aller Prometheus Metriken findet sich in der HiveMQ Dokumentation \cite{MonitoringHiveMQDocumentation}.
-Tabelle \ref{table:overload-protection-metrics} gibt eine Übersicht der Metriken, die Indikatoren für eine mögliche Überlastsituation sind. Metriken, die sich auf Clients beziehen, enthalten nur Daten von Clients, die mit dem Node verbunden sind, bei dem die Metriken abgefragt wurden.
+Tabelle \ref{table:overload-protection-metrics} gibt eine Übersicht der Metriken, die Indikatoren für eine mögliche Überlastsituation sind. Metriken, die sich auf Clients beziehen, enthalten nur Daten von Clients, die mit dem Node verbunden sind und bei dem die Metriken abgefragt wurden.
 \begin{table}[htbp]
 \centering
 \renewcommand{\arraystretch}{1.5}
@@ -393,10 +404,10 @@ Tabelle \ref{table:overload-protection-metrics} gibt eine Übersicht der Metrike
 \end{table}
 \\
 Die Metrik \verb|com.hivemq.supervision.overload.protection.level| aggregiert intern mehrere Metriken zusammen und bestimmt einen allgemeinen Überlastlevel des Nodes. Der Wert des Levels liegt zwischen null und zehn, wobei zehn das höchste Überlastlevel ist.
-Damit das maximale Überlastlevel möglichst nicht erreicht wird, kann der \acl{lb} präventiv keine neuen Clients mehr mit einem Node verbinden, der einen bestimmten Schwellwert als Level überschritten hat.
+Um ein maximales Überlastlevel zu vermeiden, kann der \acl{lb} präventiv keine neuen Clients mehr mit einem Node verbinden, der einen bestimmten Schwellwert als Level überschritten hat.
 \\
 Ein hohes Überlastlevel kann kurzfristig durch Events wie das Beitreten eines neuen Nodes in ein Cluster auftreten. Dabei werden einige Client Queues auf den neuen Node repliziert, was zeitweise die Nodes, auf denen die Queues liegen, stark beansprucht. Daher ist es wichtig, dass der \ac{lb} auf solche Events schnell reagiert und keine neuen Clients mehr mit den betroffenen Nodes verbindet.
-Um dies zu gewährleisten, sollte eine geringe Abtastfrequenz der Prometheus Metriken gewählt werden.
+Um dies zu gewährleisten, wird eine geringe Abtastfrequenz der Prometheus Metriken gewählt.
 \\
 Eine in Abbildung \ref{fig:overload-protection} gezeigte Überlastsituation verursacht einen maximalen Überlastlevel von 10. Dieses wird zu Beginn durch das Beitreten eines dritten Nodes und einem Verbinden von 800 Clients ausgelöst.
 Um ein HiveMQ Cluster in dieser Situation zu unterstützen, kann ein Schwellenwert für den Überlastschutz auf vier gesetzt werden, damit keine neuen Clients mehr mit einem sich in Überlastsituation befindenden Node verbunden werden.
@@ -409,7 +420,7 @@ Diese Methode wird auch als \textit{load shedding} bezeichnet. Dabei wird der an
     \caption{Die Abbildung zeigt Prometheus Metriken, die mit Grafana dargestellt werden, von einem HiveMQ Cluster bestehend aus drei Nodes. Bei den \ac{mqtt} Clients, die mit dem Cluster verbunden sind, wird von dem Broker \ac{tcp} backpressure angewendet, da diese zu viele Nachrichten veröffentlichen.}
     \label{fig:overload-protection}
 \end{figure}
-Um Envoy zu instruieren keine neuen Clients mit einem sich in Überlastsituation befindenden HiveMQ Node zu verbinden, wird der \textit{Health Status} des Nodes entsprechend gesetzt.
+Um Envoy zu instruieren keine neuen Clients mit einem sich in einer Überlastsituation befindenden HiveMQ Node zu verbinden, wird der \textit{Health Status} des Nodes entsprechend gesetzt.
 Der Wert ist entweder \verb|HEALTHY| oder \verb|UNHEALTHY|.
 Dieser Zustand kann über die Control Plane für jeden Node individuell gesetzt werden.
 \cite{HealthCheckEnvoy}
@@ -420,11 +431,13 @@ Nodes eines Clusters in Envoy haben einen Gesundheitszustand (engl. \textit{Heal
 Der Health Status eines Nodes ist anwendungsspezifisch und kann unter anderem durch \textit{health checks} bestimmt werden.
 \ac{http} Services implementieren für diesen Zweck beispielsweise eine \verb|/health| Route, die der \acl{lb} periodisch abrufen kann. Wenn der \ac{http} Status Code der Antwort 200 beträgt, ist der Service healthy und bereit für neue Verbindungen.
 \\
-Um zu überprüfen, ob ein HiveMQ Broker bereit ist neue Clientverbindungen \ac{mqtt} konform anzunehmen, muss sich die Control Plane als \ac{mqtt} Client bei dem Broker anmelden. Falls die Verbindung erfolgreich ist, sollte die \ac{mqtt} Verbindung \ac{mqtt} konform beendet und der Node als \verb|HEALTHY| markiert werden.
+Um zu überprüfen, ob ein HiveMQ Broker bereit ist neue Clientverbindungen \ac{mqtt} konform anzunehmen, muss sich die Control Plane als \ac{mqtt} Client bei dem Broker anmelden.
+Falls die Verbindung erfolgreich ist, wird die \ac{mqtt} Verbindung \ac{mqtt} konform beendet und der Node als \verb|HEALTHY| markiert.
 Um einen ausführlicheren Health Check zu implementieren, können noch weitere \ac{mqtt} Funktionen wie Publish und Subscribe getestet werden. Dazu abonniert die Control Plane ein Topic, das nicht von anderen Clients verwendet wird. Nach dem Abonnieren veröffentlicht die Control Plane eine beliebige Nachricht auf dem zuvor abonnierten Topic und überprüft, ob diese Nachricht empfangen wird. Abbildung \ref{fig:health-check-sequence} zeigt die erforderlichen \ac{mqtt} Pakete und den Ablauf des beschriebenen Health Checks in einem UML Ablaufdiagramm. Wenn keine Fehler während des Health Checks auftreten, wird der Node als \verb|HEALTHY| markiert.
 \\
 Um Clients möglichst immer mit einem funktionierenden HiveMQ Node eines Clusters zu verbinden, muss der Health Check periodisch von der Control Plane ausgeführt werden.
-Zudem kann ein Zeitfenster definiert werden, in dem ein Health Check erfolgreich durchgelaufen sein muss. Falls der Health Check länger als das Zeitfenster braucht, gilt der Node als \verb|UNHEALTHY|. Dadurch kann neben der Funktionalität des Brokers auch eine gegebene Antwortzeit gewährleistet werden.
+Zudem kann ein Zeitfenster definiert werden, in dem ein Health Check erfolgreich durchgelaufen sein muss.
+Falls der Health Check länger als das Zeitfenster benötigt, gilt der Node als \verb|UNHEALTHY|. Dadurch kann neben der Funktionalität des Brokers auch eine gegebene Antwortzeit gewährleistet werden.
 \begin{figure}
     \centering
     \includegraphics[scale=0.5]{gen/health-check.png}
@@ -435,8 +448,9 @@ Zudem kann ein Zeitfenster definiert werden, in dem ein Health Check erfolgreich
 \subsubsection{Aktualisierung der Konfiguration}
 Um Aktualisierungen wie Health Status, Gewichtung oder Anzahl der Nodes an eine Envoy Instanz zu schicken, werden versionierte Momentaufnahmen (engl. \textit{Snapshots}) von einem Zustand der Konfiguration erstellt. Wenn die Version des Snapshots auf dem Envoy eine andere Version ist als die Version des aktuellen Snapshots auf der Control Plane, liefert die Control Plane den aktuellen Snapshot an die Envoy Instanz aus.
 \\
-Um Konfigurationen optimal in einen Cache-Speicher ablegen zu können, sollte eine einzigartige Konfiguration immer dieselbe Version haben.
-Dazu kann die Clusterkonfiguration in eine Hash Funktion gegeben werden, um als Resultat einen String mit fixer Länge als Rückgabewert zu kriegen. Die Hash Funktion garantiert einen immer gleichen Rückgabewert bei gleichem Input. Dementsprechend wird bei gleichbleibender Konfiguration immer die gleiche Version erzeugt.
+Um Konfigurationen optimal in einem Cache-Speicher abzulegen, hat eine einzigartige Konfiguration immer dieselbe Version.
+Dazu kann die Clusterkonfiguration in eine Hash Funktion gegeben werden, um als Resultat einen String mit fixer Länge als Rückgabewert zu erhalten.
+Die Hash Funktion garantiert einen immer gleichen Rückgabewert bei gleichem Input. Dementsprechend wird bei gleichbleibender Konfiguration immer die gleiche Version erzeugt.
 Als Eingabe der Hash Funktion dienen alle Informationen bei deren Änderung eine neue Version erstellt werden soll. Dies ist eine Liste aller HiveMQ Nodes mit folgenden Werten:
 \begin{itemize}
   \item \ac{ip} Adresse
@@ -444,7 +458,10 @@ Als Eingabe der Hash Funktion dienen alle Informationen bei deren Änderung eine
   \item Gewichtung
   \item Health Status
 \end{itemize}
-Die Reihenfolge, in der die Nodes in der Liste für die Hash Funktion vorkommen, ist von Relevanz. Falls alle Nodes dieselben Werte haben, sich aber die Reihenfolge der Liste geändert hat, würde die Hash Funktion einen neuen Wert zurückgeben. Daher muss sichergestellt werden, dass die Nodes immer in der gleichen Reihenfolge vorkommen. Um die Liste der Nodes zu sortieren, müssen einzigartige Eigenschaften der Nodes verglichen werden.
+Die Reihenfolge, in der die Nodes in der Liste für die Hash Funktion vorkommen, ist von hoher Relevanz.
+Hätten alle Nodes dieselben Werte, sich aber die Reihenfolge der Liste ändert, würde die Hash Funktion einen neuen Wert zurückgeben.
+Daher muss sichergestellt sein, dass die Nodes immer in der gleichen Reihenfolge vorkommen.
+Um die Liste der Nodes zu sortieren, werden einzigartige Eigenschaften der Nodes verglichen.
 Es können niemals zwei HiveMQ Nodes dieselbe \ac{ip} Adresse und den selben Port haben. Beide Werte als String vereint können verglichen werden, um bei gleichbleibenden Nodes dieselbe Reihenfolge in einer Liste einzuhalten.
 \begin{figure}
     \import{gen/}{snapshot-versioning}
@@ -455,7 +472,8 @@ Es können niemals zwei HiveMQ Nodes dieselbe \ac{ip} Adresse und den selben Por
 Die Funktion \verb|generateVersion| aus Quellcodeauszug \ref{code:snapshot-versioning} generiert die Version für einen Snapshot. Es wird eine HiveMQ Node Liste übergeben und ein String zurückgegeben, der als Version des Snapshots dient. Nach der Sortierung der HiveMQ Node Liste nach Identifier, der aus Hostnamen und Port besteht, werden die Werte Identifier (Hostname und Port), Gewichtung und Health Status in eine Hash Funktion gegeben. Das Ergebnis der Hash Funktion ist der Rückgabewert der Funktion \verb|generateVersion|.
 
 \subsection{Sticky Session} \label{ss:sticky-session}
-Ein HiveMQ Broker speichert temporär Daten von \ac{mqtt} Clients ab. Darunter sind Daten wie zum Beispiel Topic Aliasse oder Nachrichten, die nicht zugestellt werden konnten, weil die Verbindung des Clients unterbrochen wurde. Sobald sich ein Client, bei dem die Verbindung unterbrochen wurde, wieder mit dem Broker verbindet, kann der Broker die vorbehaltenen Nachrichten zustellen.
+Ein HiveMQ Broker speichert temporär Daten von \ac{mqtt} Clients ab. Darunter sind Daten wie zum Beispiel Topic Aliasse oder Nachrichten, die nicht zugestellt werden konnten, weil die Verbindung des Clients unterbrochen wurde.
+Sobald sich ein nicht mehr verbundener Client wieder mit dem Broker verbindet, kann der Broker die vorbehaltenen Nachrichten zustellen.
 Dies verringert den Datenverlust in instabilen Netzwerken.
 \\
 Wie in Kapitel \ref{sp:persistent-session} erläutert, werden clientspezifische Daten nur auf bestimmten HiveMQ Nodes eines Clusters gespeichert.
@@ -465,7 +483,8 @@ Ein solches Verfahren nennt sich \textit{Sticky Session} oder \textit{Session Af
 
 \subsubsection{Clientkennung} \label{ss:clientid}
 Jeder \ac{mqtt} Client wird durch eine einzigartige Clientkennung identifiziert. Dieser wird, wie in Kapitel \ref{s:mqtt-connect} beschrieben, in dem \ac{mqtt} \verb|CONNECT| Paket beim Verbindungsaufbau vom Client an den Broker geschickt.
-Eine Clientkennung darf niemals doppelt vergeben werden. Sobald sich ein Client mit dem Broker verbindet, dessen Kennung bereits von einem anderen Client genutzt wird, unterbricht der Broker die Verbindung mit dem bereits verbundenen Client und führt einen Client Takeover für den neuen Client durch. Dadurch wird sichergestellt, dass jede Clientkennung nur einmal vergeben ist.
+Eine Clientkennung darf niemals doppelt vergeben werden. Sobald sich ein Client mit dem Broker verbindet, dessen Kennung bereits von einem anderen Client genutzt wird, unterbricht der Broker die Verbindung mit dem bereits verbundenen Client und führt einen Client Takeover Client durch.
+Dieser Vorgang gewährleistet, dass jede Clientkennung nur einmal vergeben ist.
 \\
 Die Clientkennung eignet sich durch ihre Einzigartigkeit als Identifier für eine Sticky Session.
 
@@ -473,10 +492,12 @@ Die Clientkennung eignet sich durch ihre Einzigartigkeit als Identifier für ein
 In Kapitel \ref{ss:clientid} wurde die Benutzung der \ac{mqtt} Clientkennung als Merkmal für eine Sticky Session beschrieben. Envoy ist im Kern ein \ac{osi}-Layer vier \acl{lb} und hat auf Informationen, wie eine Layer sieben \ac{mqtt} Clientkennung, keinen Zugriff. Wie in Kapitel \ref{s:envoy} erläutert, kann Envoy zum Beispiel für \ac{http} als Layer sieben \ac{lb} betrieben werden, da das Dekodieren von \ac{http} Paketen bereits in Envoy implementiert wurde.
 Das \ac{mqtt} Protokoll ist nicht in Envoy integriert. Aus diesem Grund gibt es keine Möglichkeit in der Envoy Konfiguration eine load balancing Entscheidung anhand der Clientkennung zu treffen, da Envoy die einzelnen \ac{mqtt} Pakete nicht dekodiert.
 \\
-Envoy ermöglicht das Einbinden von Web Assembly Modulen, um diese als Netzwerk Filter zu benutzen. Ein Netzwerk Filter kann \ac{mqtt} Pakete dekodieren, um diese den nachfolgenden Filtern in der Pipeline zur Verfügung zu stellen. Bislang gibt es \ac{wasm} \acp{sdk} für Rust, C++, AssemblyScript und Golang. \cite{sebastianHowWriteWASM} Beispiele für eine Implementation eines Golang Netzwerk Filters finden sich auf GitHub \cite{TetratelabsProxywasmgosdk2021}.
+Envoy ermöglicht das Einbinden von Web Assembly Modulen als Netzwerkfilter.
+Ein Netzwerkfilter kann \ac{mqtt} Pakete dekodieren, um diese den nachfolgenden Filtern in der Pipeline zur Verfügung zu stellen.
+Bislang gibt es \ac{wasm} \acp{sdk} für Rust, C++, AssemblyScript und Golang. \cite{sebastianHowWriteWASM} Beispiele für eine Implementation eines Golang Netzwerk Filters finden sich auf GitHub \cite{TetratelabsProxywasmgosdk2021}.
 \\
 Das Dekodieren der \ac{mqtt} Pakete in Golang wurde bereits von der Eclipse \ac{mqtt} Bibliothek \cite{EclipsePahoMqtt2021} implementiert.
-Der Quellcodeauszug \ref{code:mqtt-connect-decode} zeigt einen Auszug aus der Datei \verb|packets/connect.go| des Repositories und dekodiert ein \ac{mqtt} \verb|CONNECT| Paket. Die Fehlerabhandlung wurde für bessere Lesbarkeit entfernt. Quellcodeauszug \ref{code:mqtt-connect-struct} zeigt die Struktur eines \verb|CONNECT| Paketes basierend der in Kapiel \ref{s:mqtt-connect} beschriebenen Felder.
+Der Quellcodeauszug \ref{code:mqtt-connect-decode} zeigt einen Auszug aus der Datei \verb|packets/connect.go| des Repositories und dekodiert ein \ac{mqtt} \verb|CONNECT| Paket. Die Fehlerabhandlung wurde für bessere Lesbarkeit entfernt. Quellcodeauszug \ref{code:mqtt-connect-struct} zeigt die Struktur eines \verb|CONNECT| Paketes basierend auf den in Kapiel \ref{s:mqtt-connect} beschriebenen Feldern.
 \begin{figure}
     \import{gen/}{mqtt-connect-struct}
     \caption{Es wird eine Golang Struktur gezeigt, die alle Daten eines \ac{mqtt} CONNECT Paketes beinhalten kann. Quelle: \cite{EclipsePahoMqtt2021}}
@@ -488,12 +509,13 @@ Der Quellcodeauszug \ref{code:mqtt-connect-decode} zeigt einen Auszug aus der Da
     \label{code:mqtt-connect-decode}
 \end{figure}
 \\
-Bei jeder neuen Clientverbindung muss der \acl{lb} das erste Paket des Clients mit der Funktion \verb|Unpack| aus Quellcodeauszug \ref{code:mqtt-connect-decode} dekodieren um an den Wert von\newline
+Bei jeder neuen Clientverbindung dekodiert der \acl{lb} das erste Paket des Clients mit der Funktion \verb|Unpack| aus Quellcodeauszug \ref{code:mqtt-connect-decode}, um an den Wert von\newline
 \verb|ConnectPacket.ClientIdentifier| zu gelangen.
 Die Clientkennung wird beispielsweise in einer HashMap gespeichert, um bei neuen Clientverbindungen zu prüfen, ob der Client bereits mit einem Node verbunden wurde.
 
 \subsubsection{Cluster Health}
-Bei dem in Kapitel \ref{ss:weighted-cpu} vorgestellten weighted round-robin load balancing Algorithmus ist es nicht möglich, einen individuellen Client mit einem bestimmten Node zu verbinden. Der \acl{lb} muss entscheiden, ob ein Client basierend dem weighted round-robin oder dem Sticky Session Algorithmus aus Kapitel \ref{ss:clientid} mit einem Zielnode verbindet.
+Bei dem in Kapitel \ref{ss:weighted-cpu} vorgestellten weighted round-robin load balancing Algorithmus ist es nicht möglich, einen individuellen Client mit einem bestimmten Node zu verbinden.
+Der \acl{lb} entscheidet, ob ein Client basierend auf dem weighted round-robin oder dem Sticky Session Algorithmus aus Kapitel \ref{ss:clientid} mit einem Zielnode verbunden wird.
 \\
 Eine Möglichkeit, beide Algorithmen in einem \acl{lb} zu verwenden, ist bei einem neuen Client zuerst in der HashMap nachzuschlagen, ob dieser Client bereits mit einem Node verbunden wurde. Falls dieser Node noch vorhanden und \verb|HEALTHY| ist, wird der Client erneut mit dem Node verbunden. Andernfalls wird ein neuer Node basierend dem weighted round-robin Algorithmus bestimmt.
 Diese Methode harmoniert mit dem beschriebenen Überlastschutz aus Kapitel \ref{ss:circuit-breaking}. Für den Fall, dass ein HiveMQ Node die Verbindung eines Clients unterbricht, weil der Node überlastet ist, markiert der Überlastschutz diesen Node als \verb|UNHEALTHY| und der \acl{lb} wird den Client, der sich wieder mit dem Cluster verbindet, mit einem anderen Node verbinden.

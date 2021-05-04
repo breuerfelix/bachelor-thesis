@@ -1,23 +1,24 @@
 \section{Problembeschreibung} \label{s:problem}
-Die Clusterfähigkeit des HiveMQ Brokers ermöglicht Millionen \ac{iot} Geräten die Kommunikation untereinander über einen zentralen und ausfallsicheren HiveMQ Cluster.
-Um ein HiveMQ Cluster für \ac{mqtt} Clients zu einem virtuellen Broker mit einer einzigen \ac{ip} Adresse oder Domain zu abstrahieren, wird, wie in Kapitel \ref{s:load-balancing} beschrieben, ein \acl{lb} benötigt.
-In diesem Kapitel werden Anforderung für einen \acl{lb} definiert, um \ac{mqtt} Traffic \textit{klug} an alle Nodes eines HiveMQ Clusters transparent zum Client zu verteilen.
+Die Clusterfähigkeit des HiveMQ Brokers ermöglicht über einen zentralen und ausfallsicheren HiveMQ Cluster Millionen von \ac{iot} Geräten die Kommunikation untereinander.
+Um ein HiveMQ Cluster für \ac{mqtt} Clients zu einem virtuellen Broker mit einer einzigen \ac{ip} Adresse oder Domain zu abstrahieren, wird wie in Kapitel \ref{s:load-balancing} beschrieben ein \acl{lb} benötigt.
+In diesem Kapitel werden Anforderungen für einen \acl{lb} definiert, um \ac{mqtt} Traffic \textit{klug} an alle Nodes eines HiveMQ Clusters transparent zum Client zu verteilen.
 
 \subsection{Cluster Discovery} \label{sp:cluster-discovery}
-Ein HiveMQ Cluster ist, wie in Kapitel \ref{s:hivemq-cluster} beschrieben, in der Lage, zur Laufzeit die Grö{\ss}e des Clusters anzupassen. Der Load Balancer muss daher ebenfalls in der Lage sein, neue HiveMQ Nodes zur Laufzeit zu entdecken und neue Clients mit den neuen Nodes zu verbinden. Falls sich die Anzahl der Nodes verringert, darf der Load Balancer keine neuen Verbindungen mehr mit den alten Nodes aufbauen. Dies würde zu Fehlern bei den Clients führen.
+Ein HiveMQ Cluster ist, wie in Kapitel \ref{s:hivemq-cluster} beschrieben, in der Lage, zur Laufzeit die Grö{\ss}e des Clusters anzupassen. Der Load Balancer muss daher in der Lage sein, neue HiveMQ Nodes zur Laufzeit zu entdecken und neue Clients mit den neuen Nodes zu verbinden. Falls sich die Anzahl der Nodes verringert, darf der Load Balancer keine neuen Verbindungen mehr mit den alten Nodes aufbauen. Dies würde zu Fehlern bei den Clients führen.
 Eine statische Konfiguration der HiveMQ Nodes ist somit nicht möglich.
 
 \subsection{Langlebige TCP Verbindungen}
-% TODO evtl scherfälligkeit von tcp erwähnen
 In Kapitel \ref{s:mqtt} wurde erläutert, dass \ac{mqtt} langlebige \ac{tcp} Verbindungen benutzt, um den Kommunikationsaufwand gering zu halten.
 Dies ermöglicht das \textit{Push-Push} Prinzip, bei dem der Broker Nachrichten zum Client schicken kann, ohne dass dieser periodisch nach neuen Nachrichten fragen muss.
-Der Load Balancer muss aktive Clientverbindungen aufrecht halten, bis Clients diese terminieren.
+Der Load Balancer hält aktive Clientverbindungen aufrecht, bis Clients diese terminieren.
 Aktualisierungen des Load Balancers oder dessen Konfiguration dürfen nicht zu einer Unterbrechung der aktiven Verbindungen führen.
 
 \subsection{Persistente Client Sessions} \label{sp:persistent-session}
-Wie in Kapitel \ref{s:persistent-session} beschrieben können Clients eine persistente Session bei einem Broker anfordern. Dabei werden Nachrichten und Session relevante Daten gespeichert für den Fall, dass die Verbindung zum Client unterbrochen wird. Sobald der Client seine Verbindung wieder aufbaut, findet ein Client Takeover (\ref{s:client-takeover}) statt.
+Wie in Kapitel \ref{s:persistent-session} beschrieben können Clients eine persistente Session bei einem Broker anfordern.
+Für den Fall eines Verbindungsabbruchs, werden Nachrichten und Session relevante Daten gespeichert.
+Sobald der Client seine Verbindung wieder aufbaut, findet ein Client Takeover (\ref{s:client-takeover}) statt.
 Dieser Prozess findet bei einem Broker im Arbeitsspeicher statt.
-Dort muss zu den existierenden persistierten Daten der dazugehörige \ac{tcp} Socket ausgetauscht werden.
+Dort wird zu den existierenden persistierten Daten der dazugehörige \ac{tcp} Socket ausgetauscht.
 Wenn der Client die Verbindung mit einem anderen Node des HiveMQ Cluster wiederaufbaut, ist ein Client Takeover komplexer.
 In diesem Szenario müssen die persistierten Daten des Clients im Cluster synchronisiert werden.
 Je mehr Daten für die Synchronisation anfallen, desto aufwändiger ist der Client Takeover.
@@ -25,13 +26,16 @@ Je mehr Daten für die Synchronisation anfallen, desto aufwändiger ist der Clie
 Im Optimallfall wird der neue Client mit demselben Node verbunden, mit dem er zuvor verbunden war, um interne Kommunikation und Latenzen beim Verbindungsaufbau zu verringern.
 
 \subsection{Überlastschutz}
-In Kapitel \ref{sb:overload-protection} wurde der Überlastschutz eines HiveMQ Brokers erläutert. Dies ermöglicht dem Broker die Verbindung individueller Clients, die viel Arbeitslast auf dem Broker erzeugen, zu unterbrechen. Falls der \ac{mqtt} Client sich \ac{mqtt} konform verhält, versucht dieser die Verbindung automatisch wiederherzustellen.
+In Kapitel \ref{sb:overload-protection} wurde der Überlastschutz eines HiveMQ Brokers erläutert. Dies ermöglicht dem Broker die Verbindung individueller Clients, die viel Arbeitslast auf dem Broker erzeugen, zu unterbrechen. Falls der \ac{mqtt} Client sich \ac{mqtt} konform verhält, versucht dieser automatisch die Verbindung wiederherzustellen.
 In diesem Fall darf der Load Balancer den Client nicht wieder mit demselben Node verbinden, da dieser Node mit dem Client erneut überlastet sein wird. Es muss ein Node mit einer geringerer Auslastung für diesen Client gefunden werden.
 \\
-Das Overload Protection Level gibt an, ob sich der HiveMQ Node in einer Überlast befindet. Der Load Balancer sollte den Node im Fall einer Überlast unterstützen, indem er keine neuen Clients mehr mit diesem Node verbindet.
+Das Overload Protection Level gibt an, ob sich der HiveMQ Node in einer Überlast befindet.
+Der Load Balancer sollte den Node im Fall einer Überlast unterstützen, indem er keine neuen Clients mit diesem Node verbindet.
 
 \subsection{Ungleiche Lastverteilung} \label{sp:load}
-Es gibt viele verschiedene \ac{mqtt} Clients im Anwedungsfeld \ac{iot}. Manche sind beispielsweise Temperatursensoren, die alle zehn Minuten einen Wert auf ein Topic veröffentlichen, andere sind Drehzahlsensoren, die alle 500 Millisekunden die aktuelle Drehzahl eines Motors zur Geschwindigkeitsermittlung veröffentlichen.
+Es gibt viele verschiedene \ac{mqtt} Clients im Anwedungsfeld \ac{iot}.
+Manche sind beispielsweise Temperatursensoren, die alle zehn Minuten einen Wert auf ein Topic veröffentlichen.
+Andere sind Drehzahlsensoren, die alle 500 Millisekunden die aktuelle Drehzahl eines Motors zur Geschwindigkeitsermittlung veröffentlichen.
 Die Drehzahlsensoren verursachen durch die erhöhte Frequenz der Nachrichten mehr Traffic und Arbeitslast auf einem Broker als die Temperatursensoren.
 \\
 Da \ac{mqtt} ein zustandsbehaftetes und verbindungsorientiertes Protokoll ist, kann die load balancing Entscheidung nicht auf Paket-, sondern nur auf Verbindungsebene getroffen werden. Sobald eine Clientverbindung aufgebaut ist, werden alle Nachrichten des Clients immer an denselben Node weitergeleitet.
@@ -39,6 +43,6 @@ Aus diesem Grund kann bei einem \textit{round-robin} oder \textit{least connecti
 Clientseitiges load balancing, wie zum Beispiel mit \textit{Shared Subscriptions} (siehe Kapitel \ref{s:shared-subscriptions}) oder dem Verteilen von ausgehenden Nachrichten des Clients auf mehrere \ac{tcp} Verbindungen zu einem HiveMQ Cluster, ist nicht immer möglich. Wenn ein HiveMQ Cluster als \textit{Software as a Service} angeboten wird, hat der Betreiber keinen direkten Einfluss auf die \ac{mqtt} Clients, die sich mit dem Cluster verbinden.
 % TODO eventuell minimierung der client verbindungen weil Kommunikationsarm ?
 \\
-Ein \ac{lb} für \ac{mqtt} muss in der Lage sein, die eingehenden Verbindungen basierend der derzeitigen Arbeitslast der einzelnen Nodes zu gewichten.
+Ein \ac{lb} für \ac{mqtt} muss in der Lage sein, die eingehenden Verbindungen basierend auf der derzeitigen Arbeitslast der einzelnen Nodes zu gewichten.
 
 \newpage
