@@ -1,3 +1,11 @@
+TODO:
+- quellen überprüfen / seitenangabe bei quellen
+- caption für abbildungsverzeichnis anfertigen
+
+- überlastschutz kapitel
+- envoy architecture
+- split brain erwähnen bei cluster discovery
+
 kontrolle:
 - rechtschreibung / grammatik
 - fazit / einleitung / abstract
@@ -10,7 +18,6 @@ kontrolle:
 - rückkopplung zwischen broker und load balancer
 
 - operative prozesse -> neuer client auf neuen node -> kann der LB gut unterstützen -> transparentes neuverteilen
-
 
 - besserer erster satz
 - positiver
@@ -26,15 +33,6 @@ kontrolle:
 - abschnitt für bahnbrechende geschichten
 - swarm -> testwerkzeug -> benchmark tool
 - grundidee transparent client
-
-TODO:
-- bilder an die richtigen stellen
-- korrektur mit grammer checker
-- quellen überprüfen / seitenangabe bei quellen
-
-- überlastschutz kapitel
-- envoy architecture
-- split brain erwähnen bei cluster discovery
 
 überlastschutz bearbeiten:
 - ist circuit breaking das richtige wort ?
