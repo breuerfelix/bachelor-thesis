@@ -42,8 +42,9 @@ In verteilten Systemen bietet ein solches Konzept eine einheitliche Abstraktion 
 Im Kontext \ac{mqtt} werden Nachrichten in ein hierarchisch aufgebautes Topic klassifiziert, das mit einem oder mehreren \textit{Topic-levels} adressiert wird.
 Bei der Notation werden Topic-levels mit einem Schrägstrich (\verb|/|) getrennt: \verb|sensors/temperature/celcius|.
 Abbildung \ref{fig:publish-subscribe} zeigt einen Client, der auf das Topic \verb|sensors/temperature| Nachrichten veröffentlicht. Diese wird an zwei weitere Clients, die das Topic \verb|sensors/temperature| abonniert haben, durch den Broker weitergeleitet.
-Topics müssen bei einem Broker nicht explizit angelegt werden. Sobald ein Client auf einem Topic publiziert oder es abonniert, wird dieses automatisch angelegt.\cite{WhatMQTTDefinition}\\
-Beim Abonnieren können Clients ein exaktes Topic angeben oder mehrere Topics gleichzeitig abonnieren, indem sie Wildcards als Topic-levels verwenden.
+Topics müssen bei einem Broker nicht explizit angelegt werden. Sobald ein Client auf einem Topic publiziert oder es abonniert, wird dieses automatisch angelegt.\cite{WhatMQTTDefinition}
+\newpage
+\noindent Beim Abonnieren können Clients ein exaktes Topic angeben oder mehrere Topics gleichzeitig abonnieren, indem sie Wildcards als Topic-levels verwenden.
 Bei Wildcards werden zwischen den folgenden zwei unterschieden \cite{teamMQTTTopicsBest}:
 \begin{itemize}
     \item Single-level '\verb|+|': Ersetzt ein Topic-level und abonniert alle Topics, die an der Stelle der Wildcard ein beliebiges Topic-level verwenden.
@@ -182,7 +183,8 @@ Die Enkodierung eines \textit{Variable-Byte-Integer} wird in Kapitel 1.5.5 der \
 \subsubsection{MQTT CONNECT} \label{s:mqtt-connect}
 Nachdem eine \ac{tcp} Verbindung zwischen einem Client und einem Broker aufgebaut wurde, muss das erste Paket des Clients ein \verb|CONNECT| Paket sein.
 Tabelle \ref{table:mqtt-connect-packet-variable-header} zeigt den Aufbau und Inhalt eines beispielhaften variablen Headers eines \verb|CONNECT| Paketes.
-Die ersten sechs Byte geben den Namen des Protokolls als UTF-8 enkodierten String an. Dieser wird sich in zukünftigen Versionen nicht ändern und dient als Identifikationsmerkmal des \ac{mqtt} Protokolls für Server, die mehrere Protokolle implementiert haben. Byte sieben gibt die verwendete \ac{mqtt} Version des Clients an. In Byte acht kann der Client Kennzeichnungen für die Präsenz der optionalen Daten setzen. Die Länge der Eigenschaften wird mit Byte elf bestimmt. In den Eigenschaften kann der Client zum Beispiel eine maximale Paketgrö{\ss}e oder Topic Aliasse setzen.\cite{mqtt5Specification}\\
+Die ersten sechs Byte geben den Namen des Protokolls als UTF-8 enkodierten String an. Dieser wird sich in zukünftigen Versionen nicht ändern und dient als Identifikationsmerkmal des \ac{mqtt} Protokolls für Server, die mehrere Protokolle implementiert haben. Byte sieben gibt die verwendete \ac{mqtt} Version des Clients an. In Byte acht kann der Client Kennzeichnungen für die Präsenz der optionalen Daten setzen. Die Länge der Eigenschaften wird mit Byte elf bestimmt. In den Eigenschaften kann der Client zum Beispiel eine maximale Paketgrö{\ss}e oder Topic Aliasse setzen.\cite{mqtt5Specification}
+\newpage\noindent
 Auf den variablen Header folgen die Daten (engl. \textit{Payload}) des \verb|CONNECT| Paketes. Diese sind ein oder mehrere Felder mit ihrer Länge als Präfix. Byte acht des variablen Headers bestimmt das Vorkommen der Felder, die - falls vorhanden - eine strikte Reihenfolge einhalten müssen.
 \cite{mqtt5Specification}
 \begin{enumerate}
@@ -424,6 +426,7 @@ Der \ac{lb} bestimmt den Server anhand eines Hash-Wertes von diversen Daten des 
 Mögliche Daten sind Quell-, Ziel \ac{ip}-Adresse, Port oder Domain Name. Durch diesen Algorithmus werden wiederkehrende Clients mit denselben Hash-Werten immer mit demselben Server verbunden.
 \cite{WhatLoadBalancer}
 
+\newpage
 \subsubsection{Envoy} \label{s:envoy}
 Envoy ist ein \ac{osi}-Layer sieben Proxy, der für gro{\ss}e, moderne, serviceorientierte Architekturen von Lyft entwickelt wurde.
 Im September 2017 wurde Envoy an die \textit{Cloud Native Computing Foundation} gestiftet, die Cloud Projekte wie Kubernetes, Prometheus, containerd und Jaeger verwaltet.

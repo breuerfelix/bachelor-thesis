@@ -1,5 +1,10 @@
-einleitung:
-- 
+kontrolle:
+- rechtschreibung / grammatik
+- fazit / einleitung / abstract
+- englische wörter mit bindestrich schreiben ??
+- layout / struktur! abstand nächste seite ? bilder placement?
+- jan hat sein fazit nicht beendet
+
 
 - least connection kann mehr berücksichtigen
 - rückkopplung zwischen broker und load balancer

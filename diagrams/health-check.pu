@@ -1,5 +1,5 @@
 @startuml
-participant "Control Plane" as cp
+participant "Control-Plane" as cp
 participant "HiveMQ Broker" as broker
 
 cp -> broker: CONNECT\nID: health-check-client

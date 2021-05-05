@@ -1,45 +1,28 @@
 \section{Fazit}
-Das Ziel der vorliegenden Arbeit war die Analyse des \ac{mqtt} Protokolls mit Hinblick auf das \textit{kluge} Verteilen der Clients an HiveMQ Nodes und die Erstellung einer Envoy Control Plane, die einige der analysierten Features implementiert.
+Das Ziel der vorliegenden Arbeit war die Analyse des \ac{mqtt} Protokolls mit Hinblick auf das \textit{kluge} Verteilen der Clients an HiveMQ Nodes und die Erstellung einer Envoy Control-Plane, die einige der analysierten Features implementiert.
 \\
 Die Vorbereitung auf diese Analyse bedurfte eine umfangreiche Einarbeitung in das \ac{mqtt} Protokoll, um die Eigenheiten und verschiedenen Verhaltensmuster der Clients zu untersuchen.
-Trotz der in den letzten Jahren stetig steigenden Verwendung des Protokolls, unteranderem bei gro{\ss}en Cloud Anbietern wie Amazon Web Services und Microsoft Azure, gibt es öffentlich wenige Informationen zu dem Betrieb von \ac{mqtt} Brokern.
-Auch der Support des \ac{mqtt} Protokolls in Proxies wie Nginx, HAProxy oder Envoy ist noch nicht gegeben. Dort ist es bereits möglich Protokoll \textit{sniffing} für Redis, MongoDB oder Postgres zu betreiben, um eine ausführliche Analayse des Traffics durchzuführen.
+Trotz der in den letzten Jahren stetig steigenden Verwendung des Protokolls, unter anderem bei gro{\ss}en Cloud Anbietern wie Amazon Web Services und Microsoft Azure, gibt es öffentlich wenige Informationen zu dem Betrieb von \ac{mqtt} Load-Balancern.
+Auch der Support des \ac{mqtt} Protokolls in Proxies wie Nginx, HAProxy oder Envoy ist noch nicht gegeben. Dort ist es bereits möglich Protokoll \textit{sniffing} für Redis, MongoDB oder Postgres zu betreiben, um eine ausführliche Analyse des Traffics durchzuführen.
 Der Mangel an Ressourcen des Ökosystems \textit{load balancing \ac{mqtt}} könnte durch die Kommerzialisierung im Bereich \ac{iiot} zu begründen sein.
 \\
-Um \ac{iot}-Plattformen zu optimieren, müssen typischerweise entkoppelte Load Balancer ein integraler Bestandteil des \ac{iot}-Ökosystems werden. Sie müssen das Protokoll verstehen, Informationen der Plattform aggregieren und reaktive load balancing Entscheidungen treffen.
+Um \ac{iot}-Plattformen zu optimieren, müssen typischerweise entkoppelte \acl{lb} ein integraler Bestandteil des \ac{iot}-Ökosystems werden. Sie müssen das Protokoll verstehen, Informationen der Plattform aggregieren und reaktive load balancing Entscheidungen treffen.
 %Dies ist für das optimale Verteilen von Millionen \ac{iot}-Geräten erforderlich.
 Nur so kann der Traffic von Millionen \ac{iot}-Geräten optimal verteilt werden.
-Der Load Balancer muss zu einem \textit{Smart-Device} im \textit{Internet of Things} werden.
+Der \acl{lb} muss zu einem \textit{Smart-Device} im \textit{Internet of Things} werden.
 \newpage
 
 \section{Ausblick}
-Die entwickelte Control Plane macht den \acl{lb} nicht nur konfigurierbar, sondern programmierbar. Dies ermöglicht eine optimale Integration des Load Balancers durch progressive Weiterentwicklung.
-Während der Bearbeitung der vorliegenden Arbeit wurde das Testwerkzeug HiveMQ Swarm \cite{teamHiveMQSwarmFind} von HiveMQ veröffentlicht. Mit diesem Tool können Client Verhaltensmuster definiert werden, um eine HiveMQ Cluster Installation zu testen.
-Mit HiveMQ Swarm kann eine Control Plane iterativ erweitert und für den eigenen Use-Case optimiert, sowie getestet werden.
+Die entwickelte Control-Plane macht den \acl{lb} nicht nur konfigurierbar, sondern auch programmierbar. Dies ermöglicht eine optimale Integration des Load-Balancers durch progressive Weiterentwicklung.
+Während der Bearbeitung der vorliegenden Arbeit wurde das Testwerkzeug HiveMQ Swarm \cite{teamHiveMQSwarmFind} von HiveMQ veröffentlicht. Mit diesem Tool können Client-Verhaltensmuster definiert werden, um eine HiveMQ Cluster Installation zu testen.
+Mit HiveMQ Swarm kann eine Control-Plane iterativ erweitert und für den eigenen Use-Case optimiert, sowie getestet werden.
 \\
-Mit dem Erweitern von Envoy durch \ac{wasm} Module, kann zukünftig das gesamte \ac{mqtt} Protokoll geparst werden.
-Dies eröffnet neben einer Realisierung der beschriebenen \textit{Session Affinity}, die Möglichkeit noch weitere protokollspezifische load balancing Entscheidungen zu treffen.
-Mit der fünften Version des \ac{mqtt} Protokolls wurden \textit{user properties} eingefügt, die es Benutzern erlauben, beliebige Daten als \textit{key-value} Paare an \ac{mqtt} Pakete anzuhängen \cite{raschbichlerMQTTHowNewa}.
-Ein Protokollbewusster \acl{lb} kann mit Protokoll \textit{sniffing} zu einem detaillierten Auswerten des \ac{mqtt} Traffics beitragen und über \textit{user properties} ein- sowie ausgehende Nachrichten mit nützlichen Informationen anreichern.
+Mit dem Erweitern von Envoy durch \acl{wasm}-Module, kann zukünftig das gesamte \ac{mqtt} Protokoll geparst werden.
+Dies eröffnet neben einer Realisierung der beschriebenen \textit{Session-Affinity} die Möglichkeit noch weitere protokollspezifische load balancing Entscheidungen zu treffen.
+Mit der fünften Version des \ac{mqtt} Protokolls wurden \textit{user properties} eingeführt, die es Benutzern erlauben, beliebige Daten als \textit{key-value} Paare an \ac{mqtt} Pakete anzuhängen \cite{raschbichlerMQTTHowNewa}.
+Ein Protokoll bewusster \acl{lb} kann mit Protokoll \textit{sniffing} zu einem detaillierten Auswerten des \ac{mqtt} Traffics beitragen und über \textit{user properties} ein- sowie ausgehende Nachrichten mit nützlichen Informationen anreichern.
 \\
 Denkbar sind Erweiterungen, wie ein neues Protokoll für die Kommunikation zwischen \acl{lb} und HiveMQ Cluster.
 Der \acl{lb} bietet eine \ac{mqtt} konforme Schnittstelle für die Clients und leitet die einzelnen Pakete optimiert an die Nodes des HiveMQ Clusters weiter.
 Dabei können beispielsweise \verb|PUBLISH| Pakete, unter Berücksichtigung der Topic Aliasse der Clients, verbindungsunabhängig an die Nodes verteilt werden.
-\\
 Die Konzepte der vorliegenden Arbeit bieten einen Einstieg, um den Nutzen derartig fundamentaler Erweiterungen für das load balancing von \ac{mqtt} Traffic zu erforschen.
-
-\begin{comment}
-Die in dieser Thesis erarbeiteten Features unterscheiden einen entkoppelten \acl{lb} von einem \textit{klugen} \acl{lb}, der ein integraler Bestandteil des Ökosystems ist. Er versteht das Protokoll, aggregiert Informationen der Nodes und kann somit reaktive load balancing Entscheidungen treffen.
-
-Der Ansatz des weighted \ac{cpu} round-robin load balancing Algorithmus, um auf die unterschiedlichen Lastverhalten der Clients zu reagieren, hat für die durchgeführten Testszenarien nicht besser als der round-robin Algorithmus abgeschnitten. Aufgrund der dynamischen Ermittlung der Gewichtungen kann dieser Ansatz jedoch in Zukunft auf den jeweiligen Anwendungsfall individuell angepasst werden.
-Durch die Einführung einer Control Plane ist der \acl{lb} nicht nur konfigurierbar sondern programmierbar.
-Metriken, wie beispielsweise die Anzahl der \ac{cpu} Kerne, die Regenerationsrate der Client-Credits oder die verwendete Netzwerkbandbreite des Nodes, können durch eine Erweiterung der Control Plane Einfluss auf die Gewichtungen der Nodes nehmen.
-Diese Eigenschaft macht den Einsatz von Envoy im Anwendungsfall \ac{mqtt} optimal, da jede \ac{iot}-Plattform durch das versatile \ac{mqtt} Protokoll ein individuelles Lastverhalten schafft.
-\\
-% ---------------
-Aus diesen Untersuchungen sind beispielsweise die Testszenarien aus Kapitel \ref{ss:test} entstanden, die zeigen sollen, dass bestimmte Verhaltensmuster der Clients eine ungleiche Lastverteilung im Cluster erzeugen können. Bei der Implementierung dieser Szenarien ist aufgefallen, wie komplex und unterschiedlich die Verhaltensmuster sein können.
-Unterschiedliche Client Verhaltensmuster führen jedoch nicht grundsätzlich direkt zu einem Problem bei der Lastverteilung. Es ist die Kombination von unterschiedlichen Clients mit der Eigenschaft, dass \ac{mqtt} ein zustandsbehaftetes und verbindungsorientiertes Protokoll ist.
-Der \acl{lb} kann nicht, wie zum Beispiel bei \ac{http}, einzelne Anfragen eines Clients an verschiedene Nodes schicken. Sobald ein Client verbunden ist, muss der Zielnode alle Anfragen des Clients bearbeiten, bis dieser die Verbindung beendet.
-In der Realität will man dieses Verhalten bei \ac{http} oftmals gezielt erzwingen, um beispielsweise schnellere Antwortzeiten durch Cache-Speicher zu erzielen. Bei \ac{http} kann der \acl{lb} jedoch Pakete transparent zum Client an einen anderen Node schicken, wenn zum Beispiel der bisherige Zielnode überlastet ist. Bei \ac{mqtt} hat der \acl{lb} gar keine Möglichkeit die Last eines Clients nach dem Verbindungsaufbau zu steuern.
-Dies untermauert die Relevanz der load balancing Entscheidung bei \ac{mqtt}.
-\end{comment}

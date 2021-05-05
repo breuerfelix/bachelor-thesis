@@ -7,8 +7,8 @@ cloud HiveMQ as hq {
   node "HiveMQ Node 3" as h3
 }
 
-cloud "Load Balancer" as lb {
-  node "Control Plane" as cp
+cloud "Load-Balancer" as lb {
+  node "Control-Plane" as cp
   node "Envoy" as e
 }
 
