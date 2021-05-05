@@ -67,7 +67,8 @@ schlie{\ss}t eine Subscription auf \verb|sensors/#| alle Topics mit ein. Bei ein
 
 \subsubsection{Quality of Service} \label{s:qos}
 Je zuverlässiger eine Nachricht übermittelt werden soll, desto mehr Kommunikationsaufwand verursacht sie im gesamten System.
-Wenn ein Client wissen will, ob seine Nachricht im Broker eingetroffen ist, muss der Broker dem Client eine entsprechende Rückmeldung geben. Andernfalls kann der Client seine Nachricht an den Broker schicken ohne eine Rückmeldung zu erwarten. Dies ist im \ac{http} nicht möglicht. Dort muss auf jede Nachricht geantwortet werden.\\
+Wenn ein Client wissen will, ob seine Nachricht im Broker eingetroffen ist, muss der Broker dem Client eine entsprechende Rückmeldung geben. Andernfalls kann der Client seine Nachricht an den Broker schicken ohne eine Rückmeldung zu erwarten.
+Dies ist im \ac{http} nicht möglich. Dort muss auf jede Nachricht geantwortet werden.\\
 Bei \ac{mqtt} wird die Zuverlässigkeit der Übermittlung einer Nachricht mit einem \textit{\acf{qos}} Level festgelegt. Eine publizierte Nachricht muss einem der drei \ac{qos} Level zugeordnet sein:
 \begin{itemize}
     \item \ac{qos} 0: Maximal eine Zustellung der Nachricht.
@@ -301,7 +302,7 @@ Die Cluster Discovery beschreibt den Mechanismus wie sich individuelle Nodes geg
     \item \textbf{static:} Jeder Node wird mit einer statischen Liste von allen Nodes und deren \ac{ip} Adresse / Port konfiguriert.
     \item \textbf{multicast:} Nodes finden dynamisch andere Nodes, die dieselbe multicast Adresse und Port benutzen.
     \item \textbf{broadcast:} Nodes finden dynamisch andere Nodes im selben Subnetzwerk, indem sie die Broadcast \ac{ip} Adresse benutzen.
-    \item \textbf{extension:} Es kann eine HiveMQ Erweiterung genutzt werden um andere Nodes zu entdecken.
+    \item \textbf{extension:} Es kann eine HiveMQ Erweiterung genutzt werden, um andere Nodes zu entdecken.
 \end{itemize}
 HiveMQ ist in der Lage, die Clustergrö{\ss}e zur Laufzeit dynamisch anzupassen. Diesen Mechanismus muss der gewählte Cluster Discovery Modus unterstützen.
 \cite{HiveMQClusterHiveMQ}
@@ -327,7 +328,7 @@ Diese werden alle 200 Millisekunden so lange um einen bestimmten Wert regenerier
 \\
 Hat ein Client alle seine Credits verbraucht, wird \ac{tcp} \textit{Back pressure} auf dem \ac{tcp} Socket des Clients angewandt, woraufhin dieser keine Nachrichten mehr veröffentlichen kann.
 Überschreitet der Zeitraum, in dem \ac{tcp} \textit{Back pressure} für einen Client angewandt wird, den konfigurierten \textit{keep-alive} Wert der Verbindung, wird diese unterbrochen \cite{ClusterOverloadProtection}.
-Um \ac{tcp} \textit{Back pressure} zu erzeugen, stoppt der HiveMQ Node das Lesen der Daten aus dem \ac{tcp} \textit{receive buffer} des Clients, was ein Verkleinern des \ac{tcp} \textit{receive window (rwnd)} zur Folge hat. Wird das \textit{receive window} null, kann der Client aufgrund des \ac{tcp} \textit{flow controls} keine neuen Daten mehr an den HiveMQ Node schicken \cite{TCPFlowControl}.
+Um \ac{tcp} \textit{Back pressure} zu erzeugen, stoppt der HiveMQ Node das Lesen der Daten aus dem \ac{tcp} \textit{receive buffer} des Clients, was ein Verkleinern des \ac{tcp} \textit{receive window (rwin)} zur Folge hat. Wird das \textit{receive window} null, kann der Client aufgrund des \ac{tcp} \textit{flow controls} keine neuen Daten mehr an den HiveMQ Node schicken \cite{TCPFlowControl}.
 Das \ac{mqtt} Protokoll hat für \ac{qos} 0 Nachrichten keine \textit{flow control} implementiert, da diese nach dem Prinzip \textit{fire and forget} abgeschickt werden.
 HiveMQ greift für das Drosseln der Nachrichten auf \ac{tcp} Mechaniken zurück, damit unter anderem auch keine neuen \ac{qos} 0 Nachrichten an den HiveMQ Node geschickt werden.
 
@@ -357,7 +358,7 @@ Falls der Broker während der nicht verbundenen Zeit keine verfügbaren Ressourc
 \cite{teamPersistentSessionQueuing}
 
 \subsubsubsection{Client Takeover} \label{s:client-takeover}
-Wie bereits im Kapitel \ref{s:persistent-session} beschrieben kann ein Client eine persistente Session bei einem Broker anfordern. Dabei werden zum Beispiel Nachrichten mit einem \ac{qos} Level von 1 oder 2 auf dem Broker nachgehalten, falls der Client seine Verbindung verliert.
+Wie bereits im Kapitel \ref{s:persistent-session} beschrieben, kann ein Client eine persistente Session bei einem Broker anfordern. Dabei werden zum Beispiel Nachrichten mit einem \ac{qos} Level von 1 oder 2 auf dem Broker nachgehalten, falls der Client seine Verbindung verliert.
 \\
 Ein Client Takeover findet statt, wenn der Broker eine neue Client Verbindung erhält, aber noch eine offene Verbindung mit derselben Clientkennung hat. Dies kann bei \textit{halb-offenen \acs{tcp} Verbindungen} vorkommen, die, wie Andy Stanford-Clark beschreibt, bei \ac{tcp} auftreten können:\newline
 ``Although TCP/IP in theory notifies you when a socket breaks, in practice, particularly on things like mobile and satellite links, which often 'fake' TCP over the air and put headers back on at each end, it’s quite possible for a TCP session to 'black hole', i.e. it appears to be open still, but in fact is just dumping anything you write to it onto the floor.''\cite{WhyKeepaliveNeeded}\newline

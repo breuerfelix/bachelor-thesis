@@ -1,18 +1,11 @@
-Grafiken:
-14:20 - 14:40 = szenario 1, least conn
-15:40 - 16:10 = szenario 1, round robin
-16:20 - 16:40 = szenario 1, weighted cpu
-19:22 - 19:30 = szenario 2, least conn
-19:32 - 19:40 = szenario 2, round robin
-11:47 - 11:59 = szenario 2, weighted cpu
-19:45 - 20:20 = szenario 3, round robin
-12:55 - = szenario 3, least conn
-12:00 - 12:40 = szenario 3, weighted cpu
+einleitung:
+- 
 
 - least connection kann mehr berücksichtigen
 - rückkopplung zwischen broker und load balancer
 
 - operative prozesse -> neuer client auf neuen node -> kann der LB gut unterstützen -> transparentes neuverteilen
+
 
 - besserer erster satz
 - positiver
@@ -29,25 +22,11 @@ Grafiken:
 - swarm -> testwerkzeug -> benchmark tool
 - grundidee transparent client
 
-fazit:
-- vor ausblick
-- der mangel an ressourcen
-- trotz der
-
-- müssen die typischerweise entkoppelt betriebenen
-- des iot brokers
-- in zukunft raus
-- Bei millionen von geräten ist das erforderlich
-
-- komprimierbare oder erschöpfbare ressourcen sind egal beim regeln -> ich kann ja genauso die erschöpfbaren ressourcen regeln
--> ist wichtig beim circuit breaking
-- hivemq macht in ihren testszenarien oft: alle clients verbinden -> testen ... weighted = sinnlos
-
 TODO:
-- abstract schreiben
-- korrekturen einarbeiten
 - bilder an die richtigen stellen
+- korrektur mit grammer checker
 - quellen überprüfen / seitenangabe bei quellen
+
 - überlastschutz kapitel
 - envoy architecture
 - split brain erwähnen bei cluster discovery
@@ -59,29 +38,9 @@ TODO:
 - ist health status wirklich das was ich bei circuit breaking machen will ?
 - welche ressourcen kann man sich angucken?
 
-- prototypische
-- ausblick dann fazit
-- fazit nurnoch persönliche worte
-- klug im sinne von integriert
-- eher was die arbeit festgestellt hat
-
-ausblick:
-- andeuten was es noch so gut
-- server redirect funktion -> mqtt protokoll entwicklung
-- user properties -> kann man für load balancing benutzen
-
-fazit:
-- nicht zu technisch -> mehr beobachtung der branche
-- mqtt ist ein wenig verschlossen -> gegenüber http
-- es gibt keine erweiterungn für load balancer für mqtt
-- es ist am anfang das man für dieses protokoll die features versteht
-- iot welt oft groß kommerziell -> nicht einzusehen
-
 - kluger lb -> gute leistung -> kluge metriken aus der applikation
 
 - lb hat alle nodes im überblick
-
-fazit: halbe seite
 
 abstract:
 - iot, mqtt
@@ -89,7 +48,25 @@ abstract:
 - neue herausforderungen
 - envoy bietet große chancen, programmierbare lb wie envoy
 
-debriefing mit hivemq
+# todo nach der arbeit
+- kolloquim
+- untersuchen update / remove / add envoy cluster
+- blog artikel how to setup control plane
+- blog artikel how to load balance mqtt traffic
+- mqtt stresser open source
+- envoy cpu weighted round robin open source
+- debriefing mit hivemq
+
+# grafiken
+14:20 - 14:40 = szenario 1, least conn
+15:40 - 16:10 = szenario 1, round robin
+16:20 - 16:40 = szenario 1, weighted cpu
+19:22 - 19:30 = szenario 2, least conn
+19:32 - 19:40 = szenario 2, round robin
+11:47 - 11:59 = szenario 2, weighted cpu
+19:45 - 20:20 = szenario 3, round robin
+12:55 - 13:35 = szenario 3, least conn
+12:00 - 12:40 = szenario 3, weighted cpu
 
 ## letzter check
 - zahlen 0 - 12 ausgeschrieben, runde zahlen auch ausschreiben

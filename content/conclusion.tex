@@ -1,16 +1,3 @@
-\section{Ausblick}
-In der entwickelten Control Plane wurden nicht alle der erarbeiteten \textit{klugen} Features, beispielsweise das Parsen des \ac{mqtt} \verb|CONNECT| Paketes, um eine \textit{Session Affinity} basierend der Clientkennung zu realisieren, implementiert.
-Wenn Envoy zukünftig das gesamte \ac{mqtt} Protokoll parst, können neben der \textit{Session Affinity} noch weitere protokollspezifische load balancing Entscheidungen getroffen werden.
-Denkbar ist ein paketspezifisches load balancing aller \verb|PUBLISH| Pakete unter Berücksichtigung der Topic Aliasse der Clients. Dabei würde Envoy eine dedizierte Verbindung mit allen Nodes des Clusters aufbauen und kann darüber eingehende \verb|PUBLISH| Nachrichten einzeln an die Nodes verteilen.
-Mit der fünften Version des \ac{mqtt} Protokolls wurden \textit{user properties} eingefügt, die es Benutzern erlauben, beliebige Daten als \textit{key-value} Paare an \ac{mqtt} Pakete anzuhängen \cite{raschbichlerMQTTHowNewa}.
-Dies ermöglicht Load Balancern ein- und ausgehende Nachrichten mit nützlichen Informationen anzureichern.
-\\
-Während der Bearbeitung der vorliegenden Arbeit wurde HiveMQ Swarm \cite{teamHiveMQSwarmFind} von HiveMQ veröffentlicht. Mit diesem Tool können Client Verhaltensmuster definiert werden, um eine HiveMQ Cluster Installation für einen gegebenen Use-Case zu testen.
-Mit HiveMQ Swarm kann iterativ eine Control Plane erweitert und für den eigenen Use-Case optimiert, sowie getestet werden.
-\\
-Zudem hat HiveMQ hat im Jahr 2020 eine Masterthesis angefertigt, in der das transparente Umziehen eines Clients auf einen anderen Node des Clusters untersucht wurde. Im Zusammenspiel mit der entwickelten Control Plane können gezielt \ac{mqtt} Clients, die eine hohe Last auf einem Node verursachen, transparent mit einem besser geeigneten Node verbunden werden.
-\newpage
-
 \section{Fazit}
 Das Ziel der vorliegenden Arbeit war die Analyse des \ac{mqtt} Protokolls mit Hinblick auf das \textit{kluge} Verteilen der Clients an HiveMQ Nodes und die Erstellung einer Envoy Control Plane, die einige der analysierten Features implementiert.
 \\
@@ -19,8 +6,27 @@ Trotz der in den letzten Jahren stetig steigenden Verwendung des Protokolls, unt
 Auch der Support des \ac{mqtt} Protokolls in Proxies wie Nginx, HAProxy oder Envoy ist noch nicht gegeben. Dort ist es bereits möglich Protokoll \textit{sniffing} für Redis, MongoDB oder Postgres zu betreiben, um eine ausführliche Analayse des Traffics durchzuführen.
 Der Mangel an Ressourcen des Ökosystems \textit{load balancing \ac{mqtt}} könnte durch die Kommerzialisierung im Bereich \ac{iiot} zu begründen sein.
 \\
-Um \ac{iot}-Plattformen zu optimieren, müssen entkoppelte Load Balancer ein integraler Bestandteil des \ac{iot}-Ökosystems werden. Sie müssen das Protokoll verstehen, Informationen der Plattform aggregieren und reaktive load balancing Entscheidungen treffen können. Nur so kann in Zukunft der Traffic von Milliarden \ac{iot}-Geräten optimal verteilt werden.
+Um \ac{iot}-Plattformen zu optimieren, müssen typischerweise entkoppelte Load Balancer ein integraler Bestandteil des \ac{iot}-Ökosystems werden. Sie müssen das Protokoll verstehen, Informationen der Plattform aggregieren und reaktive load balancing Entscheidungen treffen.
+%Dies ist für das optimale Verteilen von Millionen \ac{iot}-Geräten erforderlich.
+Nur so kann der Traffic von Millionen \ac{iot}-Geräten optimal verteilt werden.
 Der Load Balancer muss zu einem \textit{Smart Device} im \textit{Internet of Things} werden.
+\newpage
+
+\section{Ausblick}
+Die entwickelte Control Plane macht den \acl{lb} nicht nur konfigurierbar, sondern programmierbar. Dies ermöglicht eine optimale Integration des Load Balancers durch progressive Weiterentwicklung.
+Während der Bearbeitung der vorliegenden Arbeit wurde das Testwerkzeug HiveMQ Swarm \cite{teamHiveMQSwarmFind} von HiveMQ veröffentlicht. Mit diesem Tool können Client Verhaltensmuster definiert werden, um eine HiveMQ Cluster Installation zu testen.
+Mit HiveMQ Swarm kann eine Control Plane iterativ erweitert und für den eigenen Use-Case optimiert, sowie getestet werden.
+\\
+Mit dem Erweitern von Envoy durch \ac{wasm} Module, kann zukünftig das gesamte \ac{mqtt} Protokoll geparst werden.
+Dies eröffnet neben einer Realisierung der beschriebenen \textit{Session Affinity}, die Möglichkeit noch weitere protokollspezifische load balancing Entscheidungen zu treffen.
+Mit der fünften Version des \ac{mqtt} Protokolls wurden \textit{user properties} eingefügt, die es Benutzern erlauben, beliebige Daten als \textit{key-value} Paare an \ac{mqtt} Pakete anzuhängen \cite{raschbichlerMQTTHowNewa}.
+Ein Protokollbewusster \acl{lb} kann mit Protokoll \textit{sniffing} zu einem detaillierten Auswerten des \ac{mqtt} Traffics beitragen und über \textit{user properties} ein- sowie ausgehende Nachrichten mit nützlichen Informationen anreichern.
+\\
+Denkbar sind Erweiterungen, wie ein neues Protokoll für die Kommunikation zwischen \acl{lb} und HiveMQ Cluster.
+Der \acl{lb} bietet eine \ac{mqtt} konforme Schnittstelle für die Clients und leitet die einzelnen Pakete optimiert an die Nodes des HiveMQ Clusters weiter.
+Dabei können beispielsweise \verb|PUBLISH| Pakete, unter Berücksichtigung der Topic Aliasse der Clients, verbindungsunabhängig an die Nodes verteilt werden.
+\\
+Die Konzepte der vorliegenden Arbeit bieten einen Einstieg, um den Nutzen derartig fundamentaler Erweiterungen für das load balancing von \ac{mqtt} Traffic zu erforschen.
 
 \begin{comment}
 Die in dieser Thesis erarbeiteten Features unterscheiden einen entkoppelten \acl{lb} von einem \textit{klugen} \acl{lb}, der ein integraler Bestandteil des Ökosystems ist. Er versteht das Protokoll, aggregiert Informationen der Nodes und kann somit reaktive load balancing Entscheidungen treffen.

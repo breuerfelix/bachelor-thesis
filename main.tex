@@ -1,14 +1,18 @@
 % font size
 \documentclass[a4paper, 11pt]{article}
 % T1 causes blurry fonts with miktex, only works with tectonic
-\usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
 
 % language
 \usepackage[ngerman]{babel}
 % another font that should look good in acrobat
 % but i do not like it
 %\usepackage{aeguill}
+
+% hyphenation rules
+\usepackage{hyphenat}
+%\hyphenation{Mathe-matik wieder-gewinnen}
 
 % abkürzungsverzeichnis
 % withpage option prints the page number to definition
@@ -108,18 +112,12 @@
 % end
 
 \import{other/}{title}
-
 \pagenumbering{Roman}
-
 \import{content/}{abstract}
 \newpage
-
 \tableofcontents\newpage
-
 \pagenumbering{arabic}
-
 \input{content/index}
-
 %\import{other/}{declaration}
 \listoffigures\addcontentsline{toc}{section}{Abbildungsverzeichnis}\newpage
 \listoftables\addcontentsline{toc}{section}{Tabellenverzeichnis}\newpage
@@ -129,7 +127,7 @@
 % quellen
 \bibliographystyle{IEEEtran}
 %\bibliographystyle{acm}
-\bibliography{lib}
+\bibliography{lib, refs}
 \newpage
 
 \input{other/glossaries}
