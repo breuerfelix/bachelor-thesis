@@ -10,14 +10,14 @@ Es ist eventgesteuert und verwendet das \textit{Publish und Subscribe} Kommunika
 Bei diesem Protokoll können \ac{iot}-Geräte und Services, sogenannte Clients, Nachrichten über einen \ac{mqtt} Broker austauschen.
 Damit ein Broker auch bei mehreren Millionen Geräten alle Nachrichten schnell und ausfallsicher verarbeiten kann, formen Broker, wie zum Beispiel der HiveMQ Broker, ein Cluster. Dabei bilden mehrere HiveMQ Broker ein HiveMQ Cluster, das eine logische Einheit für Clients bildet.
 \\
-Load Balancer abstrahieren die einzelnen Nodes eines Clusters für Clients.
-Dabei wird den Nodes ein \acl{lb} vorgeschaltet, der eintreffende Clientverbindungen empfängt, um diese basierend auf unterschiedlichen load balancing Algorithmen an die Nodes weiterzuleiten.
-Bei der Wahl des Zielnodes für einen bestimmten Client kann der Load Balancer diverse Merkmale in Betracht ziehen und somit beispielsweise die Servicequalität für Clients oder die gleichmä{\ss}ige Verteilung der Last auf alle Nodes des Clusters begünstigen.
+\acl{lb} abstrahieren die einzelnen Nodes eines Clusters für Clients.
+Dabei wird den Nodes ein \acl{lb} vorgeschaltet, der eingehende Clientverbindungen empfängt, um diese basierend auf unterschiedlichen load balancing Algorithmen an die Nodes weiterzuleiten.
+Bei der Wahl des Zielnodes für einen bestimmten Client kann der \acl{lb} diverse Merkmale in Betracht ziehen und somit beispielsweise die Servicequalität für Clients oder die gleichmä{\ss}ige Verteilung der Last auf alle Nodes des Clusters begünstigen.
 \\
-Das \ac{http} wird verwendet, sobald ein Webbrowser eine Internetseite aufruft. Aufgrund der Popularität des Protokolls können viele Load Balancer \ac{http} optimierte load balancing Entscheidungen treffen.
-Für das \ac{mqtt} Protokoll gibt es trotz des \acl{iot} Booms noch keine protokollbezogenen Optimierungen.
-In der vorliegenden Arbeit wird untersucht, wie ein Load Balancer \textit{kluge} load balancing Entscheidungen für eingehende \ac{mqtt} Clientverbindungen an HiveMQ Nodes treffen kann.
-Bei der stetig steigenden Anzahl von \ac{iot}-Geräten muss der \acl{lb} reaktive auf Situationen reagieren können, um einen effizienten Nachrichtenaustausch zu ermöglichen.
+Das \ac{http} wird verwendet, sobald ein Webbrowser eine Internetseite aufruft. Aufgrund der Popularität des Protokolls können viele \acl{lb} \ac{http} optimierte load balancing Entscheidungen treffen.
+Für das \ac{mqtt} Protokoll gibt es trotz des \ac{iot} Booms noch keine protokollbezogenen Optimierungen.
+In der vorliegenden Arbeit wird untersucht, wie ein \acl{lb} \textit{kluge} load balancing Entscheidungen für eingehende \ac{mqtt} Clientverbindungen an HiveMQ Nodes treffen kann.
+Bei der stetig steigenden Anzahl von \ac{iot}-Geräten muss der \acl{lb} reaktiv auf Situationen reagieren können, um einen effizienten Nachrichtenaustausch zu ermöglichen.
 \begin{comment}
 \\
 Envoy ist ein Load Balancer, der dynamisch von einer Control Plane konfiguriert werden kann.
@@ -34,16 +34,16 @@ Das aktuelle Lösungsangebot umfasst Application Development (Web Platforms, Mob
 Zudem modernisiert inovex vorhandene Lösungen (Replatforming), härtet Systeme gegen Angriffe von au{\ss}en (Security) und vermittelt ihr Wissen durch Trainings und Workshops (inovex Academy).
 Im Jahr 2021 beschäftigte die inovex GmbH 395 Mitarbeitende an sieben Standorten: Karslruhe, Köln, München, Hamburg, Stuttgart, Pforzheim und Münster.
 \\
-Im Team \textit{\ac{ito}} entstehen Cloud-Plattformen, die entweder komplett als Private Cloud oder als hybride Cloud im Zusammenspiel mit den gro{\ss}en Public Clouds (Amazon, Google, Microsoft) realisiert werden.
+Im Team \textit{\ac{ito}} entstehen Cloud-Plattformen, die entweder komplett als private Cloud oder als hybride Cloud im Zusammenspiel mit den gro{\ss}en Public Clouds (Amazon, Google, Microsoft) realisiert werden.
 Durch die wachsende Nachfrage von \acs{iot}-Projekten befasst sich das Team \ac{ito} zunehmend mit dem \acl{iot} Ökosystem, dessen Infrastruktur sowie mit betrieblichen Aspekten.
 Durch die im Jahr 2020 entstandene Partnerschaft mit HiveMQ und der Einführung von \ac{iot} als strategisches Thema bei inovex, wurde ein Raum für Forschung, Weiterbildung und die Durchführung von Arbeiten in diesem Ökosystem geschaffen.
 
 \subsection{Aufbau der Arbeit}
 Die vorliegende Arbeit beginnt mit einem ausführlichen Grundlagenteil in Kapitel \ref{s:basics}. Dabei werden zunächst die Funktionsweise und Eigenheiten des \ac{mqtt} Protokolls erläutert.
 Grundlagen wie das \textit{Publish und Subscribe} Kommunikationsschema aus Kapitel \ref{s:publish-subscribe} sind Voraussetzungen für das Verständnis der in Kapitel \ref{s:hivemq-cluster} beschriebenen Clusterfähigkeit des HiveMQ \acs{mqtt} Brokers.
-Die technischen Grundlagen werden komplettiert mit einem Überblick über Load Balancer.
-Kapitel \ref{s:problem} beschreibt Problemstellungen beim Verteilen von \ac{mqtt} Clients an ein Broker-Cluster durch einen Load Balancer.
+Die technischen Grundlagen werden komplettiert mit einem Überblick über \acl{lb}.
+Kapitel \ref{s:problem} beschreibt Problemstellungen beim Verteilen von \ac{mqtt} Clients an ein Broker-Cluster durch einen \acl{lb}.
 Diese werden in Kapitel \ref{s:solution} erläutert und mit Hinblick auf einen dynamischen load balancing Algorithmus analysiert. Dabei wird besonders auf die gleichmä{\ss}ige Verteilung der Last auf alle Nodes eines HiveMQ Clusters und die Sicherstellung der Servicequalität für die \ac{mqtt} Clients geachtet.
-Abschlie{\ss}end wird der Aufbau einer Control Plane für das \textit{kluge} Verteilen von \ac{mqtt} Clients in Kapitel \ref{s:implementation} dargestellt.
+Abschlie{\ss}end wird der Aufbau einer Control-Plane für das \textit{kluge} Verteilen von \ac{mqtt} Clients in Kapitel \ref{s:implementation} dargestellt.
 
 \newpage

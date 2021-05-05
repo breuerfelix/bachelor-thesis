@@ -16,12 +16,12 @@ Aktualisierungen des Load Balancers oder dessen Konfiguration dürfen nicht zu e
 \subsection{Persistente Client Sessions} \label{sp:persistent-session}
 Wie in Kapitel \ref{s:persistent-session} beschrieben können Clients eine persistente Session bei einem Broker anfordern.
 Für den Fall eines Verbindungsabbruchs, werden Nachrichten und Session relevante Daten gespeichert.
-Sobald der Client seine Verbindung wieder aufbaut, findet ein Client Takeover (\ref{s:client-takeover}) statt.
+Sobald der Client seine Verbindung wieder aufbaut, findet ein Client-Takeover (\ref{s:client-takeover}) statt.
 Dieser Prozess findet bei einem Broker im Arbeitsspeicher statt.
 Dort wird zu den existierenden persistierten Daten der dazugehörige \ac{tcp} Socket ausgetauscht.
-Wenn der Client die Verbindung mit einem anderen Node des HiveMQ Cluster wiederaufbaut, ist ein Client Takeover komplexer.
+Wenn der Client die Verbindung mit einem anderen Node des HiveMQ Cluster wiederaufbaut, ist ein Client-Takeover komplexer.
 In diesem Szenario müssen die persistierten Daten des Clients im Cluster synchronisiert werden.
-Je mehr Daten für die Synchronisation anfallen, desto aufwändiger ist der Client Takeover.
+Je mehr Daten für die Synchronisation anfallen, desto aufwändiger ist der Client-Takeover.
 \\
 Im Optimallfall wird der neue Client mit demselben Node verbunden, mit dem er zuvor verbunden war, um interne Kommunikation und Latenzen beim Verbindungsaufbau zu verringern.
 
@@ -29,7 +29,7 @@ Im Optimallfall wird der neue Client mit demselben Node verbunden, mit dem er zu
 In Kapitel \ref{sb:overload-protection} wurde der Überlastschutz eines HiveMQ Brokers erläutert. Dies ermöglicht dem Broker die Verbindung individueller Clients, die viel Arbeitslast auf dem Broker erzeugen, zu unterbrechen. Falls der \ac{mqtt} Client sich \ac{mqtt} konform verhält, versucht dieser automatisch die Verbindung wiederherzustellen.
 In diesem Fall darf der Load Balancer den Client nicht wieder mit demselben Node verbinden, da dieser Node mit dem Client erneut überlastet sein wird. Es muss ein Node mit einer geringerer Auslastung für diesen Client gefunden werden.
 \\
-Das Overload Protection Level gibt an, ob sich der HiveMQ Node in einer Überlast befindet.
+Das Overload-Protection Level gibt an, ob sich der HiveMQ Node in einer Überlast befindet.
 Der Load Balancer sollte den Node im Fall einer Überlast unterstützen, indem er keine neuen Clients mit diesem Node verbindet.
 
 \subsection{Ungleiche Lastverteilung} \label{sp:load}

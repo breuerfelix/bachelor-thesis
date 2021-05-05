@@ -108,7 +108,7 @@ Dieses Ungleichgewicht wird durch Phase sechs verstärkt. Auf Node eins und Node
     \label{fig:s2-lc}
 \end{figure}
 
-\paragraph{Szenario 2 - Round Robin}
+\paragraph{Szenario 2 - Round-Robin}
 Abbildung \ref{fig:s2-rr} zeigt den zeitlichen Verlauf von Testszenario zwei bei einem round-robin \ac{lb}.
 Nach Abschluss von Phase sechs hat dieses Szenario eine Standardabweichung von drei Prozent.
 Nach Phase fünf und sechs ist die Last auf dem Cluster im wesentlichen gleichmä{\ss}ig verteilt. Node eins und zwei sind um die Anzahl der Clients aus Phase zwei und drei stärker belastet. Diese sind jedoch leichtgewichtige Clients und erzeugen demnach nicht viel Last auf den Nodes.
@@ -132,7 +132,7 @@ Node eins und zwei sind mehr belastet als Node drei, da alle Clients aus Phase d
     \label{fig:s3-lc}
 \end{figure}
 
-\paragraph{Szenario 3 - Round Robin}
+\paragraph{Szenario 3 - Round-Robin}
 Abbildung \ref{fig:s3-rr} zeigt den zeitlichen Verlauf von Testszenario drei bei einem round-robin \ac{lb}.
 Nach Abschluss von Phase sechs hat dieses Szenario eine Standardabweichung von acht Prozent.
 Nach Phase sechs sind Node eins und zwei jeweils dreifach so sehr ausgelastet wie Node drei. Die Last auf dem Cluster ist somit ungleich verteilt.
@@ -144,7 +144,7 @@ Die Clients aus Phase drei und vier werden nur auf Node eins und zwei verteilt, 
     \label{fig:s3-rr}
 \end{figure}
 
-\subsubsection{Weighted Round Robin} \label{ss:weighted-rr}
+\subsubsection{Weighted Round-Robin} \label{ss:weighted-rr}
 Kapitel \ref{ss:test} zeigt, dass ein least connection \acl{lb} in Szenario drei und ein round-robin \ac{lb} in Szenario zwei die Last gleichmä{\ss}ig verteilen kann.
 Bei den anderen Szenarien befindet sich das Cluster anschlie{\ss}end in einem ungleichen Lastverhältnis.
 Da \ac{mqtt} auf langlebigen \ac{tcp} Verbindungen basiert, wird sich dieses Lastverhältnis nicht verändern, bis die Clients ihre Verbindung neu aufbauen oder ihr Verhalten verändern.
@@ -399,7 +399,7 @@ Tabelle \ref{table:overload-protection-metrics} gibt eine Übersicht der Metrike
     \verb|com.hivemq.overload-| \verb|protection.clients.| \verb|backpressure-active| & Anzahl der Clients, die durch eine Overload Protection \ac{tcp} Backpressure haben. \\
     \hline
 \end{tabularx}
-\caption{Die Tabelle zeigt HiveMQ Metriken, die in einer Beziehung zu dem Overload Protection Level stehen.}
+\caption{Die Tabelle zeigt HiveMQ Metriken, die in einer Beziehung zu dem Overload-Protection Level stehen.}
 \label{table:overload-protection-metrics}
 \end{table}
 \\
@@ -483,7 +483,7 @@ Ein solches Verfahren nennt sich \textit{Sticky Session} oder \textit{Session Af
 
 \subsubsection{Clientkennung} \label{ss:clientid}
 Jeder \ac{mqtt} Client wird durch eine einzigartige Clientkennung identifiziert. Dieser wird, wie in Kapitel \ref{s:mqtt-connect} beschrieben, in dem \ac{mqtt} \verb|CONNECT| Paket beim Verbindungsaufbau vom Client an den Broker geschickt.
-Eine Clientkennung darf niemals doppelt vergeben werden. Sobald sich ein Client mit dem Broker verbindet, dessen Kennung bereits von einem anderen Client genutzt wird, unterbricht der Broker die Verbindung mit dem bereits verbundenen Client und führt einen Client Takeover Client durch.
+Eine Clientkennung darf niemals doppelt vergeben werden. Sobald sich ein Client mit dem Broker verbindet, dessen Kennung bereits von einem anderen Client genutzt wird, unterbricht der Broker die Verbindung mit dem bereits verbundenen Client und führt einen Client-Takeover Client durch.
 Dieser Vorgang gewährleistet, dass jede Clientkennung nur einmal vergeben ist.
 \\
 Die Clientkennung eignet sich durch ihre Einzigartigkeit als Identifier für eine Sticky Session.

@@ -9,7 +9,7 @@ Der Mangel an Ressourcen des Ökosystems \textit{load balancing \ac{mqtt}} könn
 Um \ac{iot}-Plattformen zu optimieren, müssen typischerweise entkoppelte Load Balancer ein integraler Bestandteil des \ac{iot}-Ökosystems werden. Sie müssen das Protokoll verstehen, Informationen der Plattform aggregieren und reaktive load balancing Entscheidungen treffen.
 %Dies ist für das optimale Verteilen von Millionen \ac{iot}-Geräten erforderlich.
 Nur so kann der Traffic von Millionen \ac{iot}-Geräten optimal verteilt werden.
-Der Load Balancer muss zu einem \textit{Smart Device} im \textit{Internet of Things} werden.
+Der Load Balancer muss zu einem \textit{Smart-Device} im \textit{Internet of Things} werden.
 \newpage
 
 \section{Ausblick}
@@ -42,20 +42,4 @@ Unterschiedliche Client Verhaltensmuster führen jedoch nicht grundsätzlich dir
 Der \acl{lb} kann nicht, wie zum Beispiel bei \ac{http}, einzelne Anfragen eines Clients an verschiedene Nodes schicken. Sobald ein Client verbunden ist, muss der Zielnode alle Anfragen des Clients bearbeiten, bis dieser die Verbindung beendet.
 In der Realität will man dieses Verhalten bei \ac{http} oftmals gezielt erzwingen, um beispielsweise schnellere Antwortzeiten durch Cache-Speicher zu erzielen. Bei \ac{http} kann der \acl{lb} jedoch Pakete transparent zum Client an einen anderen Node schicken, wenn zum Beispiel der bisherige Zielnode überlastet ist. Bei \ac{mqtt} hat der \acl{lb} gar keine Möglichkeit die Last eines Clients nach dem Verbindungsaufbau zu steuern.
 Dies untermauert die Relevanz der load balancing Entscheidung bei \ac{mqtt}.
-\end{comment}
-
-\begin{comment}
-
-ausblick:
-- extension die clients abschie{\ss}en kann
-  - member einer shared subscription können immer abeschossen werden
-- session roaming
-- stateless
-
-vielleicht:
-- konzeptuell multiplexing
-
-- man kann auch probleme bei clients lösen -> aber nicht alles
-- load balancer unterstützt die steuerbarkeit
-
 \end{comment}

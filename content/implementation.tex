@@ -64,7 +64,7 @@ Beim Start der Control Plane wird von der Main Komponente eine Go Routine gestar
 Diese verwendet die \verb|net| Standard Bibliothek von Golang, um den Domainnamen des Clusers aufzulösen und für alle \ac{ip} Adressen eine Node Struktur zu erstellen.
 Wenn bereits eine Node Struktur für ein \ac{ip} Adressen und Port Paar vorhanden ist, wird die Referenz der Struktur in die neue Liste übernommen.
 
-\subsubsection{Weighted Round Robin}
+\subsubsection{Weighted Round-Robin}
 Der weighted round-robin Algorithmus basierend auf der \ac{cpu} Auslastung der einzelnen HiveMQ Nodes aus Kapitel \ref{ss:weighted-cpu} ist in der Metrics Komponente implementiert.
 \\
 Quellcodeauszug \ref{code:weighted-cpu} zeigt den Algorithmus für die Bestimmung der Gewichtung der HiveMQ Nodes anhand der \ac{cpu} Auslastung.
@@ -85,10 +85,10 @@ Die Bibliothek bietet eine Abstraktion für das \ac{mqtt} Protokoll und übernim
 
 \subsubsection{Überlastschutz}
 Der Überlastschutz aus Kapitel \ref{ss:circuit-breaking} ist in der Metrics Komponente implementiert. Quellcodeauszug \ref{code:circuit-breaking} zeigt den Algorithmus, um den Health Status aller Nodes basierend der Metrik \verb|OverloadProtection| zu bestimmen. In Zeile 10 wird auf den zuletzt bekannten Wert der Metrik zugegriffen und in Zeile 12 wird die Varible \verb|OverloadProtectionHealthy| der HiveMQ Struktur auf \verb|true| gesetzt, falls der Wert der Metrik kleiner oder gleich fünf ist.
-Sobald der Overload Protection Wert überschritten wurde, oder der \ac{mqtt} Health Check aus Kapitel \ref{si:health-check} fehlgeschlagen ist, darf der HiveMQ Node nicht mehr als \verb|HEALTHY| gekennzeichnet werden. Zeile 18 - 22 setzen den Health Status erst auf \verb|HEALTHY| sobald beide Bedingungen erfüllt sind.
+Sobald der Overload-Protection Wert überschritten wurde, oder der \ac{mqtt} Health Check aus Kapitel \ref{si:health-check} fehlgeschlagen ist, darf der HiveMQ Node nicht mehr als \verb|HEALTHY| gekennzeichnet werden. Zeile 18 - 22 setzen den Health Status erst auf \verb|HEALTHY| sobald beide Bedingungen erfüllt sind.
 \begin{figure}
     \import{gen/}{circuit-breaking}
-    \caption{Der Quellcodeauszug zeigt einen Algorithmus in Golang, der den Health Status eines HiveMQ Nodes basierend der Overload Protection Prometheus Metrik bestimmt.}
+    \caption{Der Quellcodeauszug zeigt einen Algorithmus in Golang, der den Health Status eines HiveMQ Nodes basierend der Overload-Protection Prometheus Metrik bestimmt.}
     \label{code:circuit-breaking}
 \end{figure}
 \newpage

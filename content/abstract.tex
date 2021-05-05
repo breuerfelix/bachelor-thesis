@@ -1,9 +1,9 @@
 \begin{abstract}
 Das \textit{\acl{iot}} revolutioniert die Interaktion zwischen Mensch und Umwelt.
-Dabei werden physische Objekte mit Sensoren und Mikrochips ausgestattet, um Daten an dedizierte \ac{iot}-Plattformen zu senden.
-Um einen effizienten Nachrichtenaustausch zu ermöglichen, wurde das \ac{mqtt} Protokoll entworfen. Dieses verwendet das \textit{Publish and Subscribe} Kommunikationsschema, das Nachrichten zwischen Clients über einen Broker austauscht.
+Dabei werden physische Objekte mit Sensoren und Mikrochips ausgestattet, um Daten an dedizierte \acs{iot}-Plattformen zu senden.
+Um einen effizienten Nachrichtenaustausch zu ermöglichen, wurde das \ac{mqtt} Protokoll entworfen. Dieses verwendet das \textit{Publish und Subscribe} Kommunikationsschema, das Nachrichten zwischen Clients über einen Broker austauscht.
 Bei dem clusterfähigen \ac{mqtt} Broker von HiveMQ benötigt man einen \acl{lb}, um die einzelnen Nodes für die \ac{mqtt} Clients zu abstrahieren.
 Envoy ist ein \acs{osi}-Layer sieben Proxy, der für gro{\ss}e, moderne, serviceorientierte Architekturen entwickelt worden ist.
-Durch Features, wie das Einbinden von \acs{wasm} Modulen und das dynamische Konfigurieren via Control Plane, ist Envoy flexibel einsetz- und erweiterbar.
-Damit Millionen von \ac{mqtt} Clients Nachrichten über eine \ac{iot}-Plattform austauschen können, wird in der vorliegenden Arbeit untersucht, wie man \ac{mqtt} Clientverbindungen \textit{klug} über einem Envoy Proxy an Nodes eines HiveMQ Clusters verteilen kann.
+Durch Features, wie das Einbinden von \acs{wasm}-Modulen und das dynamische Konfigurieren via Control-Plane, ist Envoy flexibel einsetz- und erweiterbar.
+Damit Millionen von \ac{mqtt} Clients Nachrichten über eine \acs{iot}-Plattform austauschen können, wird in der vorliegenden Arbeit untersucht, wie man \ac{mqtt} Clientverbindungen \textit{klug} über einen Envoy Proxy an Nodes eines HiveMQ Clusters verteilen kann.
 \end{abstract}

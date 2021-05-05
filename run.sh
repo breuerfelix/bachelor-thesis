@@ -14,4 +14,4 @@ plantuml -o ../gen diagrams
 sed -i 's/ß/{\\ss}/g' content/*
 
 # compile latex
-tectonic main.tex
+tectonic main.tex --outfmt pdf --chatter minimal
