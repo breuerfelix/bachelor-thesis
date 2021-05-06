@@ -1,26 +1,28 @@
 \section{Fazit}
-Das Ziel der vorliegenden Arbeit war die Analyse des \ac{mqtt} Protokolls mit Hinblick auf das \textit{kluge} Verteilen der Clients an HiveMQ Nodes und die Erstellung einer Envoy Control-Plane, die einige der analysierten Features implementiert.
+Das Ziel der vorliegenden Arbeit war die Analyse des \ac{mqtt} Protokolls mit Hinblick auf das \textit{kluge} Verteilen der Clients an HiveMQ Nodes und die Programmierung einer Envoy Control-Plane, die einige der analysierten Features implementiert.
 \\
-Die Vorbereitung auf diese Analyse bedurfte eine umfangreiche Einarbeitung in das \ac{mqtt} Protokoll, um die Eigenheiten und verschiedenen Verhaltensmuster der Clients zu untersuchen.
-Trotz der in den letzten Jahren stetig steigenden Verwendung des Protokolls, unter anderem bei gro{\ss}en Cloud Anbietern wie Amazon Web Services und Microsoft Azure, gibt es öffentlich wenige Informationen zu dem Betrieb von \ac{mqtt} Load-Balancern.
-Auch der Support des \ac{mqtt} Protokolls in Proxies wie Nginx, HAProxy oder Envoy ist noch nicht gegeben. Dort ist es bereits möglich Protokoll \textit{sniffing} für Redis, MongoDB oder Postgres zu betreiben, um eine ausführliche Analyse des Traffics durchzuführen.
+Die Vorbereitung auf diese Analyse bedurfte einer umfangreichen Einarbeitung in das \ac{mqtt} Protokoll, um die Eigenheiten und verschiedenen Verhaltensmuster der Clients zu untersuchen.
+Trotz der in den letzten Jahren stetig steigenden Verwendung des Protokolls, unter anderem bei gro{\ss}en Cloud Anbietern wie Amazon Web Services und Microsoft Azure, gibt es nur wenig veröffentlichte Informationen zu dem Betrieb von \ac{mqtt} Load-Balancern.
+Auch die Unterstützung des \ac{mqtt} Protokolls in Proxies wie Nginx, HAProxy oder Envoy steht noch nicht zur Verfügung.
+Bei einem Envoy Proxy ist es bereits möglich, Protokoll \textit{sniffing} für Redis, MongoDB oder Postgres zu betreiben, um eine ausführliche Analyse des Traffics durchzuführen.
 Der Mangel an Ressourcen des Ökosystems \textit{load balancing \ac{mqtt}} könnte durch die Kommerzialisierung im Bereich \ac{iiot} zu begründen sein.
 \\
-Um \ac{iot}-Plattformen zu optimieren, müssen typischerweise entkoppelte \acl{lb} ein integraler Bestandteil des \ac{iot}-Ökosystems werden. Sie müssen das Protokoll verstehen, Informationen der Plattform aggregieren und reaktive load balancing Entscheidungen treffen.
-%Dies ist für das optimale Verteilen von Millionen \ac{iot}-Geräten erforderlich.
+Um \ac{iot}-Plattformen zu optimieren, müssen typischerweise entkoppelte \acl{lb} ein integraler Bestandteil des \ac{iot}-Ökosystems werden.
+Sie müssen das Protokoll verstehen, Informationen der Plattform aggregieren und reaktive load balancing Entscheidungen treffen.
 Nur so kann der Traffic von Millionen \ac{iot}-Geräten optimal verteilt werden.
 Der \acl{lb} muss zu einem \textit{Smart-Device} im \textit{Internet of Things} werden.
 \newpage
 
 \section{Ausblick}
-Die entwickelte Control-Plane macht den \acl{lb} nicht nur konfigurierbar, sondern auch programmierbar. Dies ermöglicht eine optimale Integration des Load-Balancers durch progressive Weiterentwicklung.
+Die entwickelte Control-Plane macht den \acl{lb} nicht nur konfigurierbar, sondern auch programmierbar.
+Dies ermöglicht eine optimale Integration des Load-Balancers durch progressive Weiterentwicklung.
 Während der Bearbeitung der vorliegenden Arbeit wurde das Testwerkzeug HiveMQ Swarm \cite{teamHiveMQSwarmFind} von HiveMQ veröffentlicht. Mit diesem Tool können Client-Verhaltensmuster definiert werden, um eine HiveMQ Cluster Installation zu testen.
-Mit HiveMQ Swarm kann eine Control-Plane iterativ erweitert und für den eigenen Use-Case optimiert, sowie getestet werden.
+Mit HiveMQ Swarm kann eine Control-Plane iterativ erweitert und für den eigenen Use-Case optimiert sowie getestet werden.
 \\
-Mit dem Erweitern von Envoy durch \acl{wasm}-Module, kann zukünftig das gesamte \ac{mqtt} Protokoll geparst werden.
-Dies eröffnet neben einer Realisierung der beschriebenen \textit{Session-Affinity} die Möglichkeit noch weitere protokollspezifische load balancing Entscheidungen zu treffen.
-Mit der fünften Version des \ac{mqtt} Protokolls wurden \textit{user properties} eingeführt, die es Benutzern erlauben, beliebige Daten als \textit{key-value} Paare an \ac{mqtt} Pakete anzuhängen \cite{raschbichlerMQTTHowNewa}.
-Ein Protokoll bewusster \acl{lb} kann mit Protokoll \textit{sniffing} zu einem detaillierten Auswerten des \ac{mqtt} Traffics beitragen und über \textit{user properties} ein- sowie ausgehende Nachrichten mit nützlichen Informationen anreichern.
+Mit dem Erweitern von Envoy durch \acl{wasm}-Module kann zukünftig das gesamte \ac{mqtt} Protokoll geparst werden.
+Dies eröffnet neben einer Realisierung der beschriebenen \textit{Session-Affinity} die Möglichkeit, noch weitere protokollspezifische load balancing Entscheidungen zu treffen.
+Mit der fünften Version des \ac{mqtt} Protokolls wurden \textit{user properties} eingeführt, die es Benutzer:innen erlauben, beliebige Daten als \textit{key-value} Paare an \ac{mqtt} Pakete anzuhängen \cite{raschbichlerMQTTHowNewa}.
+Ein protokollbewusster \acl{lb} kann mit dem Protokoll \textit{sniffing} zu einem detaillierten Auswerten des \ac{mqtt} Traffics beitragen und über \textit{user properties} ein- sowie ausgehende Nachrichten mit nützlichen Informationen anreichern.
 \\
 Denkbar sind Erweiterungen, wie ein neues Protokoll für die Kommunikation zwischen \acl{lb} und HiveMQ Cluster.
 Der \acl{lb} bietet eine \ac{mqtt} konforme Schnittstelle für die Clients und leitet die einzelnen Pakete optimiert an die Nodes des HiveMQ Clusters weiter.

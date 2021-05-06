@@ -1,3 +1,32 @@
+- kommerzieller driver -> iot erste seite
+- load balancing
+- reaktiv mit neuen lastsituation umgehen
+- befasst sich mit
+- als offener standard veröffentlicht
+- overhead
+
+- mögliche daten sind typischerweise auch layer 7
+- grpc glossar
+
+- kurze sätze
+
+ein load balancer der 
+bereits
+
+verbindungen neu verteilen ohne den client
+
+auch der konsumeriot
+
+readme als pdf
+
+forschung?
+
+15
+istio 34
+
+
+
+
 TODO:
 - quellen überprüfen / seitenangabe bei quellen
 - caption für abbildungsverzeichnis anfertigen
@@ -8,9 +37,9 @@ TODO:
 
 kontrolle:
 - rechtschreibung / grammatik
-- fazit / einleitung / abstract
-- englische wörter mit bindestrich schreiben ??
-- layout / struktur! abstand nächste seite ? bilder placement?
+- abstract / einleitung / fazit / ausblick -> wichtig
+- alle englischen wörter mit bindestrich geschrieben?
+- layout / struktur korrekt? abstand nächste seite ? bilder placement?
 - jan hat sein fazit nicht beendet
 
 

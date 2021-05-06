@@ -118,7 +118,6 @@
 \tableofcontents\newpage
 \pagenumbering{arabic}
 \input{content/index}
-%\import{other/}{declaration}
 \listoffigures\addcontentsline{toc}{section}{Abbildungsverzeichnis}\newpage
 \listoftables\addcontentsline{toc}{section}{Tabellenverzeichnis}\newpage
 
@@ -126,12 +125,12 @@
 
 % quellen
 \bibliographystyle{IEEEtran}
-%\bibliographystyle{acm}
 \bibliography{lib, refs}
 \newpage
 
 \input{other/glossaries}
 
+\import{other/}{declaration}
 %\appendix
 %\input{other/appendix}
 
