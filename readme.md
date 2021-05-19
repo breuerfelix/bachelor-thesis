@@ -1,84 +1,15 @@
-- kommerzieller driver -> iot erste seite
-- load balancing
-- reaktiv mit neuen lastsituation umgehen
-- befasst sich mit
-- als offener standard veröffentlicht
-- overhead
+TODO:
+- code readme to pdf
+- quellen überarbeiten
+- abgeben
+- sha erstellen
 
-- mögliche daten sind typischerweise auch layer 7
-- grpc glossar
 
-- kurze sätze
-
-ein load balancer der 
-bereits
-
-verbindungen neu verteilen ohne den client
-
-auch der konsumeriot
-
-readme als pdf
-
-forschung?
-
-15
+fix
 istio 34
 
-
-
-
-TODO:
-- quellen überprüfen / seitenangabe bei quellen
-- caption für abbildungsverzeichnis anfertigen
-
-- überlastschutz kapitel
-- envoy architecture
-- split brain erwähnen bei cluster discovery
-
-kontrolle:
-- rechtschreibung / grammatik
-- abstract / einleitung / fazit / ausblick -> wichtig
-- alle englischen wörter mit bindestrich geschrieben?
-- layout / struktur korrekt? abstand nächste seite ? bilder placement?
-- jan hat sein fazit nicht beendet
-
-
-- least connection kann mehr berücksichtigen
-- rückkopplung zwischen broker und load balancer
-
-- operative prozesse -> neuer client auf neuen node -> kann der LB gut unterstützen -> transparentes neuverteilen
-
-- besserer erster satz
-- positiver
-- echten anwendungsfälle
-- fundamental neue mechanismen -> publish
-- hängt von dem anwedungsfall
-- vorteilhafte entscheidungen treffen
-- erforschen
-
-- erlaubt anderen kommunikationsmuster einzuführen -> mqtt konform nach draußen -> müsste man zeigen
--> selling point: 
-
-- abschnitt für bahnbrechende geschichten
-- swarm -> testwerkzeug -> benchmark tool
-- grundidee transparent client
-
-überlastschutz bearbeiten:
-- ist circuit breaking das richtige wort ?
-- circuit breaking -> ich muss vorher schon regeln sonst schädige ich die verbundenen clients
-- begriff circuit breaking nennen
-- ist health status wirklich das was ich bei circuit breaking machen will ?
-- welche ressourcen kann man sich angucken?
-
-- kluger lb -> gute leistung -> kluge metriken aus der applikation
-
-- lb hat alle nodes im überblick
-
-abstract:
-- iot, mqtt
-- skalierbar -> hivemq cluster
-- neue herausforderungen
-- envoy bietet große chancen, programmierbare lb wie envoy
+neu ?
+37
 
 # todo nach der arbeit
 - kolloquim
@@ -88,27 +19,6 @@ abstract:
 - mqtt stresser open source
 - envoy cpu weighted round robin open source
 - debriefing mit hivemq
-
-# grafiken
-14:20 - 14:40 = szenario 1, least conn
-15:40 - 16:10 = szenario 1, round robin
-16:20 - 16:40 = szenario 1, weighted cpu
-19:22 - 19:30 = szenario 2, least conn
-19:32 - 19:40 = szenario 2, round robin
-11:47 - 11:59 = szenario 2, weighted cpu
-19:45 - 20:20 = szenario 3, round robin
-12:55 - 13:35 = szenario 3, least conn
-12:00 - 12:40 = szenario 3, weighted cpu
-
-## letzter check
-- zahlen 0 - 12 ausgeschrieben, runde zahlen auch ausschreiben
-- quellen überarbeiten -> firmen, online magazine
-- fragezeichen quellen?
-
-## wichtige formale fragen
-
-- Überschriften auf english oder deutsch?
-- titel der arbeit, englisch oder deutsch?
 
 ## fragen an inovex
 

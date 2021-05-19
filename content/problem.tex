@@ -1,10 +1,10 @@
 \section{Problembeschreibung} \label{s:problem}
 Die Clusterfähigkeit des HiveMQ Brokers ermöglicht über einen zentralen und ausfallsicheren HiveMQ Cluster Millionen von \ac{iot}-Geräten die Kommunikation untereinander.
-Um ein HiveMQ Cluster für \ac{mqtt} Clients zu einem virtuellen Broker mit einer einzigen \ac{ip}-Adresse oder Domain zu abstrahieren, wird wie in Kapitel \ref{s:load-balancing} beschrieben ein \acl{lb} benötigt.
-In diesem Kapitel werden Anforderungen für einen \acl{lb} definiert, um \ac{mqtt} Traffic \textit{klug} an alle Nodes eines HiveMQ Clusters transparent zum Client zu verteilen.
+Um ein HiveMQ Cluster für \ac{mqtt} Clients zu einem virtuellen Broker mit einer einzigen \ac{ip}-Adresse oder Domain zu abstrahieren, wird wie in Kapitel \ref{s:load-balancing} beschrieben, ein \acl{lb} benötigt.
+In diesem Kapitel werden Anforderungen für einen \acl{lb} definiert, um \ac{mqtt} Traffic \textit{klug} an alle Nodes eines HiveMQ Clusters zu verteilen.
 
 \subsection{Cluster-Discovery} \label{sp:cluster-discovery}
-Ein HiveMQ Cluster ist, wie in Kapitel \ref{s:hivemq-cluster} beschrieben, in der Lage, zur Laufzeit die Grö{\ss}e des Clusters anzupassen. Der \acl{lb} muss daher in der Lage sein, neue HiveMQ Nodes zur Laufzeit zu entdecken und neue Clients mit den neuen Nodes zu verbinden. Falls sich die Anzahl der Nodes verringert, darf der \acl{lb} keine neuen Verbindungen mehr mit den alten Nodes aufbauen. Dies würde zu Fehlern bei den Clients führen.
+Ein HiveMQ Cluster ist, wie in Kapitel \ref{s:hivemq-cluster} beschrieben, in der Lage, zur Laufzeit die Grö{\ss}e des Clusters anzupassen. Der \acl{lb} muss daher fähig sein, neue HiveMQ Nodes zur Laufzeit zu entdecken und neue Clients mit den neuen Nodes zu verbinden. Falls sich die Anzahl der Nodes verringert, darf der \acl{lb} keine neuen Verbindungen mehr mit den alten Nodes aufbauen. Dies würde zu Fehlern bei den Clients führen.
 Eine statische Konfiguration der HiveMQ Nodes ist somit nicht möglich.
 
 \subsection{Langlebige TCP-Verbindungen}
@@ -19,14 +19,15 @@ Für den Fall eines Verbindungsabbruchs werden Nachrichten und Session relevante
 Sobald der Client seine Verbindung wieder aufbaut, findet ein Client-Takeover (\ref{s:client-takeover}) statt.
 Dieser Prozess findet bei einem Broker im Arbeitsspeicher statt.
 Dort wird zu den existierenden persistierten Daten der dazugehörige \ac{tcp}-Socket ausgetauscht.
-Wenn der Client die Verbindung mit einem anderen Node des HiveMQ Cluster wiederaufbaut, ist ein Client-Takeover komplexer.
+Wenn sich der Client mit einem anderen Node des HiveMQ Clusters wieder verbindet, ist ein Client-Takeover komplexer.
 In diesem Szenario müssen die persistierten Daten des Clients im Cluster synchronisiert werden.
 Je mehr Daten für die Synchronisation anfallen, desto aufwändiger ist der Client-Takeover.
 \\
 Im Optimalfall wird der neue Client mit demselben Node verbunden, mit dem er zuvor verbunden war, um interne Kommunikation und Latenzen beim Verbindungsaufbau zu verringern.
+\newpage
 
 \subsection{Überlastschutz}
-In Kapitel \ref{sb:overload-protection} wurde der Überlastschutz eines HiveMQ Brokers erläutert. Dies ermöglicht dem Broker die Verbindung individueller Clients, die viel Arbeitslast auf dem Broker erzeugen, zu unterbrechen. Falls der \ac{mqtt} Client sich \ac{mqtt} konform verhält, versucht dieser automatisch die Verbindung wiederherzustellen.
+In Kapitel \ref{sb:overload-protection} wurde der Überlastschutz eines HiveMQ Brokers erläutert. Dies ermöglicht dem Broker die Verbindung individueller Clients, die viel Arbeitslast auf dem Broker erzeugen, zu unterbrechen. Falls sich der \ac{mqtt} Client \ac{mqtt} konform verhält, versucht dieser automatisch die Verbindung wiederherzustellen.
 In diesem Fall darf der \acl{lb} den Client nicht wieder mit demselben Node verbinden, da dieser Node mit dem Client erneut überlastet sein wird. Es muss ein Node mit einer geringeren Auslastung für diesen Client gefunden werden.
 \\
 Das Overload-Protection Level gibt an, ob sich der HiveMQ Node in einer Überlast befindet.

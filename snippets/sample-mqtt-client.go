@@ -1,14 +1,3 @@
-package main
-
-import (
-  "fmt"
-  "log"
-  "os"
-  "time"
-
-  "github.com/eclipse/paho.mqtt.golang"
-)
-
 func checkHealth(host string, port int) (ret bool) {
 	// return false if error happens
 	defer func() {
@@ -30,7 +19,8 @@ func checkHealth(host string, port int) (ret bool) {
 	queue := make(chan string)
 	error := false
 
-	var f mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
+	var f mqtt.MessageHandler =
+	    func(client mqtt.Client, msg mqtt.Message) {
 		if msg.Topic() != topic {
 			error = true
 			return
