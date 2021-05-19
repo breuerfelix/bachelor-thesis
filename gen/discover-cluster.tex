@@ -1,0 +1,30 @@
+\begin{Verbatim}[commandchars=\\\{\},numbers=left,firstnumber=1,stepnumber=1,frame=single]
+\PY{k+kd}{func} \PY{n+nx}{discoverCluster}\PY{p}{(}\PY{n+nx}{cluster} \PY{o}{*}\PY{n+nx}{Cluster}\PY{p}{)} \PY{p}{\PYZob{}}
+  \PY{k}{for} \PY{p}{\PYZob{}}
+    \PY{n+nx}{ips}\PY{p}{,} \PY{n+nx}{\PYZus{}} \PY{o}{:=} \PY{n+nx}{net}\PY{p}{.}\PY{n+nx}{LookupIP}\PY{p}{(}\PY{n+nx}{cluster}\PY{p}{.}\PY{n+nx}{Domain}\PY{p}{)}
+    \PY{n+nx}{newCluster} \PY{o}{:=} \PY{n+nb}{make}\PY{p}{(}\PY{p}{[}\PY{p}{]}\PY{o}{*}\PY{n+nx}{HiveMQ}\PY{p}{,} \PY{l+m+mi}{0}\PY{p}{)}
+
+    \PY{k}{for} \PY{n+nx}{\PYZus{}}\PY{p}{,} \PY{n+nx}{ip} \PY{o}{:=} \PY{k}{range} \PY{n+nx}{ips} \PY{p}{\PYZob{}}
+      \PY{n+nx}{found} \PY{o}{:=} \PY{k+kc}{false}
+      \PY{k}{for} \PY{n+nx}{\PYZus{}}\PY{p}{,} \PY{n+nx}{hivemq} \PY{o}{:=} \PY{k}{range} \PY{n+nx}{cluster}\PY{p}{.}\PY{n+nx}{Nodes} \PY{p}{\PYZob{}}
+        \PY{k}{if} \PY{n+nx}{ip}\PY{p}{.}\PY{n+nx}{String}\PY{p}{(}\PY{p}{)} \PY{o}{==} \PY{n+nx}{hivemq}\PY{p}{.}\PY{n+nx}{HostName} \PY{p}{\PYZob{}}
+          \PY{n+nx}{newCluster} \PY{p}{=} \PY{n+nb}{append}\PY{p}{(}\PY{n+nx}{newCluster}\PY{p}{,} \PY{n+nx}{hivemq}\PY{p}{)}
+          \PY{n+nx}{found} \PY{p}{=} \PY{k+kc}{true}
+          \PY{k}{break}
+        \PY{p}{\PYZcb{}}
+      \PY{p}{\PYZcb{}}
+
+      \PY{k}{if} \PY{n+nx}{found} \PY{p}{\PYZob{}}
+        \PY{k}{continue}
+      \PY{p}{\PYZcb{}}
+
+      \PY{n+nx}{fmt}\PY{p}{.}\PY{n+nx}{Println}\PY{p}{(}\PY{l+s}{\PYZdq{}Discovered New Node:\PYZdq{}}\PY{p}{,} \PY{n+nx}{ip}\PY{p}{.}\PY{n+nx}{String}\PY{p}{(}\PY{p}{)}\PY{p}{)}
+      \PY{n+nx}{hivemq} \PY{o}{:=} \PY{n+nx}{NewHiveMQ}\PY{p}{(}\PY{n+nx}{ip}\PY{p}{.}\PY{n+nx}{String}\PY{p}{(}\PY{p}{)}\PY{p}{,} \PY{l+m+mi}{1883}\PY{p}{,} \PY{l+m+mi}{9399}\PY{p}{)}
+      \PY{n+nx}{newCluster} \PY{p}{=} \PY{n+nb}{append}\PY{p}{(}\PY{n+nx}{newCluster}\PY{p}{,} \PY{n+nx}{hivemq}\PY{p}{)}
+    \PY{p}{\PYZcb{}}
+
+    \PY{n+nx}{cluster}\PY{p}{.}\PY{n+nx}{Nodes} \PY{p}{=} \PY{n+nx}{newCluster}
+    \PY{n+nx}{time}\PY{p}{.}\PY{n+nx}{Sleep}\PY{p}{(}\PY{l+m+mi}{2} \PY{o}{*} \PY{n+nx}{time}\PY{p}{.}\PY{n+nx}{Second}\PY{p}{)}
+  \PY{p}{\PYZcb{}}
+\PY{p}{\PYZcb{}}
+\end{Verbatim}

@@ -1,0 +1,29 @@
+\begin{Verbatim}[commandchars=\\\{\},numbers=left,firstnumber=1,stepnumber=1,frame=single]
+\PY{c+c1}{// calculations based on metrics}
+\PY{k}{for} \PY{n+nx}{\PYZus{}}\PY{p}{,} \PY{n+nx}{broker} \PY{o}{:=} \PY{k}{range} \PY{n+nx}{endpoints} \PY{p}{\PYZob{}}
+  \PY{c+c1}{// calculate health status based on overload protection}
+  \PY{n+nx}{metrics} \PY{o}{:=} \PY{n+nx}{broker}\PY{p}{.}\PY{n+nx}{Metrics}\PY{p}{[}\PY{n+nx}{Metrics}\PY{p}{.}\PY{n+nx}{OverloadProtection}\PY{p}{]}
+  \PY{k}{if} \PY{n+nb}{len}\PY{p}{(}\PY{n+nx}{metrics}\PY{p}{)} \PY{p}{\PYZlt{}} \PY{l+m+mi}{1} \PY{p}{\PYZob{}}
+    \PY{k}{continue}
+  \PY{p}{\PYZcb{}}
+
+  \PY{c+c1}{// get the latest value}
+  \PY{n+nx}{overload} \PY{o}{:=} \PY{n+nx}{metrics}\PY{p}{[}\PY{n+nb}{len}\PY{p}{(}\PY{n+nx}{metrics}\PY{p}{)}\PY{o}{\PYZhy{}}\PY{l+m+mi}{1}\PY{p}{]}
+  \PY{c+c1}{// if value is \PYZlt{}= 5, set to healthy}
+  \PY{n+nx}{broker}\PY{p}{.}\PY{n+nx}{OverloadProtectionHealthy} \PY{p}{=} \PY{n+nx}{overload}\PY{p}{.}\PY{n+nx}{Value} \PY{o}{\PYZlt{}=} \PY{l+m+mf}{5.0}
+\PY{p}{\PYZcb{}}
+
+\PY{c+c1}{// determine health status of nodes}
+\PY{k}{for} \PY{n+nx}{\PYZus{}}\PY{p}{,} \PY{n+nx}{broker} \PY{o}{:=} \PY{k}{range} \PY{n+nx}{endpoints} \PY{p}{\PYZob{}}
+  \PY{c+c1}{// only set to healthy if all healh conditions are met}
+  \PY{k}{if} \PY{n+nx}{broker}\PY{p}{.}\PY{n+nx}{MqttHealthy} \PY{o}{\PYZam{}\PYZam{}}
+    \PY{n+nx}{broker}\PY{p}{.}\PY{n+nx}{OverloadProtectionHealthy} \PY{p}{\PYZob{}}
+    \PY{n+nx}{broker}\PY{p}{.}\PY{n+nx}{Healthy} \PY{p}{=} \PY{k+kc}{true}
+    \PY{k}{continue}
+  \PY{p}{\PYZcb{}}
+
+  \PY{n+nx}{broker}\PY{p}{.}\PY{n+nx}{Healthy} \PY{p}{=} \PY{k+kc}{false}
+\PY{p}{\PYZcb{}}
+
+\PY{c+c1}{// update snapshot}
+\end{Verbatim}

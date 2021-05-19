@@ -1,0 +1,41 @@
+\begin{Verbatim}[commandchars=\\\{\},numbers=left,firstnumber=1,stepnumber=1,frame=single]
+\PY{n+nt}{node}\PY{p}{:}
+  \PY{n+nt}{cluster}\PY{p}{:} \PY{l+lScalar+lScalarPlain}{hivemq\PYZhy{}controller}
+  \PY{n+nt}{id}\PY{p}{:} \PY{l+lScalar+lScalarPlain}{hivemq}
+
+\PY{n+nt}{dynamic\PYZus{}resources}\PY{p}{:}
+  \PY{n+nt}{ads\PYZus{}config}\PY{p}{:}
+    \PY{n+nt}{api\PYZus{}type}\PY{p}{:} \PY{l+lScalar+lScalarPlain}{GRPC}
+    \PY{n+nt}{transport\PYZus{}api\PYZus{}version}\PY{p}{:} \PY{l+lScalar+lScalarPlain}{V3}
+    \PY{n+nt}{grpc\PYZus{}services}\PY{p}{:}
+    \PY{p+pIndicator}{\PYZhy{}} \PY{n+nt}{envoy\PYZus{}grpc}\PY{p}{:}
+        \PY{n+nt}{cluster\PYZus{}name}\PY{p}{:} \PY{l+lScalar+lScalarPlain}{xds\PYZus{}cluster}
+  \PY{n+nt}{cds\PYZus{}config}\PY{p}{:}
+    \PY{n+nt}{resource\PYZus{}api\PYZus{}version}\PY{p}{:} \PY{l+lScalar+lScalarPlain}{V3}
+    \PY{n+nt}{ads}\PY{p}{:} \PY{p+pIndicator}{\PYZob{}}\PY{p+pIndicator}{\PYZcb{}}
+  \PY{n+nt}{lds\PYZus{}config}\PY{p}{:}
+    \PY{n+nt}{resource\PYZus{}api\PYZus{}version}\PY{p}{:} \PY{l+lScalar+lScalarPlain}{V3}
+    \PY{n+nt}{ads}\PY{p}{:} \PY{p+pIndicator}{\PYZob{}}\PY{p+pIndicator}{\PYZcb{}}
+
+\PY{n+nt}{static\PYZus{}resources}\PY{p}{:}
+  \PY{n+nt}{clusters}\PY{p}{:}
+  \PY{p+pIndicator}{\PYZhy{}} \PY{n+nt}{connect\PYZus{}timeout}\PY{p}{:} \PY{l+lScalar+lScalarPlain}{1s}
+    \PY{n+nt}{type}\PY{p}{:} \PY{l+lScalar+lScalarPlain}{STRICT\PYZus{}DNS}
+    \PY{n+nt}{typed\PYZus{}extension\PYZus{}protocol\PYZus{}options}\PY{p}{:}
+      \PY{n+nt}{envoy.extensions.upstreams.http.v3.HttpProtocolOptions}\PY{p}{:}
+        \PY{l+s}{\PYZdq{}}\PY{l+s}{@type}\PY{l+s}{\PYZdq{}}\PY{p+pIndicator}{:} \PY{p+pIndicator}{\PYZgt{}}\PY{p+pIndicator}{\PYZhy{}}
+          \PY{n+no}{type.googleapis.com}
+          \PY{n+no}{/envoy.extensions.upstreams.http.v3.HttpProtocolOptions}
+        \PY{n+nt}{explicit\PYZus{}http\PYZus{}config}\PY{p}{:}
+          \PY{n+nt}{http2\PYZus{}protocol\PYZus{}options}\PY{p}{:} \PY{p+pIndicator}{\PYZob{}}\PY{p+pIndicator}{\PYZcb{}}
+    \PY{n+nt}{name}\PY{p}{:} \PY{l+lScalar+lScalarPlain}{xds\PYZus{}cluster}
+    \PY{n+nt}{load\PYZus{}assignment}\PY{p}{:}
+      \PY{n+nt}{cluster\PYZus{}name}\PY{p}{:} \PY{l+lScalar+lScalarPlain}{xds\PYZus{}cluster}
+      \PY{n+nt}{endpoints}\PY{p}{:}
+      \PY{p+pIndicator}{\PYZhy{}} \PY{n+nt}{lb\PYZus{}endpoints}\PY{p}{:}
+        \PY{p+pIndicator}{\PYZhy{}} \PY{n+nt}{endpoint}\PY{p}{:}
+            \PY{n+nt}{address}\PY{p}{:}
+              \PY{n+nt}{socket\PYZus{}address}\PY{p}{:}
+                \PY{n+nt}{address}\PY{p}{:} \PY{l+lScalar+lScalarPlain}{example.controlplane.internal}
+                \PY{n+nt}{port\PYZus{}value}\PY{p}{:} \PY{l+lScalar+lScalarPlain}{18000}
+\end{Verbatim}

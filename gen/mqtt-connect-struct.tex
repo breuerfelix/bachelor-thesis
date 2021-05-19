@@ -1,0 +1,29 @@
+\begin{Verbatim}[commandchars=\\\{\},numbers=left,firstnumber=1,stepnumber=1,frame=single]
+\PY{k+kd}{type} \PY{n+nx}{FixedHeader} \PY{k+kd}{struct} \PY{p}{\PYZob{}}
+	\PY{n+nx}{MessageType}     \PY{k+kt}{byte}
+	\PY{n+nx}{Dup}             \PY{k+kt}{bool}
+	\PY{n+nx}{Qos}             \PY{k+kt}{byte}
+	\PY{n+nx}{Retain}          \PY{k+kt}{bool}
+	\PY{n+nx}{RemainingLength} \PY{k+kt}{int}
+\PY{p}{\PYZcb{}}
+
+\PY{k+kd}{type} \PY{n+nx}{ConnectPacket} \PY{k+kd}{struct} \PY{p}{\PYZob{}}
+	\PY{n+nx}{FixedHeader}
+	\PY{n+nx}{ProtocolName}    \PY{k+kt}{string}
+	\PY{n+nx}{ProtocolVersion} \PY{k+kt}{byte}
+	\PY{n+nx}{CleanSession}    \PY{k+kt}{bool}
+	\PY{n+nx}{WillFlag}        \PY{k+kt}{bool}
+	\PY{n+nx}{WillQos}         \PY{k+kt}{byte}
+	\PY{n+nx}{WillRetain}      \PY{k+kt}{bool}
+	\PY{n+nx}{UsernameFlag}    \PY{k+kt}{bool}
+	\PY{n+nx}{PasswordFlag}    \PY{k+kt}{bool}
+	\PY{n+nx}{ReservedBit}     \PY{k+kt}{byte}
+	\PY{n+nx}{Keepalive}       \PY{k+kt}{uint16}
+
+	\PY{n+nx}{ClientIdentifier} \PY{k+kt}{string}
+	\PY{n+nx}{WillTopic}        \PY{k+kt}{string}
+	\PY{n+nx}{WillMessage}      \PY{p}{[}\PY{p}{]}\PY{k+kt}{byte}
+	\PY{n+nx}{Username}         \PY{k+kt}{string}
+	\PY{n+nx}{Password}         \PY{p}{[}\PY{p}{]}\PY{k+kt}{byte}
+\PY{p}{\PYZcb{}}
+\end{Verbatim}

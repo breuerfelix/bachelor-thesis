@@ -1,0 +1,34 @@
+\begin{Verbatim}[commandchars=\\\{\},numbers=left,firstnumber=1,stepnumber=1,frame=single]
+\PY{k+kn}{package} \PY{n+nx}{main}
+
+\PY{k+kn}{import} \PY{p}{(}
+  \PY{l+s}{\PYZdq{}net\PYZdq{}}
+  \PY{l+s}{\PYZdq{}fmt\PYZdq{}}
+  \PY{l+s}{\PYZdq{}time\PYZdq{}}
+\PY{p}{)}
+
+\PY{k+kd}{var} \PY{n+nx}{INTERVAL} \PY{p}{=} \PY{l+m+mi}{5} \PY{o}{*} \PY{n+nx}{time}\PY{p}{.}\PY{n+nx}{Second}
+
+\PY{k+kd}{func} \PY{n+nx}{refreshDNS}\PY{p}{(}\PY{n+nx}{domain} \PY{k+kt}{string}\PY{p}{)} \PY{p}{\PYZob{}}
+  \PY{k}{for} \PY{p}{\PYZob{}}
+    \PY{n+nx}{ips}\PY{p}{,} \PY{n+nx}{\PYZus{}} \PY{o}{:=} \PY{n+nx}{net}\PY{p}{.}\PY{n+nx}{LookupIP}\PY{p}{(}\PY{n+nx}{domain}\PY{p}{)}
+
+    \PY{k}{for} \PY{n+nx}{\PYZus{}}\PY{p}{,} \PY{n+nx}{ip} \PY{o}{:=} \PY{k}{range} \PY{n+nx}{ips} \PY{p}{\PYZob{}}
+      \PY{n+nx}{fmt}\PY{p}{.}\PY{n+nx}{Printf}\PY{p}{(}\PY{l+s}{\PYZdq{}IP: \PYZpc{}s\PYZbs{}n\PYZdq{}}\PY{p}{,} \PY{n+nx}{ip}\PY{p}{.}\PY{n+nx}{String}\PY{p}{(}\PY{p}{)}\PY{p}{)}
+    \PY{p}{\PYZcb{}}
+
+    \PY{n+nx}{time}\PY{p}{.}\PY{n+nx}{Sleep}\PY{p}{(}\PY{n+nx}{INTERVAL}\PY{p}{)}
+  \PY{p}{\PYZcb{}}
+\PY{p}{\PYZcb{}}
+
+\PY{k+kd}{func} \PY{n+nx}{main}\PY{p}{(}\PY{p}{)} \PY{p}{\PYZob{}}
+  \PY{k}{go} \PY{n+nx}{refreshDNS}\PY{p}{(}\PY{l+s}{\PYZdq{}example.cluster.internal\PYZdq{}}\PY{p}{)}
+
+  \PY{c+c1}{// ...}
+\PY{p}{\PYZcb{}}
+
+\PY{c+c1}{// Output:}
+\PY{c+c1}{// IP: 192.168.0.2}
+\PY{c+c1}{// IP: 192.168.0.3}
+\PY{c+c1}{// IP: 192.168.0.4}
+\end{Verbatim}

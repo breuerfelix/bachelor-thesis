@@ -1,0 +1,45 @@
+\begin{Verbatim}[commandchars=\\\{\},numbers=left,firstnumber=1,stepnumber=1,frame=single]
+\PY{k+kd}{type} \PY{n+nx}{HiveMQ} \PY{k+kd}{struct} \PY{p}{\PYZob{}}
+	\PY{n+nx}{ID}          \PY{k+kt}{string}
+	\PY{n+nx}{HostName}    \PY{k+kt}{string}
+	\PY{n+nx}{Port}        \PY{k+kt}{uint32}
+	\PY{n+nx}{Weight}      \PY{k+kt}{uint32}
+	\PY{n+nx}{Healthy}     \PY{k+kt}{bool}
+\PY{p}{\PYZcb{}}
+
+\PY{k+kd}{func} \PY{n+nx}{NewHiveMQ}\PY{p}{(}\PY{n+nx}{host} \PY{k+kt}{string}\PY{p}{,} \PY{n+nx}{port} \PY{k+kt}{uint32}\PY{p}{)} \PY{o}{*}\PY{n+nx}{HiveMQ} \PY{p}{\PYZob{}}
+	\PY{n+nx}{o} \PY{o}{:=} \PY{n+nb}{new}\PY{p}{(}\PY{n+nx}{HiveMQ}\PY{p}{)}
+
+	\PY{n+nx}{o}\PY{p}{.}\PY{n+nx}{HostName} \PY{p}{=} \PY{n+nx}{host}
+	\PY{n+nx}{o}\PY{p}{.}\PY{n+nx}{Port} \PY{p}{=} \PY{n+nx}{port}
+	\PY{n+nx}{o}\PY{p}{.}\PY{n+nx}{MetricsPort} \PY{p}{=} \PY{n+nx}{metricsPort}
+
+	\PY{c+c1}{// default values}
+	\PY{n+nx}{o}\PY{p}{.}\PY{n+nx}{Weight} \PY{p}{=} \PY{l+m+mi}{1}
+	\PY{n+nx}{o}\PY{p}{.}\PY{n+nx}{Healthy} \PY{p}{=} \PY{k+kc}{false}
+
+	\PY{n+nx}{o}\PY{p}{.}\PY{n+nx}{ID} \PY{p}{=} \PY{n+nx}{fmt}\PY{p}{.}\PY{n+nx}{Sprintf}\PY{p}{(}\PY{l+s}{\PYZdq{}\PYZpc{}v:\PYZpc{}v\PYZdq{}}\PY{p}{,} \PY{n+nx}{host}\PY{p}{,} \PY{n+nx}{port}\PY{p}{)}
+
+	\PY{k}{return} \PY{n+nx}{o}
+\PY{p}{\PYZcb{}}
+
+\PY{k+kd}{func} \PY{p}{(}\PY{n+nx}{h} \PY{o}{*}\PY{n+nx}{HiveMQ}\PY{p}{)} \PY{n+nx}{GetHashString}\PY{p}{(}\PY{p}{)} \PY{k+kt}{string} \PY{p}{\PYZob{}}
+	\PY{k}{return} \PY{n+nx}{fmt}\PY{p}{.}\PY{n+nx}{Sprintf}\PY{p}{(}\PY{l+s}{\PYZdq{}\PYZpc{}v\PYZhy{}\PYZpc{}v\PYZhy{}\PYZpc{}v\PYZdq{}}\PY{p}{,} \PY{n+nx}{h}\PY{p}{.}\PY{n+nx}{ID}\PY{p}{,} \PY{n+nx}{h}\PY{p}{.}\PY{n+nx}{Weight}\PY{p}{,} \PY{n+nx}{h}\PY{p}{.}\PY{n+nx}{Healthy}\PY{p}{)}
+\PY{p}{\PYZcb{}}
+
+\PY{k+kd}{func} \PY{n+nx}{generateVersion}\PY{p}{(}\PY{n+nx}{endpoints} \PY{p}{[}\PY{p}{]}\PY{o}{*}\PY{n+nx}{HiveMQ}\PY{p}{)} \PY{k+kt}{string} \PY{p}{\PYZob{}}
+	\PY{c+c1}{// sort array so nodes are always in the same order}
+	\PY{n+nx}{sort}\PY{p}{.}\PY{n+nx}{Slice}\PY{p}{(}\PY{n+nx}{endpoints}\PY{p}{,} \PY{k+kd}{func}\PY{p}{(}\PY{n+nx}{i}\PY{p}{,} \PY{n+nx}{j} \PY{k+kt}{int}\PY{p}{)} \PY{k+kt}{bool} \PY{p}{\PYZob{}}
+		\PY{k}{return} \PY{n+nx}{endpoints}\PY{p}{[}\PY{n+nx}{i}\PY{p}{]}\PY{p}{.}\PY{n+nx}{ID} \PY{p}{\PYZlt{}} \PY{n+nx}{endpoints}\PY{p}{[}\PY{n+nx}{j}\PY{p}{]}\PY{p}{.}\PY{n+nx}{ID}
+	\PY{p}{\PYZcb{}}\PY{p}{)}
+
+	\PY{n+nx}{s} \PY{o}{:=} \PY{n+nx}{sha256}\PY{p}{.}\PY{n+nx}{New}\PY{p}{(}\PY{p}{)}
+	\PY{k}{for} \PY{n+nx}{\PYZus{}}\PY{p}{,} \PY{n+nx}{endpoint} \PY{o}{:=} \PY{k}{range} \PY{n+nx}{endpoints} \PY{p}{\PYZob{}}
+		\PY{n+nx}{s}\PY{p}{.}\PY{n+nx}{Write}\PY{p}{(}\PY{p}{[}\PY{p}{]}\PY{n+nb}{byte}\PY{p}{(}
+			\PY{n+nx}{fmt}\PY{p}{.}\PY{n+nx}{Sprintf}\PY{p}{(}\PY{l+s}{\PYZdq{}\PYZpc{}v\PYZdq{}}\PY{p}{,} \PY{n+nx}{endpoint}\PY{p}{.}\PY{n+nx}{GetHashString}\PY{p}{(}\PY{p}{)}\PY{p}{)}
+		\PY{p}{)}\PY{p}{)}
+	\PY{p}{\PYZcb{}}
+
+	\PY{k}{return} \PY{n+nx}{fmt}\PY{p}{.}\PY{n+nx}{Sprintf}\PY{p}{(}\PY{l+s}{\PYZdq{}\PYZpc{}x\PYZdq{}}\PY{p}{,} \PY{n+nx}{s}\PY{p}{.}\PY{n+nx}{Sum}\PY{p}{(}\PY{k+kc}{nil}\PY{p}{)}\PY{p}{)}
+\PY{p}{\PYZcb{}}
+\end{Verbatim}

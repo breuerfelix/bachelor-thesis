@@ -1,0 +1,40 @@
+\begin{Verbatim}[commandchars=\\\{\},numbers=left,firstnumber=1,stepnumber=1,frame=single]
+\PY{k+kn}{package} \PY{n+nx}{main}
+
+\PY{k+kn}{import} \PY{p}{(}
+	\PY{l+s}{\PYZdq{}github.com/prometheus/common/expfmt\PYZdq{}}
+	\PY{l+s}{\PYZdq{}net/http\PYZdq{}}
+	\PY{l+s}{\PYZdq{}time\PYZdq{}}
+	\PY{l+s}{\PYZdq{}fmt\PYZdq{}}
+\PY{p}{)}
+
+\PY{k+kd}{var} \PY{n+nx}{INTERVAL} \PY{p}{=} \PY{l+m+mi}{5} \PY{o}{*} \PY{n+nx}{time}\PY{p}{.}\PY{n+nx}{Second}
+
+\PY{k+kd}{func} \PY{n+nx}{fetchMetrics}\PY{p}{(}\PY{n+nx}{url} \PY{k+kt}{string}\PY{p}{)} \PY{p}{\PYZob{}}
+	\PY{k}{for} \PY{p}{\PYZob{}}
+		\PY{n+nx}{resp}\PY{p}{,} \PY{n+nx}{\PYZus{}} \PY{o}{:=} \PY{n+nx}{http}\PY{p}{.}\PY{n+nx}{Get}\PY{p}{(}\PY{n+nx}{url}\PY{p}{)}
+		\PY{k}{defer} \PY{n+nx}{resp}\PY{p}{.}\PY{n+nx}{Body}\PY{p}{.}\PY{n+nx}{Close}\PY{p}{(}\PY{p}{)}
+
+		\PY{k+kd}{var} \PY{n+nx}{parser} \PY{n+nx}{expfmt}\PY{p}{.}\PY{n+nx}{TextParser}
+		\PY{n+nx}{mf}\PY{p}{,} \PY{n+nx}{\PYZus{}} \PY{o}{:=} \PY{n+nx}{parser}\PY{p}{.}\PY{n+nx}{TextToMetricFamilies}\PY{p}{(}\PY{n+nx}{resp}\PY{p}{.}\PY{n+nx}{Body}\PY{p}{)}
+
+		\PY{n+nx}{metric} \PY{o}{:=} \PY{l+s}{\PYZdq{}com\PYZus{}hivemq\PYZus{}system\PYZus{}os\PYZus{}global\PYZus{}cpu\PYZus{}total\PYZus{}total\PYZdq{}}
+		\PY{n+nx}{value} \PY{o}{:=} \PY{n+nx}{mf}\PY{p}{[}\PY{n+nx}{metric}\PY{p}{]}\PY{p}{.}\PY{n+nx}{GetMetric}\PY{p}{(}\PY{p}{)}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{]}\PY{p}{.}\PY{n+nx}{Gauge}\PY{p}{.}\PY{n+nx}{GetValue}\PY{p}{(}\PY{p}{)}
+
+		\PY{n+nx}{fmt}\PY{p}{.}\PY{n+nx}{Printf}\PY{p}{(}\PY{l+s}{\PYZdq{}CPU load: \PYZpc{}.1f\PYZbs{}n\PYZdq{}}\PY{p}{,} \PY{n+nx}{value}\PY{p}{)}
+
+		\PY{n+nx}{time}\PY{p}{.}\PY{n+nx}{Sleep}\PY{p}{(}\PY{n+nx}{INTERVAL}\PY{p}{)}
+	\PY{p}{\PYZcb{}}
+\PY{p}{\PYZcb{}}
+
+\PY{k+kd}{func} \PY{n+nx}{main}\PY{p}{(}\PY{p}{)} \PY{p}{\PYZob{}}
+	\PY{k}{go} \PY{n+nx}{fetchMetrics}\PY{p}{(}\PY{l+s}{\PYZdq{}http://localhost:9399/metrics\PYZdq{}}\PY{p}{)}
+
+	\PY{c+c1}{// ...}
+\PY{p}{\PYZcb{}}
+
+\PY{c+c1}{// Output:}
+\PY{c+c1}{// CPU load: 5.0}
+\PY{c+c1}{// CPU load: 10.3}
+\PY{c+c1}{// CPU load: 7.5}
+\end{Verbatim}

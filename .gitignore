@@ -4,7 +4,6 @@
 *.gz
 *.txt
 
-*.bib
-!refs.bib
 _minted-main
-gen
+
+!main.pdf

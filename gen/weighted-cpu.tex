@@ -1,0 +1,38 @@
+\begin{Verbatim}[commandchars=\\\{\},numbers=left,firstnumber=1,stepnumber=1,frame=single]
+\PY{c+c1}{// init data container}
+\PY{n+nx}{processed} \PY{o}{:=} \PY{n+nb}{make}\PY{p}{(}\PY{k+kd}{map}\PY{p}{[}\PY{k+kt}{string}\PY{p}{]}\PY{k+kd}{map}\PY{p}{[}\PY{k+kt}{string}\PY{p}{]}\PY{k+kt}{float64}\PY{p}{)}
+\PY{k}{for} \PY{n+nx}{\PYZus{}}\PY{p}{,} \PY{n+nx}{broker} \PY{o}{:=} \PY{k}{range} \PY{n+nx}{endpoints} \PY{p}{\PYZob{}}
+  \PY{n+nx}{processed}\PY{p}{[}\PY{n+nx}{broker}\PY{p}{.}\PY{n+nx}{ID}\PY{p}{]} \PY{p}{=} \PY{n+nb}{make}\PY{p}{(}\PY{k+kd}{map}\PY{p}{[}\PY{k+kt}{string}\PY{p}{]}\PY{k+kt}{float64}\PY{p}{)}
+\PY{p}{\PYZcb{}}
+
+\PY{c+c1}{// process average values over all stored metrics}
+\PY{k}{for} \PY{n+nx}{\PYZus{}}\PY{p}{,} \PY{n+nx}{broker} \PY{o}{:=} \PY{k}{range} \PY{n+nx}{endpoints} \PY{p}{\PYZob{}}
+  \PY{k}{for} \PY{n+nx}{metric}\PY{p}{,} \PY{n+nx}{data} \PY{o}{:=} \PY{k}{range} \PY{n+nx}{broker}\PY{p}{.}\PY{n+nx}{Metrics} \PY{p}{\PYZob{}}
+    \PY{n+nx}{mean} \PY{o}{:=} \PY{l+m+mf}{0.0}
+    \PY{k}{for} \PY{n+nx}{\PYZus{}}\PY{p}{,} \PY{n+nx}{d} \PY{o}{:=} \PY{k}{range} \PY{n+nx}{data} \PY{p}{\PYZob{}}
+      \PY{n+nx}{mean} \PY{o}{+=} \PY{n+nx}{d}\PY{p}{.}\PY{n+nx}{Value}
+    \PY{p}{\PYZcb{}}
+
+    \PY{n+nx}{processed}\PY{p}{[}\PY{n+nx}{broker}\PY{p}{.}\PY{n+nx}{ID}\PY{p}{]}\PY{p}{[}\PY{n+nx}{metric}\PY{p}{]} \PY{p}{=} \PY{n+nx}{mean} \PY{o}{/} \PY{n+nb}{float64}\PY{p}{(}\PY{n+nb}{len}\PY{p}{(}\PY{n+nx}{data}\PY{p}{)}\PY{p}{)}
+  \PY{p}{\PYZcb{}}
+\PY{p}{\PYZcb{}}
+
+\PY{k}{for} \PY{n+nx}{\PYZus{}}\PY{p}{,} \PY{n+nx}{broker} \PY{o}{:=} \PY{k}{range} \PY{n+nx}{endpoints} \PY{p}{\PYZob{}}
+  \PY{c+c1}{// calculate weight based on free cpu capacity}
+  \PY{n+nx}{val} \PY{o}{:=} \PY{l+m+mf}{100.0} \PY{o}{\PYZhy{}} \PY{n+nx}{processed}\PY{p}{[}\PY{n+nx}{broker}\PY{p}{.}\PY{n+nx}{ID}\PY{p}{]}\PY{p}{[}\PY{n+nx}{Metrics}\PY{p}{.}\PY{n+nx}{CpuLoad}\PY{p}{]}
+
+  \PY{c+c1}{// check for NaN}
+  \PY{k}{if} \PY{n+nx}{val} \PY{o}{!=} \PY{n+nx}{val} \PY{o}{||} \PY{n+nx}{val} \PY{p}{\PYZlt{}} \PY{l+m+mf}{1.0} \PY{p}{\PYZob{}}
+    \PY{n+nx}{val} \PY{p}{=} \PY{l+m+mf}{1.0}
+  \PY{p}{\PYZcb{}}
+
+  \PY{c+c1}{// set the actual weight to the node}
+  \PY{n+nx}{broker}\PY{p}{.}\PY{n+nx}{Weight} \PY{p}{=} \PY{n+nb}{uint32}\PY{p}{(}\PY{n+nx}{math}\PY{p}{.}\PY{n+nx}{Round}\PY{p}{(}\PY{n+nx}{val}\PY{p}{)}\PY{p}{)}
+  \PY{n+nx}{log}\PY{p}{.}\PY{n+nx}{Printf}\PY{p}{(}
+    \PY{l+s}{\PYZdq{}Broker: \PYZpc{}v / free CPU: \PYZpc{}v / Weight: \PYZpc{}v / Healthy: \PYZpc{}v\PYZdq{}}\PY{p}{,}
+    \PY{n+nx}{broker}\PY{p}{.}\PY{n+nx}{ID}\PY{p}{,} \PY{n+nx}{val}\PY{p}{,} \PY{n+nx}{broker}\PY{p}{.}\PY{n+nx}{Weight}\PY{p}{,} \PY{n+nx}{broker}\PY{p}{.}\PY{n+nx}{Healthy}\PY{p}{,}
+  \PY{p}{)}
+\PY{p}{\PYZcb{}}
+
+\PY{c+c1}{// update snapshot}
+\end{Verbatim}

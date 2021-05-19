@@ -1,0 +1,83 @@
+\begin{Verbatim}[commandchars=\\\{\},numbers=left,firstnumber=1,stepnumber=1,frame=single]
+\PY{k+kd}{func} \PY{n+nx}{checkHealth}\PY{p}{(}\PY{n+nx}{host} \PY{k+kt}{string}\PY{p}{,} \PY{n+nx}{port} \PY{k+kt}{int}\PY{p}{)} \PY{p}{(}\PY{n+nx}{ret} \PY{k+kt}{bool}\PY{p}{)} \PY{p}{\PYZob{}}
+	\PY{c+c1}{// return false if error happens}
+	\PY{k}{defer} \PY{k+kd}{func}\PY{p}{(}\PY{p}{)} \PY{p}{\PYZob{}}
+		\PY{k}{if} \PY{n+nx}{r} \PY{o}{:=} \PY{n+nb}{recover}\PY{p}{(}\PY{p}{)}\PY{p}{;} \PY{n+nx}{r} \PY{o}{!=} \PY{k+kc}{nil} \PY{p}{\PYZob{}}
+			\PY{n+nx}{ret} \PY{p}{=} \PY{k+kc}{false}
+		\PY{p}{\PYZcb{}}
+	\PY{p}{\PYZcb{}}\PY{p}{(}\PY{p}{)}
+
+	\PY{n+nx}{topic} \PY{o}{:=} \PY{l+s}{\PYZdq{}healthcheck\PYZdq{}}
+	\PY{n+nx}{client\PYZus{}id} \PY{o}{:=} \PY{l+s}{\PYZdq{}control\PYZhy{}plane\PYZhy{}healthcheck\PYZdq{}}
+	\PY{n+nx}{timeout} \PY{o}{:=} \PY{l+m+mi}{10} \PY{o}{*} \PY{n+nx}{time}\PY{p}{.}\PY{n+nx}{Second}
+
+	\PY{n+nx}{start} \PY{o}{:=} \PY{n+nx}{time}\PY{p}{.}\PY{n+nx}{Now}\PY{p}{(}\PY{p}{)}\PY{p}{.}\PY{n+nx}{Unix}\PY{p}{(}\PY{p}{)}
+	\PY{k+kd}{var} \PY{n+nx}{remainingTime} \PY{p}{=} \PY{k+kd}{func}\PY{p}{(}\PY{p}{)} \PY{n+nx}{time}\PY{p}{.}\PY{n+nx}{Duration} \PY{p}{\PYZob{}}
+		\PY{n+nx}{elapsed} \PY{o}{:=} \PY{n+nx}{time}\PY{p}{.}\PY{n+nx}{Now}\PY{p}{(}\PY{p}{)}\PY{p}{.}\PY{n+nx}{Unix}\PY{p}{(}\PY{p}{)} \PY{o}{\PYZhy{}} \PY{n+nx}{start}
+		\PY{k}{return} \PY{n+nx}{timeout} \PY{o}{\PYZhy{}} \PY{n+nx}{time}\PY{p}{.}\PY{n+nx}{Duration}\PY{p}{(}\PY{n+nx}{elapsed}\PY{p}{)}
+	\PY{p}{\PYZcb{}}
+
+	\PY{n+nx}{queue} \PY{o}{:=} \PY{n+nb}{make}\PY{p}{(}\PY{k+kd}{chan} \PY{k+kt}{string}\PY{p}{)}
+	\PY{k+kt}{error} \PY{o}{:=} \PY{k+kc}{false}
+
+	\PY{k+kd}{var} \PY{n+nx}{f} \PY{n+nx}{mqtt}\PY{p}{.}\PY{n+nx}{MessageHandler} \PY{p}{=}
+	    \PY{k+kd}{func}\PY{p}{(}\PY{n+nx}{client} \PY{n+nx}{mqtt}\PY{p}{.}\PY{n+nx}{Client}\PY{p}{,} \PY{n+nx}{msg} \PY{n+nx}{mqtt}\PY{p}{.}\PY{n+nx}{Message}\PY{p}{)} \PY{p}{\PYZob{}}
+		\PY{k}{if} \PY{n+nx}{msg}\PY{p}{.}\PY{n+nx}{Topic}\PY{p}{(}\PY{p}{)} \PY{o}{!=} \PY{n+nx}{topic} \PY{p}{\PYZob{}}
+			\PY{k+kt}{error} \PY{p}{=} \PY{k+kc}{true}
+			\PY{k}{return}
+		\PY{p}{\PYZcb{}}
+
+		\PY{n+nx}{queue} \PY{o}{\PYZlt{}\PYZhy{}} \PY{n+nb}{string}\PY{p}{(}\PY{n+nx}{msg}\PY{p}{.}\PY{n+nx}{Payload}\PY{p}{(}\PY{p}{)}\PY{p}{)}
+	\PY{p}{\PYZcb{}}
+
+	\PY{n+nx}{opts} \PY{o}{:=} \PY{n+nx}{mqtt}\PY{p}{.}\PY{n+nx}{NewClientOptions}\PY{p}{(}\PY{p}{)}\PY{p}{.}
+		\PY{n+nx}{AddBroker}\PY{p}{(}\PY{n+nx}{fmt}\PY{p}{.}\PY{n+nx}{Sprintf}\PY{p}{(}\PY{l+s}{\PYZdq{}tcp://\PYZpc{}v:\PYZpc{}v\PYZdq{}}\PY{p}{,} \PY{n+nx}{host}\PY{p}{,} \PY{n+nx}{port}\PY{p}{)}\PY{p}{)}\PY{p}{.}
+		\PY{n+nx}{SetClientID}\PY{p}{(}\PY{n+nx}{client\PYZus{}id}\PY{p}{)}
+
+	\PY{n+nx}{opts}\PY{p}{.}\PY{n+nx}{SetDefaultPublishHandler}\PY{p}{(}\PY{n+nx}{f}\PY{p}{)}
+	\PY{n+nx}{opts}\PY{p}{.}\PY{n+nx}{SetKeepAlive}\PY{p}{(}\PY{n+nx}{timeout}\PY{p}{)}
+	\PY{n+nx}{opts}\PY{p}{.}\PY{n+nx}{SetPingTimeout}\PY{p}{(}\PY{n+nx}{timeout}\PY{p}{)}
+
+	\PY{n+nx}{c} \PY{o}{:=} \PY{n+nx}{mqtt}\PY{p}{.}\PY{n+nx}{NewClient}\PY{p}{(}\PY{n+nx}{opts}\PY{p}{)}
+	\PY{k}{if} \PY{n+nx}{token} \PY{o}{:=} \PY{n+nx}{c}\PY{p}{.}\PY{n+nx}{Connect}\PY{p}{(}\PY{p}{)}\PY{p}{;} \PY{n+nx}{token}\PY{p}{.}\PY{n+nx}{WaitTimeout}\PY{p}{(}\PY{n+nx}{remainingTime}\PY{p}{(}\PY{p}{)}\PY{p}{)} \PY{o}{\PYZam{}\PYZam{}}
+		\PY{n+nx}{token}\PY{p}{.}\PY{n+nx}{Error}\PY{p}{(}\PY{p}{)} \PY{o}{!=} \PY{k+kc}{nil} \PY{p}{\PYZob{}}
+		\PY{n+nx}{fmt}\PY{p}{.}\PY{n+nx}{Println}\PY{p}{(}\PY{l+s}{\PYZdq{}Error connect:\PYZdq{}}\PY{p}{,} \PY{n+nx}{token}\PY{p}{.}\PY{n+nx}{Error}\PY{p}{(}\PY{p}{)}\PY{p}{)}
+		\PY{k}{return} \PY{k+kc}{false}
+	\PY{p}{\PYZcb{}}
+
+	\PY{k}{defer} \PY{n+nx}{c}\PY{p}{.}\PY{n+nx}{Disconnect}\PY{p}{(}\PY{l+m+mi}{0}\PY{p}{)}
+
+	\PY{k}{if} \PY{n+nx}{token} \PY{o}{:=} \PY{n+nx}{c}\PY{p}{.}\PY{n+nx}{Subscribe}\PY{p}{(}\PY{n+nx}{topic}\PY{p}{,} \PY{l+m+mi}{2}\PY{p}{,} \PY{k+kc}{nil}\PY{p}{)}\PY{p}{;} \PY{n+nx}{token}\PY{p}{.}\PY{n+nx}{WaitTimeout}\PY{p}{(}\PY{n+nx}{remainingTime}\PY{p}{(}\PY{p}{)}\PY{p}{)} \PY{o}{\PYZam{}\PYZam{}}
+		\PY{n+nx}{token}\PY{p}{.}\PY{n+nx}{Error}\PY{p}{(}\PY{p}{)} \PY{o}{!=} \PY{k+kc}{nil} \PY{p}{\PYZob{}}
+		\PY{n+nx}{fmt}\PY{p}{.}\PY{n+nx}{Println}\PY{p}{(}\PY{l+s}{\PYZdq{}Error subscribe:\PYZdq{}}\PY{p}{,} \PY{n+nx}{token}\PY{p}{.}\PY{n+nx}{Error}\PY{p}{(}\PY{p}{)}\PY{p}{)}
+		\PY{k}{return} \PY{k+kc}{false}
+	\PY{p}{\PYZcb{}}
+
+	\PY{k}{defer} \PY{n+nx}{c}\PY{p}{.}\PY{n+nx}{Unsubscribe}\PY{p}{(}\PY{n+nx}{topic}\PY{p}{)}
+
+	\PY{n+nx}{text} \PY{o}{:=} \PY{n+nx}{fmt}\PY{p}{.}\PY{n+nx}{Sprintf}\PY{p}{(}\PY{l+s}{\PYZdq{}hello from control plane\PYZdq{}}\PY{p}{)}
+	\PY{k}{if} \PY{n+nx}{token} \PY{o}{:=} \PY{n+nx}{c}\PY{p}{.}\PY{n+nx}{Publish}\PY{p}{(}\PY{n+nx}{topic}\PY{p}{,} \PY{l+m+mi}{2}\PY{p}{,} \PY{k+kc}{false}\PY{p}{,} \PY{n+nx}{text}\PY{p}{)}\PY{p}{;} \PY{n+nx}{token}\PY{p}{.}\PY{n+nx}{WaitTimeout}\PY{p}{(}\PY{n+nx}{remainingTime}\PY{p}{(}\PY{p}{)}\PY{p}{)} \PY{o}{\PYZam{}\PYZam{}}
+		\PY{n+nx}{token}\PY{p}{.}\PY{n+nx}{Error}\PY{p}{(}\PY{p}{)} \PY{o}{!=} \PY{k+kc}{nil} \PY{p}{\PYZob{}}
+		\PY{n+nx}{fmt}\PY{p}{.}\PY{n+nx}{Println}\PY{p}{(}\PY{l+s}{\PYZdq{}Error publish:\PYZdq{}}\PY{p}{,} \PY{n+nx}{token}\PY{p}{.}\PY{n+nx}{Error}\PY{p}{(}\PY{p}{)}\PY{p}{)}
+		\PY{k}{return} \PY{k+kc}{false}
+	\PY{p}{\PYZcb{}}
+
+	\PY{n+nx}{timeout\PYZus{}channel} \PY{o}{:=} \PY{n+nb}{make}\PY{p}{(}\PY{k+kd}{chan} \PY{k+kt}{bool}\PY{p}{,} \PY{l+m+mi}{1}\PY{p}{)}
+
+	\PY{k}{go} \PY{k+kd}{func}\PY{p}{(}\PY{p}{)} \PY{p}{\PYZob{}}
+		\PY{n+nx}{time}\PY{p}{.}\PY{n+nx}{Sleep}\PY{p}{(}\PY{n+nx}{remainingTime}\PY{p}{(}\PY{p}{)}\PY{p}{)}
+		\PY{n+nx}{timeout\PYZus{}channel} \PY{o}{\PYZlt{}\PYZhy{}} \PY{k+kc}{true}
+	\PY{p}{\PYZcb{}}\PY{p}{(}\PY{p}{)}
+
+	\PY{k}{select} \PY{p}{\PYZob{}}
+	\PY{k}{case} \PY{n+nx}{message} \PY{o}{:=} \PY{o}{\PYZlt{}\PYZhy{}}\PY{n+nx}{queue}\PY{p}{:}
+		\PY{k}{if} \PY{k+kt}{error} \PY{p}{\PYZob{}}
+			\PY{k}{return} \PY{k+kc}{false}
+		\PY{p}{\PYZcb{}}
+
+		\PY{k}{return} \PY{n+nx}{message} \PY{o}{==} \PY{n+nx}{text}
+	\PY{k}{case} \PY{o}{\PYZlt{}\PYZhy{}}\PY{n+nx}{timeout\PYZus{}channel}\PY{p}{:}
+		\PY{k}{return} \PY{k+kc}{false}
+	\PY{p}{\PYZcb{}}
+\PY{p}{\PYZcb{}}
+\end{Verbatim}

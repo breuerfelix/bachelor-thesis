@@ -1,0 +1,17 @@
+\begin{Verbatim}[commandchars=\\\{\},numbers=left,firstnumber=1,stepnumber=1,frame=single]
+\PY{n+nt}{clusters}\PY{p}{:}
+\PY{p+pIndicator}{\PYZhy{}} \PY{n+nt}{name}\PY{p}{:} \PY{l+lScalar+lScalarPlain}{hivemq}
+  \PY{n+nt}{connect\PYZus{}timeout}\PY{p}{:} \PY{l+lScalar+lScalarPlain}{0.25s}
+  \PY{n+nt}{type}\PY{p}{:} \PY{l+lScalar+lScalarPlain}{STRICT\PYZus{}DNS}
+  \PY{n+nt}{dns\PYZus{}lookup\PYZus{}family}\PY{p}{:} \PY{l+lScalar+lScalarPlain}{v4\PYZus{}only}
+  \PY{n+nt}{lb\PYZus{}policy}\PY{p}{:} \PY{l+lScalar+lScalarPlain}{round\PYZus{}robin}
+  \PY{n+nt}{load\PYZus{}assignment}\PY{p}{:}
+    \PY{n+nt}{cluster\PYZus{}name}\PY{p}{:} \PY{l+lScalar+lScalarPlain}{hivemq}
+    \PY{n+nt}{endpoints}\PY{p}{:}
+    \PY{p+pIndicator}{\PYZhy{}} \PY{n+nt}{lb\PYZus{}endpoints}\PY{p}{:}
+      \PY{p+pIndicator}{\PYZhy{}} \PY{n+nt}{endpoint}\PY{p}{:}
+          \PY{n+nt}{address}\PY{p}{:}
+            \PY{n+nt}{socket\PYZus{}address}\PY{p}{:}
+              \PY{n+nt}{address}\PY{p}{:} \PY{l+lScalar+lScalarPlain}{example.cluster.internal}
+              \PY{n+nt}{port\PYZus{}value}\PY{p}{:} \PY{l+lScalar+lScalarPlain}{1883}
+\end{Verbatim}
